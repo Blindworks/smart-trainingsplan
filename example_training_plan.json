@@ -1,0 +1,76 @@
+{
+  "trainings": [
+    {
+      "name": "Intervalltraining",
+      "description": "5x1000m Intervalle mit 3min Pause zwischen den Wiederholungen. Fokus auf VO2max Verbesserung.",
+      "date": "2024-01-15",
+      "type": "speed",
+      "intensity": "high",
+      "startTime": "18:00",
+      "duration": 90
+    },
+    {
+      "name": "Grundlagenausdauer",
+      "description": "Lockerer 10km Lauf im GA1-Bereich. Sprechtempo einhalten.",
+      "date": "2024-01-17",
+      "type": "endurance",
+      "intensity": "low",
+      "startTime": "07:00",
+      "duration": 60
+    },
+    {
+      "name": "Tempotraining",
+      "description": "3x3000m im Wettkampftempo mit 5min Trabpause",
+      "date": "2024-01-19",
+      "type": "tempo",
+      "intensity": "high",
+      "startTime": "17:30",
+      "duration": 75
+    },
+    {
+      "name": "Regenerationslauf",
+      "description": "Entspannter 5km Lauf zur aktiven Erholung",
+      "date": "2024-01-20",
+      "type": "recovery",
+      "intensity": "low",
+      "startTime": "08:00",
+      "duration": 30
+    },
+    {
+      "name": "Fahrtspiel",
+      "description": "45min Fahrtspiel mit wechselnden Tempoabschnitten im Gelände",
+      "date": "2024-01-22",
+      "type": "fartlek",
+      "intensity": "medium",
+      "startTime": "18:30",
+      "duration": 45
+    },
+    {
+      "name": "Langer Lauf",
+      "description": "20km Grundlagenausdauerlauf. Gleichmäßiges Tempo über die gesamte Distanz.",
+      "date": "2024-01-24",
+      "type": "long_run",
+      "intensity": "medium",
+      "startTime": "09:00",
+      "duration": 120
+    },
+    {
+      "name": "Krafttraining",
+      "description": "Funktionelles Krafttraining für Läufer: Squats, Lunges, Planks, einbeinige Übungen",
+      "date": "2024-01-26",
+      "type": "strength",
+      "intensity": "medium",
+      "startTime": "19:00",
+      "duration": 45
+    },
+    {
+      "name": "Steigerungsläufe",
+      "description": "10x100m Steigerungsläufe mit Trabpausen. Fokus auf Lauftechnik.",
+      "date": "2024-01-29",
+      "type": "technique",
+      "intensity": "medium",
+      "startTime": "17:00",
+      "duration": 40
+    }
+  ]
+}

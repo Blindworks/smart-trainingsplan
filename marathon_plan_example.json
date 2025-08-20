@@ -1,0 +1,135 @@
+{
+  "marathon_plan": {
+    "title": "Marathon-Trainingsplan",
+    "target_time": "3:00 Stunden",
+    "prerequisites": "Halbmarathon in 1:33 oder Marathon in 3:15 h",
+    "long_run_requirement": "Steigerungsläufe",
+    "pace_targets": {
+      "La_DL": "5:19 min/km",
+      "Lo_DL": "4:36 min/km",
+      "MRT": "4:15 min/km",
+      "2000m": "8:07 min",
+      "1000m": "3:52 min",
+      "400m": "1:29 min"
+    },
+    "weeks": [
+      {
+        "week": 1,
+        "weekly_volume": "74%",
+        "total_km": "78 km",
+        "schedule": {
+          "monday": {
+            "workout": "12 km langsamer DL, GA1",
+            "intensity": "70%"
+          },
+          "tuesday": {
+            "workout": "10 km lockerer DL, GA2",
+            "intensity": "80%"
+          },
+          "wednesday": {
+            "workout": "Krafttraining",
+            "intensity": "65%"
+          },
+          "thursday": {
+            "workout": "1-2-3-2-1 km Fahrtspiel, GA2",
+            "intensity": "80%"
+          },
+          "friday": {
+            "workout": "10 km langsamer DL, RECOM",
+            "intensity": "70%"
+          },
+          "saturday": {
+            "workout": "2 h Radfahren, RECOM",
+            "intensity": "65%"
+          },
+          "sunday": {
+            "workout": "32 km langsamer DL, GA1",
+            "intensity": "70%"
+          }
+        }
+      },
+      {
+        "week": 2,
+        "weekly_volume": "77%",
+        "total_km": "85 km",
+        "schedule": {
+          "monday": {
+            "workout": "1 h Schwimmen, RECOM, Krafttraining",
+            "intensity": "65%"
+          },
+          "tuesday": {
+            "workout": "1-2-3-2-1 km Fahrtspiel, GA2",
+            "intensity": "85%"
+          },
+          "wednesday": {
+            "workout": "12 km langsamer DL, GA1",
+            "intensity": "70%"
+          },
+          "thursday": {
+            "workout": "15 km langsamer DL, GA1",
+            "intensity": "75%"
+          },
+          "friday": {
+            "workout": "12 km langsamer DL, GA1",
+            "intensity": "70%"
+          },
+          "saturday": {
+            "workout": "10-km-Wettkampf",
+            "intensity": "95%"
+          },
+          "sunday": {
+            "workout": "12 km langsamer DL, GA1",
+            "intensity": "70%"
+          }
+        }
+      },
+      {
+        "week": 3,
+        "weekly_volume": "78%",
+        "total_km": "90 km",
+        "schedule": {
+          "monday": {
+            "workout": "Krafttraining",
+            "intensity": "0%"
+          },
+          "tuesday": {
+            "workout": "12 km langsamer DL, GA1",
+            "intensity": "75%"
+          },
+          "wednesday": {
+            "workout": "15 km lockerer DL, GA2",
+            "intensity": "80%"
+          },
+          "thursday": {
+            "workout": "2 h Radfahren, RECOM",
+            "intensity": "65%"
+          },
+          "friday": {
+            "workout": "10 x 400 m Intervalle + 4 x 600 GLM",
+            "intensity": "90%"
+          },
+          "saturday": {
+            "workout": "15 km langsamer DL, GA1",
+            "intensity": "70%"
+          },
+          "sunday": {
+            "workout": "35 km la. DL, GA1, 75%, letztes Drittel GA2, 80%",
+            "intensity": "75%"
+          }
+        }
+      }
+    ]
+  },
+  "training_abbreviations": {
+    "DL": "Dauerlauf",
+    "GA1": "Grundlagenausdauer 1",
+    "GA2": "Grundlagenausdauer 2", 
+    "SB": "Schnelligkeitsbereich",
+    "EB": "Entwicklungsbereich",
+    "RECOM": "Recovery/Regeneration",
+    "MRT": "Marathon-Renntempo",
+    "HM-RT": "Halbmarathon-Renntempo",
+    "La_DL": "Langsamer Dauerlauf",
+    "Lo_DL": "Lockerer Dauerlauf"
+  }
+}
