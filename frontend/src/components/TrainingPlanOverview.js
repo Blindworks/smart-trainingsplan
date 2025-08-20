@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Badge, Button, Alert, Spinner, Form, ButtonGroup } from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, Row, Col, Badge, Button, Alert, Spinner, Form, ButtonGroup, Modal } from 'react-bootstrap';
 import { trainingPlanAPI, trainingAPI, competitionAPI } from '../services/api';
 
 const TrainingPlanOverview = () => {
@@ -11,6 +11,13 @@ const TrainingPlanOverview = () => {
   const [showEmptyDays, setShowEmptyDays] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // FIT File Upload States
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedUploadDate, setSelectedUploadDate] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedTrainings, setUploadedTrainings] = useState({});
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     loadCompetitions();
@@ -206,6 +213,77 @@ const TrainingPlanOverview = () => {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  };
+
+  // FIT File Upload Funktionen
+  const handleUploadClick = (date) => {
+    setSelectedUploadDate(date);
+    setShowUploadModal(true);
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.fit')) {
+      setError('Bitte wähle eine .FIT-Datei aus');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('date', formatDateForAPI(selectedUploadDate));
+
+      // API-Call zum Backend
+      const response = await trainingAPI.uploadFitFile(formData);
+      const trainingData = response.data;
+      
+      // Konvertiere Backend-Daten in Frontend-Format
+      const fitData = {
+        distance: trainingData.distanceKm || 0,
+        duration: trainingData.durationSeconds || 0,
+        averageHeartRate: trainingData.averageHeartRate || 0,
+        maxHeartRate: trainingData.maxHeartRate || 0,
+        averagePace: trainingData.averagePaceSecondsPerKm || 0,
+        calories: trainingData.calories || 0,
+        elevationGain: trainingData.elevationGainM || 0,
+        filename: trainingData.originalFilename || file.name
+      };
+
+      setUploadedTrainings(prev => ({
+        ...prev,
+        [formatDateForAPI(selectedUploadDate)]: fitData
+      }));
+
+      setShowUploadModal(false);
+      setError('');
+    } catch (error) {
+      setError('Fehler beim Hochladen der .FIT-Datei');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const formatDuration = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatPace = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')} min/km`;
   };
 
   // Farben für verschiedene Wettkämpfe
@@ -427,6 +505,16 @@ const TrainingPlanOverview = () => {
                               {day.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
                             </div>
                             {isToday && <Badge bg="primary" className="today-badge">Heute</Badge>}
+                            
+                            <Button 
+                              variant="outline-success" 
+                              size="sm" 
+                              className="upload-btn mt-2"
+                              onClick={() => handleUploadClick(day)}
+                              title="Training hochladen (.FIT)"
+                            >
+                              📊 Upload
+                            </Button>
                           </div>
                           
                           <div className="day-trainings-horizontal">
@@ -467,6 +555,49 @@ const TrainingPlanOverview = () => {
                                     </div>
                                   </div>
                                 ))}
+                                
+                                {/* FIT File Statistiken anzeigen */}
+                                {uploadedTrainings[dateString] && (
+                                  <div className="fit-stats-card">
+                                    <div className="fit-header">
+                                      <div className="fit-title">📊 Durchgeführt</div>
+                                      <Badge bg="success" className="completed-badge">
+                                        Abgeschlossen
+                                      </Badge>
+                                    </div>
+                                    
+                                    <div className="fit-stats-grid">
+                                      <div className="stat-item">
+                                        <div className="stat-value">{uploadedTrainings[dateString].distance} km</div>
+                                        <div className="stat-label">Distanz</div>
+                                      </div>
+                                      <div className="stat-item">
+                                        <div className="stat-value">{formatDuration(uploadedTrainings[dateString].duration)}</div>
+                                        <div className="stat-label">Zeit</div>
+                                      </div>
+                                      <div className="stat-item">
+                                        <div className="stat-value">{formatPace(uploadedTrainings[dateString].averagePace)}</div>
+                                        <div className="stat-label">⌀ Pace</div>
+                                      </div>
+                                      <div className="stat-item">
+                                        <div className="stat-value">{uploadedTrainings[dateString].averageHeartRate}</div>
+                                        <div className="stat-label">⌀ HF</div>
+                                      </div>
+                                      <div className="stat-item">
+                                        <div className="stat-value">{uploadedTrainings[dateString].calories}</div>
+                                        <div className="stat-label">kcal</div>
+                                      </div>
+                                      <div className="stat-item">
+                                        <div className="stat-value">{uploadedTrainings[dateString].elevationGain}m</div>
+                                        <div className="stat-label">Höhenmeter</div>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="fit-filename">
+                                      📁 {uploadedTrainings[dateString].filename}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
@@ -479,6 +610,50 @@ const TrainingPlanOverview = () => {
           </Card>
         </div>
       )}
+      
+      {/* Upload Modal */}
+      <Modal show={showUploadModal} onHide={() => setShowUploadModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Training hochladen</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedUploadDate && (
+            <div className="mb-3">
+              <p><strong>Datum:</strong> {selectedUploadDate.toLocaleDateString('de-DE', { 
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+              })}</p>
+            </div>
+          )}
+          
+          <Form.Group>
+            <Form.Label>
+              <strong>.FIT-Datei auswählen</strong>
+              <small className="text-muted d-block">
+                Unterstützte Formate: Garmin, Polar, Suunto (.fit Dateien)
+              </small>
+            </Form.Label>
+            <Form.Control
+              type="file"
+              accept=".fit"
+              onChange={handleFileUpload}
+              disabled={uploading}
+              ref={fileInputRef}
+            />
+          </Form.Group>
+          
+          {uploading && (
+            <div className="text-center mt-3">
+              <Spinner animation="border" size="sm" className="me-2" />
+              <span>Datei wird verarbeitet...</span>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowUploadModal(false)} disabled={uploading}>
+            Abbrechen
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

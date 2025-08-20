@@ -52,6 +52,12 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
+        <!-- Garmin FIT SDK -->
+        <dependency>
+            <groupId>com.garmin</groupId>
+            <artifactId>fit</artifactId>
+            <version>21.176.0</version>
+        </dependency>
     </dependencies>
 
     <build>

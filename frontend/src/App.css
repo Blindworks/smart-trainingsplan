@@ -408,14 +408,106 @@
   backdrop-filter: blur(4px);
 }
 
+/* FIT File Upload & Statistics Styles */
+.upload-btn {
+  min-width: 80px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.fit-stats-card {
+  flex: 0 0 320px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: 1px solid #28a745;
+  border-radius: 8px;
+  padding: 15px;
+  color: white;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.fit-stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.3);
+}
+
+.fit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.fit-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: white;
+}
+
+.completed-badge {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  color: #28a745 !important;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.fit-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.stat-item {
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 8px 4px;
+  backdrop-filter: blur(4px);
+}
+
+.stat-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.fit-filename {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  text-align: center;
+  padding: 6px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+/* Day label adjustments for upload button */
+.day-label {
+  flex: 0 0 180px !important;
+}
+
 /* Responsive adjustments for row view */
 @media (max-width: 992px) {
   .day-label {
-    flex: 0 0 120px;
+    flex: 0 0 140px !important;
   }
   
   .training-card {
     flex: 0 0 240px;
+  }
+  
+  .fit-stats-card {
+    flex: 0 0 280px;
   }
 }
 

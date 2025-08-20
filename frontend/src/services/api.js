@@ -49,7 +49,15 @@ export const trainingAPI = {
   create: (training) => api.post('/trainings', training),
   update: (id, training) => api.put(`/trainings/${id}`, training),
   updateFeedback: (id, feedback) => api.put(`/trainings/${id}/feedback`, feedback),
-  delete: (id) => api.delete(`/trainings/${id}`)
+  delete: (id) => api.delete(`/trainings/${id}`),
+  uploadFitFile: (formData) => api.post('/completed-trainings/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
+  getCompletedTrainingsByDate: (date) => api.get(`/completed-trainings/by-date`, {
+    params: { date }
+  })
 };
 
 export default api;
