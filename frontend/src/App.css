@@ -1,5 +1,5 @@
 .App {
-  text-align: center;
+  text-align: left;
 }
 
 .App-logo {
@@ -29,6 +29,97 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Training Plan Overview Styles */
+.training-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.training-list .card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border-left: 4px solid transparent;
+}
+
+.training-list .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.training-list .card.border-left {
+  border-left-color: #007bff;
+}
+
+.plan-list {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #e9ecef;
+}
+
+.competition-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.competition-card:hover {
+  transform: translateY(-3px);
+}
+
+.intensity-high {
+  border-left-color: #dc3545 !important;
+}
+
+.intensity-medium {
+  border-left-color: #ffc107 !important;
+}
+
+.intensity-low {
+  border-left-color: #17a2b8 !important;
+}
+
+.intensity-recovery {
+  border-left-color: #28a745 !important;
+}
+
+.intensity-rest {
+  border-left-color: #6c757d !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .training-list {
+    max-height: 300px;
+  }
+  
+  .plan-list {
+    max-height: 150px;
+  }
+}
+
+/* Custom badge styles */
+.badge.bg-outline-secondary {
+  background-color: transparent !important;
+  border: 1px solid #6c757d;
+  color: #6c757d;
+}
+
+/* Animation for loading states */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

@@ -41,6 +41,11 @@ export const trainingAPI = {
   getMixed: (competitionId, planIds, date) => api.get(`/trainings/competition/${competitionId}/mixed`, {
     params: { planIds, date }
   }),
+  getOverview: (competitionIds, startDate, endDate) => api.post('/trainings/overview', {
+    competitionIds,
+    startDate,
+    endDate
+  }),
   create: (training) => api.post('/trainings', training),
   update: (id, training) => api.put(`/trainings/${id}`, training),
   updateFeedback: (id, feedback) => api.put(`/trainings/${id}/feedback`, feedback),
