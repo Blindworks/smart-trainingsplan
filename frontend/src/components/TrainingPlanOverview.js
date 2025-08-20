@@ -80,7 +80,7 @@ const TrainingPlanOverview = () => {
         // Lade Trainings für jeden Tag der Woche
         const weekDays = getWeekDays(weekStart);
         for (const day of weekDays) {
-          const dateString = day.toISOString().split('T')[0];
+          const dateString = formatDateForAPI(day);
           try {
             const trainingsResponse = await trainingAPI.getByCompetitionAndDate(competitionId, dateString);
             weekTrainingsData[competitionId][dateString] = trainingsResponse.data;
@@ -198,6 +198,14 @@ const TrainingPlanOverview = () => {
   const isToday = (date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
+  };
+
+  // Lokale Datumsformatierung ohne Timezone-Probleme
+  const formatDateForAPI = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   // Farben für verschiedene Wettkämpfe
@@ -379,7 +387,7 @@ const TrainingPlanOverview = () => {
                     .filter(day => {
                       if (showEmptyDays) return true;
                       // Prüfe ob IRGENDEIN Wettkampf an diesem Tag Trainings hat
-                      const dateString = day.toISOString().split('T')[0];
+                      const dateString = formatDateForAPI(day);
                       return selectedCompetitions.some(competitionId => {
                         const competitionWeekTrainings = weekTrainings[competitionId] || {};
                         const dayTrainings = competitionWeekTrainings[dateString] || [];
@@ -389,7 +397,7 @@ const TrainingPlanOverview = () => {
                     .map((day) => {
                       const dayName = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'][day.getDay() === 0 ? 6 : day.getDay() - 1];
                       const dayShort = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][day.getDay() === 0 ? 6 : day.getDay() - 1];
-                      const dateString = day.toISOString().split('T')[0];
+                      const dateString = formatDateForAPI(day);
                       const isToday = day.toDateString() === new Date().toDateString();
                       
                       // Sammle alle Trainings aller Wettkämpfe für diesen Tag
