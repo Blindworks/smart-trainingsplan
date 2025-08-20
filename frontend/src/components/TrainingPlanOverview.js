@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Badge, Button, Alert, Spinner, Form } from 'react-bootstrap';
+import { Card, Row, Col, Badge, Button, Alert, Spinner, Form, ButtonGroup } from 'react-bootstrap';
 import { trainingPlanAPI, trainingAPI, competitionAPI } from '../services/api';
 
 const TrainingPlanOverview = () => {
   const [competitions, setCompetitions] = useState([]);
   const [selectedCompetitions, setSelectedCompetitions] = useState([]);
   const [trainingPlans, setTrainingPlans] = useState({});
-  const [trainings, setTrainings] = useState({});
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [weekTrainings, setWeekTrainings] = useState({});
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [showEmptyDays, setShowEmptyDays] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,7 +20,35 @@ const TrainingPlanOverview = () => {
     if (selectedCompetitions.length > 0) {
       loadTrainingPlansAndTrainings();
     }
-  }, [selectedCompetitions, selectedDate]);
+  }, [selectedCompetitions, currentDate]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.target.tagName === 'INPUT') return; // Ignore if in input field
+      
+      switch(event.key) {
+        case 'ArrowLeft':
+          event.preventDefault();
+          goToPreviousWeek();
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          goToNextWeek();
+          break;
+        case 't':
+        case 'T':
+          event.preventDefault();
+          goToToday();
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [currentDate]);
 
   const loadCompetitions = async () => {
     try {
@@ -36,25 +65,34 @@ const TrainingPlanOverview = () => {
     
     try {
       const plansData = {};
-      const trainingsData = {};
+      const weekTrainingsData = {};
+      const weekStart = getWeekStart(currentDate);
+      const weekEnd = getWeekEnd(currentDate);
 
       for (const competitionId of selectedCompetitions) {
         // Lade Trainingspläne für jeden Wettkampf
         const plansResponse = await trainingPlanAPI.getByCompetition(competitionId);
         plansData[competitionId] = plansResponse.data;
 
-        // Lade Trainings für das ausgewählte Datum
-        try {
-          const trainingsResponse = await trainingAPI.getByCompetitionAndDate(competitionId, selectedDate);
-          trainingsData[competitionId] = trainingsResponse.data;
-        } catch (err) {
-          // Keine Trainings für dieses Datum
-          trainingsData[competitionId] = [];
+        // Lade Trainings für die ganze Woche
+        weekTrainingsData[competitionId] = {};
+        
+        // Lade Trainings für jeden Tag der Woche
+        const weekDays = getWeekDays(weekStart);
+        for (const day of weekDays) {
+          const dateString = day.toISOString().split('T')[0];
+          try {
+            const trainingsResponse = await trainingAPI.getByCompetitionAndDate(competitionId, dateString);
+            weekTrainingsData[competitionId][dateString] = trainingsResponse.data;
+          } catch (err) {
+            // Keine Trainings für dieses Datum
+            weekTrainingsData[competitionId][dateString] = [];
+          }
         }
       }
 
       setTrainingPlans(plansData);
-      setTrainings(trainingsData);
+      setWeekTrainings(weekTrainingsData);
     } catch (error) {
       setError('Fehler beim Laden der Trainingsdaten');
     } finally {
@@ -68,6 +106,115 @@ const TrainingPlanOverview = () => {
         ? prev.filter(id => id !== competitionId)
         : [...prev, competitionId]
     );
+  };
+
+  // Navigation zwischen Wochen
+  const goToPreviousWeek = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() - 7);
+    setCurrentDate(newDate);
+  };
+
+  const goToNextWeek = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() + 7);
+    setCurrentDate(newDate);
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  // Wochen-Hilfsfunktionen
+  const getWeekStart = (date) => {
+    const start = new Date(date);
+    const day = start.getDay();
+    const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Montag als Wochenstart
+    start.setDate(diff);
+    start.setHours(0, 0, 0, 0);
+    return start;
+  };
+
+  const getWeekEnd = (date) => {
+    const end = new Date(getWeekStart(date));
+    end.setDate(end.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    return end;
+  };
+
+  const getWeekDays = (weekStart) => {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(weekStart);
+      day.setDate(weekStart.getDate() + i);
+      days.push(day);
+    }
+    return days;
+  };
+
+  const getWeekNumber = (date) => {
+    const start = new Date(date.getFullYear(), 0, 1);
+    const days = Math.floor((date - start) / (24 * 60 * 60 * 1000));
+    return Math.ceil((days + start.getDay() + 1) / 7);
+  };
+
+  // Datum-Formatierung
+  const formatDateForDisplay = (date) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const dateString = date.toDateString();
+    const todayString = today.toDateString();
+    const yesterdayString = yesterday.toDateString();
+    const tomorrowString = tomorrow.toDateString();
+
+    if (dateString === todayString) {
+      return 'Heute';
+    } else if (dateString === yesterdayString) {
+      return 'Gestern';
+    } else if (dateString === tomorrowString) {
+      return 'Morgen';
+    } else {
+      return date.toLocaleDateString('de-DE', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    }
+  };
+
+  const formatDateShort = (date) => {
+    return date.toLocaleDateString('de-DE', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const isToday = (date) => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
+  // Farben für verschiedene Wettkämpfe
+  const getCompetitionColor = (competitionId) => {
+    const colors = [
+      '#007bff', // Blau
+      '#28a745', // Grün  
+      '#dc3545', // Rot
+      '#ffc107', // Gelb
+      '#6f42c1', // Lila
+      '#fd7e14', // Orange
+      '#20c997', // Teal
+      '#e83e8c'  // Pink
+    ];
+    
+    const index = selectedCompetitions.indexOf(competitionId);
+    return colors[index % colors.length];
   };
 
   const formatTrainingType = (type) => {
@@ -98,12 +245,78 @@ const TrainingPlanOverview = () => {
 
   return (
     <div>
-      <h2 className="mb-4">Trainingsplan Übersicht</h2>
-      
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="mb-0">Trainingsplan Übersicht</h2>
+          <small className="text-muted">
+            Navigiere mit ← → zwischen Wochen oder drücke 'T' für diese Woche
+          </small>
+        </div>
+        {!isToday(currentDate) && (
+          <Button variant="outline-primary" size="sm" onClick={goToToday}>
+            Zu Heute springen (T)
+          </Button>
+        )}
+      </div>
+
+      {/* Wochen-Navigation */}
       <Card className="mb-4">
         <Card.Body>
-          <h5>Wettkämpfe auswählen</h5>
-          <Form className="mb-3">
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <ButtonGroup className="navigation-buttons">
+              <Button variant="outline-secondary" onClick={goToPreviousWeek}>
+                ← Vorherige Woche
+              </Button>
+              <Button variant="outline-secondary" onClick={goToNextWeek}>
+                Nächste Woche →
+              </Button>
+            </ButtonGroup>
+            
+            <div className="text-center mx-3">
+              <h4 className={`mb-0 ${isToday(currentDate) ? 'text-primary' : ''}`}>
+                KW {getWeekNumber(currentDate)} - {currentDate.getFullYear()}
+              </h4>
+              <small className="text-muted">
+                {getWeekStart(currentDate).toLocaleDateString('de-DE')} - {getWeekEnd(currentDate).toLocaleDateString('de-DE')}
+              </small>
+            </div>
+            
+            <div className="d-flex gap-2">
+              {/* Schnell-Navigation für benachbarte Wochen */}
+              {[-2, -1, 1, 2].map(offset => {
+                const date = new Date(currentDate);
+                date.setDate(date.getDate() + (offset * 7));
+                return (
+                  <Button
+                    key={offset}
+                    variant="outline-light"
+                    size="sm"
+                    className="quick-nav-btn"
+                    onClick={() => setCurrentDate(date)}
+                    title={`KW ${getWeekNumber(date)}`}
+                  >
+                    KW {getWeekNumber(date)}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          <hr />
+          
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="mb-0">Wettkämpfe auswählen</h6>
+            <Form.Check
+              type="switch"
+              id="show-empty-days"
+              label="Leere Tage anzeigen"
+              checked={showEmptyDays}
+              onChange={(e) => setShowEmptyDays(e.target.checked)}
+              className="ms-3"
+            />
+          </div>
+          
+          <Form>
             {competitions.map(competition => (
               <Form.Check
                 key={competition.id}
@@ -116,16 +329,6 @@ const TrainingPlanOverview = () => {
               />
             ))}
           </Form>
-          
-          <Form.Group className="mb-3">
-            <Form.Label>Datum auswählen</Form.Label>
-            <Form.Control
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              style={{ maxWidth: '200px' }}
-            />
-          </Form.Group>
         </Card.Body>
       </Card>
 
@@ -145,99 +348,128 @@ const TrainingPlanOverview = () => {
       )}
 
       {selectedCompetitions.length > 0 && !loading && (
-        <Row>
-          {selectedCompetitions.map(competitionId => {
-            const competition = competitions.find(c => c.id === competitionId);
-            const plans = trainingPlans[competitionId] || [];
-            const competitionTrainings = trainings[competitionId] || [];
-
-            return (
-              <Col key={competitionId} md={6} lg={4} className="mb-4">
-                <Card className="h-100">
-                  <Card.Header className="bg-primary text-white">
-                    <h5 className="mb-0">{competition?.name}</h5>
-                    <small>{new Date(competition?.date).toLocaleDateString('de-DE')}</small>
-                  </Card.Header>
-                  <Card.Body>
-                    <div className="mb-3">
-                      <Badge bg="info" className="me-2">
-                        {plans.length} Trainingsplan{plans.length !== 1 ? 'e' : ''}
-                      </Badge>
-                      <Badge bg="success">
-                        {competitionTrainings.length} Training{competitionTrainings.length !== 1 ? 's' : ''}
-                      </Badge>
-                    </div>
-
-                    <h6>Trainings am {new Date(selectedDate).toLocaleDateString('de-DE')}:</h6>
-                    
-                    {competitionTrainings.length === 0 ? (
-                      <Alert variant="light" className="small">
-                        Keine Trainings für dieses Datum
-                      </Alert>
-                    ) : (
-                      <div className="training-list">
-                        {competitionTrainings.map(training => (
-                          <Card key={training.id} className="mb-2 border-left">
-                            <Card.Body className="p-3">
-                              <div className="d-flex justify-content-between align-items-start mb-2">
-                                <strong className="text-truncate me-2">{training.name}</strong>
-                                <Badge bg={getIntensityColor(training.intensityLevel)}>
-                                  {training.intensityLevel}
-                                </Badge>
-                              </div>
-                              
-                              <p className="small text-muted mb-2">
-                                {formatTrainingType(training.trainingType)}
-                                {training.durationMinutes && (
-                                  <span> • {training.durationMinutes} Min.</span>
-                                )}
-                              </p>
-                              
-                              <p className="small mb-0 text-truncate">
-                                {training.description}
-                              </p>
-                              
-                              {training.trainingPlan && (
-                                <small className="text-muted">
-                                  Plan: {training.trainingPlan.name}
-                                </small>
-                              )}
-                            </Card.Body>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-
-                    <hr />
-                    
-                    <h6>Verfügbare Trainingspläne:</h6>
-                    {plans.length === 0 ? (
-                      <Alert variant="light" className="small">
-                        Keine Trainingspläne vorhanden
-                      </Alert>
-                    ) : (
-                      <div className="plan-list">
-                        {plans.map(plan => (
-                          <div key={plan.id} className="mb-2">
-                            <div className="d-flex justify-content-between align-items-center">
-                              <span className="small font-weight-bold">{plan.name}</span>
-                              <Badge bg="outline-secondary" className="small">
-                                {new Date(plan.uploadDate).toLocaleDateString('de-DE')}
-                              </Badge>
+        <div className="week-unified-view">
+          <Card className="mb-4">
+            <Card.Header className="bg-secondary text-white">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 className="mb-0">Trainingsplan Vergleich</h5>
+                  <small>
+                    {selectedCompetitions.map(competitionId => {
+                      const competition = competitions.find(c => c.id === competitionId);
+                      return competition?.name;
+                    }).join(' • ')}
+                  </small>
+                </div>
+                <div>
+                  <Badge bg="light" text="dark">
+                    {selectedCompetitions.length} Wettkampf{selectedCompetitions.length !== 1 ? 'e' : ''}
+                  </Badge>
+                </div>
+              </div>
+            </Card.Header>
+            
+            <Card.Body className="p-3">
+              <div className="daily-rows">
+                {(() => {
+                  const weekStart = getWeekStart(currentDate);
+                  const weekDays = getWeekDays(weekStart);
+                  
+                  return weekDays
+                    .filter(day => {
+                      if (showEmptyDays) return true;
+                      // Prüfe ob IRGENDEIN Wettkampf an diesem Tag Trainings hat
+                      const dateString = day.toISOString().split('T')[0];
+                      return selectedCompetitions.some(competitionId => {
+                        const competitionWeekTrainings = weekTrainings[competitionId] || {};
+                        const dayTrainings = competitionWeekTrainings[dateString] || [];
+                        return dayTrainings.length > 0;
+                      });
+                    })
+                    .map((day) => {
+                      const dayName = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'][day.getDay() === 0 ? 6 : day.getDay() - 1];
+                      const dayShort = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][day.getDay() === 0 ? 6 : day.getDay() - 1];
+                      const dateString = day.toISOString().split('T')[0];
+                      const isToday = day.toDateString() === new Date().toDateString();
+                      
+                      // Sammle alle Trainings aller Wettkämpfe für diesen Tag
+                      const allDayTrainings = [];
+                      selectedCompetitions.forEach(competitionId => {
+                        const competition = competitions.find(c => c.id === competitionId);
+                        const competitionWeekTrainings = weekTrainings[competitionId] || {};
+                        const dayTrainings = competitionWeekTrainings[dateString] || [];
+                        dayTrainings.forEach(training => {
+                          allDayTrainings.push({
+                            ...training,
+                            competitionName: competition?.name,
+                            competitionId: competitionId,
+                            competitionColor: getCompetitionColor(competitionId)
+                          });
+                        });
+                      });
+                      
+                      return (
+                        <div key={dateString} className={`daily-row ${isToday ? 'today' : ''} ${allDayTrainings.length === 0 ? 'empty' : ''}`}>
+                          <div className="day-label">
+                            <div className="day-name">
+                              <strong>{dayName}</strong>
+                              <span className="day-short d-md-none">{dayShort}</span>
                             </div>
-                            {plan.description && (
-                              <p className="small text-muted mb-0">{plan.description}</p>
+                            <div className="day-date">
+                              {day.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
+                            </div>
+                            {isToday && <Badge bg="primary" className="today-badge">Heute</Badge>}
+                          </div>
+                          
+                          <div className="day-trainings-horizontal">
+                            {allDayTrainings.length === 0 ? (
+                              <div className="no-training-placeholder">
+                                <span className="text-muted">Kein Training</span>
+                              </div>
+                            ) : (
+                              <div className="trainings-row">
+                                {allDayTrainings.map((training, index) => (
+                                  <div key={`${training.competitionId}-${training.id}`} 
+                                       className={`training-card intensity-${training.intensityLevel}`}
+                                       style={{ borderLeftColor: training.competitionColor }}>
+                                    <div className="training-header">
+                                      <div className="training-name">{training.name}</div>
+                                      <Badge bg={getIntensityColor(training.intensityLevel)} className="intensity-badge">
+                                        {training.intensityLevel}
+                                      </Badge>
+                                    </div>
+                                    
+                                    <div className="training-details">
+                                      <div className="training-type">
+                                        {formatTrainingType(training.trainingType)}
+                                      </div>
+                                      {training.durationMinutes && (
+                                        <div className="training-duration">
+                                          {training.durationMinutes} Min.
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="training-description" title={training.description}>
+                                      {training.description}
+                                    </div>
+                                    
+                                    <div className="competition-label" style={{ borderColor: training.competitionColor, color: training.competitionColor }}>
+                                      {training.competitionName}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             )}
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
-            );
-          })}
-        </Row>
+                        </div>
+                      );
+                    });
+                })()}
+              </div>
+            </Card.Body>
+          </Card>
+        </div>
       )}
     </div>
   );

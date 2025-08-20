@@ -123,6 +123,348 @@
   }
 }
 
+/* Date Navigation Styles */
+.quick-nav-btn {
+  min-width: 60px;
+  font-size: 0.8rem;
+  border: 1px solid #dee2e6 !important;
+  color: #6c757d !important;
+  transition: all 0.2s ease;
+}
+
+.quick-nav-btn:hover {
+  background-color: #f8f9fa !important;
+  border-color: #adb5bd !important;
+  color: #495057 !important;
+  transform: translateY(-1px);
+}
+
+.quick-nav-btn:active {
+  transform: translateY(0);
+}
+
+.date-navigation-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.date-display {
+  text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.navigation-buttons .btn {
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.navigation-buttons .btn:hover {
+  transform: translateX(2px);
+}
+
+.navigation-buttons .btn:first-child:hover {
+  transform: translateX(-2px);
+}
+
+/* Today indicator */
+.text-primary.today-highlight {
+  position: relative;
+}
+
+.text-primary.today-highlight::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 2px;
+  background-color: #007bff;
+  border-radius: 1px;
+}
+
+/* Button group enhancements */
+.btn-group .btn {
+  border-color: #dee2e6;
+}
+
+.btn-group .btn:hover {
+  z-index: 2;
+  border-color: #adb5bd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Week List View Styles - Row-based Layout */
+.week-list-view {
+  width: 100%;
+}
+
+.daily-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.daily-row {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background-color: #fff;
+  transition: all 0.2s ease;
+  min-height: 80px;
+}
+
+.daily-row:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-color: #adb5bd;
+}
+
+.daily-row.today {
+  border-color: #007bff;
+  background-color: rgba(0, 123, 255, 0.02);
+  box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.1);
+}
+
+.daily-row.empty {
+  opacity: 0.6;
+}
+
+.day-label {
+  flex: 0 0 160px;
+  background-color: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+}
+
+.daily-row.today .day-label {
+  background-color: rgba(0, 123, 255, 0.1);
+  border-right-color: #007bff;
+}
+
+.day-name {
+  font-size: 1rem;
+  color: #495057;
+  margin-bottom: 4px;
+}
+
+.day-name .day-short {
+  display: none;
+}
+
+.day-date {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.today-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 0.7rem;
+}
+
+.day-trainings-horizontal {
+  flex: 1;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+}
+
+.no-training-placeholder {
+  width: 100%;
+  text-align: center;
+  padding: 20px;
+}
+
+.trainings-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  width: 100%;
+  min-height: 50px;
+}
+
+.training-card {
+  flex: 0 0 280px;
+  background-color: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border-left: 4px solid #dee2e6;
+  position: relative;
+}
+
+.training-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.training-card.intensity-high {
+  border-left-color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.03);
+}
+
+.training-card.intensity-medium {
+  border-left-color: #ffc107;
+  background-color: rgba(255, 193, 7, 0.03);
+}
+
+.training-card.intensity-low {
+  border-left-color: #17a2b8;
+  background-color: rgba(23, 162, 184, 0.03);
+}
+
+.training-card.intensity-recovery {
+  border-left-color: #28a745;
+  background-color: rgba(40, 167, 69, 0.03);
+}
+
+.training-card.intensity-rest {
+  border-left-color: #6c757d;
+  background-color: rgba(108, 117, 125, 0.03);
+}
+
+.training-header {
+  display: flex;
+  justify-content: between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.training-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #495057;
+  line-height: 1.3;
+  flex: 1;
+}
+
+.intensity-badge {
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.training-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.training-type {
+  color: #6c757d;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.training-duration {
+  color: #007bff;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.training-description {
+  color: #6c757d;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  margin-bottom: 6px;
+  max-height: 3.9em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.training-plan-ref {
+  font-size: 0.7rem;
+  color: #495057;
+  font-style: italic;
+  border-top: 1px solid #e9ecef;
+  padding-top: 6px;
+  margin-top: 6px;
+}
+
+.competition-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid;
+  background-color: rgba(255, 255, 255, 0.8);
+  margin-top: 6px;
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+
+/* Responsive adjustments for row view */
+@media (max-width: 992px) {
+  .day-label {
+    flex: 0 0 120px;
+  }
+  
+  .training-card {
+    flex: 0 0 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .daily-row {
+    flex-direction: column;
+  }
+  
+  .day-label {
+    flex: none;
+    border-right: none;
+    border-bottom: 1px solid #dee2e6;
+    padding: 12px 15px;
+  }
+  
+  .day-name strong {
+    display: none;
+  }
+  
+  .day-name .day-short {
+    display: inline;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  
+  .day-trainings-horizontal {
+    padding: 12px 15px;
+  }
+  
+  .training-card {
+    flex: 0 0 220px;
+  }
+  
+  .today-badge {
+    top: 8px;
+    right: 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .training-card {
+    flex: 0 0 200px;
+  }
+  
+  .trainings-row {
+    gap: 8px;
+  }
+}
+
 .training-week-container {
   background-color: white;
   border-radius: 8px;
