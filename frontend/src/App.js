@@ -7,6 +7,7 @@ import CompetitionForm from './components/CompetitionForm';
 import TrainingPlanUpload from './components/TrainingPlanUpload';
 import TrainingWeekView from './components/TrainingWeekView';
 import TrainingPlanOverview from './components/TrainingPlanOverview';
+import TrainingCompletion from './components/TrainingCompletion';
 import './App.css';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
             <Route path="/" element={<CompetitionList />} />
             <Route path="/competitions" element={<CompetitionList />} />
             <Route path="/overview" element={<TrainingPlanOverview />} />
+            <Route path="/completion" element={<TrainingCompletion />} />
             <Route path="/competitions/new" element={<CompetitionForm />} />
             <Route path="/competitions/:id/edit" element={<CompetitionForm />} />
             <Route path="/competitions/:id/upload" element={<TrainingPlanUpload />} />

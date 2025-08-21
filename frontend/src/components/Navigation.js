@@ -17,6 +17,9 @@ const Navigation = () => {
           <LinkContainer to="/overview">
             <Nav.Link>Trainingsplan Übersicht</Nav.Link>
           </LinkContainer>
+          <LinkContainer to="/completion">
+            <Nav.Link>Training Fortschritt</Nav.Link>
+          </LinkContainer>
           <LinkContainer to="/competitions/new">
             <Nav.Link>Neuer Wettkampf</Nav.Link>
           </LinkContainer>
