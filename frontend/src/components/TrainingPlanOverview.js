@@ -669,108 +669,185 @@ const TrainingPlanOverview = () => {
       </Modal>
 
       {/* Training Details Modal */}
-      <Modal show={!!showTrainingDetails} onHide={() => setShowTrainingDetails(null)} centered size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Training Details</Modal.Title>
+      <Modal show={!!showTrainingDetails} onHide={() => setShowTrainingDetails(null)} centered size="xl">
+        <Modal.Header closeButton className="bg-primary text-white">
+          <Modal.Title className="d-flex align-items-center">
+            <span className="me-2">🏃‍♂️</span>
+            {showTrainingDetails?.name || 'Training Details'}
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="p-0">
           {showTrainingDetails && (
             <div>
-              <div className="mb-4">
-                <h5>{showTrainingDetails.name}</h5>
-                <div className="d-flex gap-2 mb-3">
-                  <Badge bg={getIntensityColor(showTrainingDetails.intensityLevel)}>
-                    {showTrainingDetails.intensityLevel}
+              {/* Header Section with Badges */}
+              <div className="bg-light p-4 border-bottom">
+                <div className="d-flex flex-wrap gap-2 justify-content-center">
+                  <Badge bg={getIntensityColor(showTrainingDetails.intensityLevel)} className="px-3 py-2 fs-6">
+                    <i className="bi bi-speedometer2 me-1"></i>
+                    {showTrainingDetails.intensityLevel.toUpperCase()}
                   </Badge>
-                  <Badge bg="secondary">
+                  <Badge bg="secondary" className="px-3 py-2 fs-6">
+                    <i className="bi bi-tag me-1"></i>
                     {formatTrainingType(showTrainingDetails.trainingType)}
                   </Badge>
                   {showTrainingDetails.durationMinutes && (
-                    <Badge bg="info">
+                    <Badge bg="info" className="px-3 py-2 fs-6">
+                      <i className="bi bi-clock me-1"></i>
                       {showTrainingDetails.durationMinutes} Min.
+                    </Badge>
+                  )}
+                  {showTrainingDetails.trainingDescription?.difficultyLevel && (
+                    <Badge bg="warning" text="dark" className="px-3 py-2 fs-6">
+                      <i className="bi bi-star me-1"></i>
+                      {showTrainingDetails.trainingDescription.difficultyLevel}
                     </Badge>
                   )}
                 </div>
               </div>
 
               {showTrainingDetails.trainingDescription && (
-                <div>
-                  <h6 className="text-primary">📝 Trainingsanleitung</h6>
-                  <Card className="mb-3">
-                    <Card.Body>
-                      <h6>{showTrainingDetails.trainingDescription.name}</h6>
+                <div className="p-4">
+                  {/* Main Instructions - Prominently Featured */}
+                  {showTrainingDetails.trainingDescription.detailedInstructions && (
+                    <Card className="mb-4 border-primary shadow-sm">
+                      <Card.Header className="bg-primary text-white">
+                        <h5 className="mb-0 d-flex align-items-center">
+                          <i className="bi bi-list-ul me-2"></i>
+                          {showTrainingDetails.trainingDescription.name}
+                        </h5>
+                        <small className="text-white-50">Trainingsanweisungen</small>
+                      </Card.Header>
+                      <Card.Body className="p-4">
+                        <div className="training-instructions" style={{
+                          fontSize: '1.1rem',
+                          lineHeight: '1.6',
+                          color: '#2c3e50',
+                          backgroundColor: '#f8f9fa',
+                          border: '1px solid #dee2e6',
+                          borderRadius: '8px',
+                          padding: '20px'
+                        }}>
+                          {showTrainingDetails.trainingDescription.detailedInstructions}
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  )}
+
+                  {/* Quick Info Grid */}
+                  {(showTrainingDetails.trainingDescription.estimatedDurationMinutes || 
+                    showTrainingDetails.trainingDescription.equipment) && (
+                    <Row className="mb-4">
+                      {showTrainingDetails.trainingDescription.estimatedDurationMinutes && (
+                        <Col md={6}>
+                          <Card className="h-100 border-success">
+                            <Card.Body className="text-center">
+                              <div className="display-6 text-success mb-2">⏱️</div>
+                              <h6 className="text-success">Geschätzte Dauer</h6>
+                              <h4 className="mb-0">{showTrainingDetails.trainingDescription.estimatedDurationMinutes} Min</h4>
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                      )}
                       
-                      {showTrainingDetails.trainingDescription.detailedInstructions && (
-                        <div className="mb-3">
-                          <strong>Durchführung:</strong>
-                          <p className="mb-1">{showTrainingDetails.trainingDescription.detailedInstructions}</p>
-                        </div>
-                      )}
-
-                      <Row>
-                        {showTrainingDetails.trainingDescription.warmupInstructions && (
-                          <Col md={6}>
-                            <div className="mb-3">
-                              <strong>🔥 Aufwärmen:</strong>
-                              <p className="small mb-1">{showTrainingDetails.trainingDescription.warmupInstructions}</p>
-                            </div>
-                          </Col>
-                        )}
-                        
-                        {showTrainingDetails.trainingDescription.cooldownInstructions && (
-                          <Col md={6}>
-                            <div className="mb-3">
-                              <strong>❄️ Abwärmen:</strong>
-                              <p className="small mb-1">{showTrainingDetails.trainingDescription.cooldownInstructions}</p>
-                            </div>
-                          </Col>
-                        )}
-                      </Row>
-
                       {showTrainingDetails.trainingDescription.equipment && (
-                        <div className="mb-3">
-                          <strong>🎯 Equipment:</strong>
-                          <p className="small mb-1">{showTrainingDetails.trainingDescription.equipment}</p>
-                        </div>
+                        <Col md={6}>
+                          <Card className="h-100 border-info">
+                            <Card.Body>
+                              <div className="d-flex align-items-center mb-2">
+                                <span className="display-6 text-info me-2">🎯</span>
+                                <h6 className="text-info mb-0">Equipment</h6>
+                              </div>
+                              <p className="mb-0" style={{fontSize: '0.95rem', lineHeight: '1.4'}}>
+                                {showTrainingDetails.trainingDescription.equipment}
+                              </p>
+                            </Card.Body>
+                          </Card>
+                        </Col>
                       )}
+                    </Row>
+                  )}
 
-                      {showTrainingDetails.trainingDescription.tips && (
-                        <div className="mb-3">
-                          <strong>💡 Tipps:</strong>
-                          <p className="small mb-1">{showTrainingDetails.trainingDescription.tips}</p>
-                        </div>
+                  {/* Warmup & Cooldown */}
+                  {(showTrainingDetails.trainingDescription.warmupInstructions || 
+                    showTrainingDetails.trainingDescription.cooldownInstructions) && (
+                    <Row className="mb-4">
+                      {showTrainingDetails.trainingDescription.warmupInstructions && (
+                        <Col md={6}>
+                          <Card className="h-100 border-warning">
+                            <Card.Header className="bg-warning text-dark">
+                              <h6 className="mb-0">
+                                <i className="bi bi-fire me-2"></i>
+                                Aufwärmen
+                              </h6>
+                            </Card.Header>
+                            <Card.Body>
+                              <p className="mb-0" style={{fontSize: '0.95rem', lineHeight: '1.4'}}>
+                                {showTrainingDetails.trainingDescription.warmupInstructions}
+                              </p>
+                            </Card.Body>
+                          </Card>
+                        </Col>
                       )}
+                      
+                      {showTrainingDetails.trainingDescription.cooldownInstructions && (
+                        <Col md={6}>
+                          <Card className="h-100 border-info">
+                            <Card.Header className="bg-info text-white">
+                              <h6 className="mb-0">
+                                <i className="bi bi-snow me-2"></i>
+                                Abwärmen
+                              </h6>
+                            </Card.Header>
+                            <Card.Body>
+                              <p className="mb-0" style={{fontSize: '0.95rem', lineHeight: '1.4'}}>
+                                {showTrainingDetails.trainingDescription.cooldownInstructions}
+                              </p>
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                      )}
+                    </Row>
+                  )}
 
-                      <Row>
-                        {showTrainingDetails.trainingDescription.estimatedDurationMinutes && (
-                          <Col md={6}>
-                            <div>
-                              <strong>⏱️ Geschätzte Dauer:</strong>
-                              <span className="ms-2">{showTrainingDetails.trainingDescription.estimatedDurationMinutes} Minuten</span>
-                            </div>
-                          </Col>
-                        )}
-                        
-                        {showTrainingDetails.trainingDescription.difficultyLevel && (
-                          <Col md={6}>
-                            <div>
-                              <strong>🎯 Schwierigkeit:</strong>
-                              <Badge bg="secondary" className="ms-2">
-                                {showTrainingDetails.trainingDescription.difficultyLevel}
-                              </Badge>
-                            </div>
-                          </Col>
-                        )}
-                      </Row>
-                    </Card.Body>
-                  </Card>
+                  {/* Tips Section */}
+                  {showTrainingDetails.trainingDescription.tips && (
+                    <Card className="border-success">
+                      <Card.Header className="bg-success text-white">
+                        <h6 className="mb-0">
+                          <i className="bi bi-lightbulb me-2"></i>
+                          Tipps & Hinweise
+                        </h6>
+                      </Card.Header>
+                      <Card.Body className="bg-light">
+                        <div className="d-flex">
+                          <div className="text-success me-3" style={{fontSize: '1.5rem'}}>💡</div>
+                          <p className="mb-0" style={{fontSize: '1rem', lineHeight: '1.5', fontStyle: 'italic'}}>
+                            {showTrainingDetails.trainingDescription.tips}
+                          </p>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  )}
+                </div>
+              )}
+
+              {!showTrainingDetails.trainingDescription && (
+                <div className="p-4 text-center text-muted">
+                  <i className="bi bi-info-circle display-1 mb-3"></i>
+                  <h5>Keine detaillierten Anweisungen verfügbar</h5>
+                  <p>Für dieses Training sind noch keine spezifischen Anleitungen hinterlegt.</p>
                 </div>
               )}
             </div>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowTrainingDetails(null)}>
+        <Modal.Footer className="bg-light">
+          <Button 
+            variant="outline-secondary" 
+            onClick={() => setShowTrainingDetails(null)}
+            className="px-4"
+          >
+            <i className="bi bi-x-circle me-2"></i>
             Schließen
           </Button>
         </Modal.Footer>
