@@ -78,6 +78,7 @@ const TrainingPlanOverview = () => {
       const weekTrainingsData = {};
       const weekStart = getWeekStart(currentDate);
       const weekEnd = getWeekEnd(currentDate);
+      const completedTrainingsData = {};
 
       for (const competitionId of selectedCompetitions) {
         // Lade Trainingspläne für jeden Wettkampf
@@ -101,8 +102,34 @@ const TrainingPlanOverview = () => {
         }
       }
 
+      // Lade Completed Trainings für die ganze Woche
+      const weekDays = getWeekDays(weekStart);
+      for (const day of weekDays) {
+        const dateString = formatDateForAPI(day);
+        try {
+          const completedResponse = await trainingAPI.getCompletedTrainingsByDate(dateString);
+          if (completedResponse.data && completedResponse.data.length > 0) {
+            // Konvertiere Backend-Daten in Frontend-Format
+            const completedTraining = completedResponse.data[0]; // Nehme das erste (sollte nur eines pro Tag geben)
+            completedTrainingsData[dateString] = {
+              distance: completedTraining.distanceKm || 0,
+              duration: completedTraining.durationSeconds || 0,
+              averageHeartRate: completedTraining.averageHeartRate || 0,
+              maxHeartRate: completedTraining.maxHeartRate || 0,
+              averagePace: completedTraining.averagePaceSecondsPerKm || 0,
+              calories: completedTraining.calories || 0,
+              elevationGain: completedTraining.elevationGainM || 0,
+              filename: completedTraining.originalFilename || 'Uploaded Training'
+            };
+          }
+        } catch (err) {
+          // Keine Completed Trainings für dieses Datum
+        }
+      }
+
       setTrainingPlans(plansData);
       setWeekTrainings(weekTrainingsData);
+      setUploadedTrainings(completedTrainingsData);
     } catch (error) {
       setError('Fehler beim Laden der Trainingsdaten');
     } finally {
@@ -262,6 +289,31 @@ const TrainingPlanOverview = () => {
 
       setShowUploadModal(false);
       setError('');
+      
+      // Optional: Lade Completed Trainings für das spezifische Datum neu, um sicherzustellen dass die Daten synchron sind
+      try {
+        const dateString = formatDateForAPI(selectedUploadDate);
+        const completedResponse = await trainingAPI.getCompletedTrainingsByDate(dateString);
+        if (completedResponse.data && completedResponse.data.length > 0) {
+          const completedTraining = completedResponse.data[0];
+          const refreshedData = {
+            distance: completedTraining.distanceKm || 0,
+            duration: completedTraining.durationSeconds || 0,
+            averageHeartRate: completedTraining.averageHeartRate || 0,
+            maxHeartRate: completedTraining.maxHeartRate || 0,
+            averagePace: completedTraining.averagePaceSecondsPerKm || 0,
+            calories: completedTraining.calories || 0,
+            elevationGain: completedTraining.elevationGainM || 0,
+            filename: completedTraining.originalFilename || file.name
+          };
+          setUploadedTrainings(prev => ({
+            ...prev,
+            [dateString]: refreshedData
+          }));
+        }
+      } catch (refreshError) {
+        // Ignore refresh errors, the local data is already updated
+      }
     } catch (error) {
       setError('Fehler beim Hochladen der .FIT-Datei');
     } finally {
