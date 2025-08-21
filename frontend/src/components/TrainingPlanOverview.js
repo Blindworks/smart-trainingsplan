@@ -64,6 +64,8 @@ const TrainingPlanOverview = () => {
     try {
       const response = await competitionAPI.getAll();
       setCompetitions(response.data);
+      // Select all competitions by default
+      setSelectedCompetitions(response.data.map(competition => competition.id));
     } catch (error) {
       setError('Fehler beim Laden der Wettkämpfe');
     }
