@@ -19,6 +19,9 @@ const TrainingPlanOverview = () => {
   const [uploadedTrainings, setUploadedTrainings] = useState({});
   const fileInputRef = useRef(null);
 
+  // Training Details Modal States
+  const [showTrainingDetails, setShowTrainingDetails] = useState(null);
+
   useEffect(() => {
     loadCompetitions();
   }, []);
@@ -544,10 +547,20 @@ const TrainingPlanOverview = () => {
                                           {training.durationMinutes} Min.
                                         </div>
                                       )}
+                                      {training.trainingDescription && (
+                                        <Button 
+                                          variant="outline-info" 
+                                          size="sm" 
+                                          className="details-btn mt-1"
+                                          onClick={() => setShowTrainingDetails(training)}
+                                        >
+                                          Details
+                                        </Button>
+                                      )}
                                     </div>
                                     
-                                    <div className="training-description" title={training.description}>
-                                      {training.description}
+                                    <div className="training-description" title={training.trainingDescription?.name || ''}>
+                                      {training.trainingDescription?.name || 'Kein Trainingsplan verfügbar'}
                                     </div>
                                     
                                     <div className="competition-label" style={{ borderColor: training.competitionColor, color: training.competitionColor }}>
@@ -651,6 +664,114 @@ const TrainingPlanOverview = () => {
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowUploadModal(false)} disabled={uploading}>
             Abbrechen
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Training Details Modal */}
+      <Modal show={!!showTrainingDetails} onHide={() => setShowTrainingDetails(null)} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Training Details</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {showTrainingDetails && (
+            <div>
+              <div className="mb-4">
+                <h5>{showTrainingDetails.name}</h5>
+                <div className="d-flex gap-2 mb-3">
+                  <Badge bg={getIntensityColor(showTrainingDetails.intensityLevel)}>
+                    {showTrainingDetails.intensityLevel}
+                  </Badge>
+                  <Badge bg="secondary">
+                    {formatTrainingType(showTrainingDetails.trainingType)}
+                  </Badge>
+                  {showTrainingDetails.durationMinutes && (
+                    <Badge bg="info">
+                      {showTrainingDetails.durationMinutes} Min.
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {showTrainingDetails.trainingDescription && (
+                <div>
+                  <h6 className="text-primary">📝 Trainingsanleitung</h6>
+                  <Card className="mb-3">
+                    <Card.Body>
+                      <h6>{showTrainingDetails.trainingDescription.name}</h6>
+                      
+                      {showTrainingDetails.trainingDescription.detailedInstructions && (
+                        <div className="mb-3">
+                          <strong>Durchführung:</strong>
+                          <p className="mb-1">{showTrainingDetails.trainingDescription.detailedInstructions}</p>
+                        </div>
+                      )}
+
+                      <Row>
+                        {showTrainingDetails.trainingDescription.warmupInstructions && (
+                          <Col md={6}>
+                            <div className="mb-3">
+                              <strong>🔥 Aufwärmen:</strong>
+                              <p className="small mb-1">{showTrainingDetails.trainingDescription.warmupInstructions}</p>
+                            </div>
+                          </Col>
+                        )}
+                        
+                        {showTrainingDetails.trainingDescription.cooldownInstructions && (
+                          <Col md={6}>
+                            <div className="mb-3">
+                              <strong>❄️ Abwärmen:</strong>
+                              <p className="small mb-1">{showTrainingDetails.trainingDescription.cooldownInstructions}</p>
+                            </div>
+                          </Col>
+                        )}
+                      </Row>
+
+                      {showTrainingDetails.trainingDescription.equipment && (
+                        <div className="mb-3">
+                          <strong>🎯 Equipment:</strong>
+                          <p className="small mb-1">{showTrainingDetails.trainingDescription.equipment}</p>
+                        </div>
+                      )}
+
+                      {showTrainingDetails.trainingDescription.tips && (
+                        <div className="mb-3">
+                          <strong>💡 Tipps:</strong>
+                          <p className="small mb-1">{showTrainingDetails.trainingDescription.tips}</p>
+                        </div>
+                      )}
+
+                      <Row>
+                        {showTrainingDetails.trainingDescription.estimatedDurationMinutes && (
+                          <Col md={6}>
+                            <div>
+                              <strong>⏱️ Geschätzte Dauer:</strong>
+                              <span className="ms-2">{showTrainingDetails.trainingDescription.estimatedDurationMinutes} Minuten</span>
+                            </div>
+                          </Col>
+                        )}
+                        
+                        {showTrainingDetails.trainingDescription.difficultyLevel && (
+                          <Col md={6}>
+                            <div>
+                              <strong>🎯 Schwierigkeit:</strong>
+                              <Badge bg="secondary" className="ms-2">
+                                {showTrainingDetails.trainingDescription.difficultyLevel}
+                              </Badge>
+                            </div>
+                          </Col>
+                        )}
+                      </Row>
+                    </Card.Body>
+                  </Card>
+                </div>
+              )}
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowTrainingDetails(null)}>
+            Schließen
           </Button>
         </Modal.Footer>
       </Modal>

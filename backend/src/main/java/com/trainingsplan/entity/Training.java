@@ -19,8 +19,9 @@ public class Training {
     @Column(nullable = false)
     private String name;
 
-    @Column(length = 2000)
-    private String description;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "training_description_id")
+    private TrainingDescription trainingDescription;
 
     @NotNull
     @Column(name = "training_date", nullable = false)
@@ -56,10 +57,10 @@ public class Training {
 
     public Training() {}
 
-    public Training(String name, String description, LocalDate trainingDate, 
+    public Training(String name, TrainingDescription trainingDescription, LocalDate trainingDate, 
                    String trainingType, String intensityLevel) {
         this.name = name;
-        this.description = description;
+        this.trainingDescription = trainingDescription;
         this.trainingDate = trainingDate;
         this.trainingType = trainingType;
         this.intensityLevel = intensityLevel;
@@ -81,12 +82,12 @@ public class Training {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public TrainingDescription getTrainingDescription() {
+        return trainingDescription;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setTrainingDescription(TrainingDescription trainingDescription) {
+        this.trainingDescription = trainingDescription;
     }
 
     public LocalDate getTrainingDate() {

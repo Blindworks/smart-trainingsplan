@@ -4,10 +4,12 @@ import com.trainingsplan.entity.Competition;
 import com.trainingsplan.entity.TrainingPlan;
 import com.trainingsplan.entity.Training;
 import com.trainingsplan.entity.TrainingWeek;
+import com.trainingsplan.entity.TrainingDescription;
 import com.trainingsplan.repository.TrainingPlanRepository;
 import com.trainingsplan.repository.CompetitionRepository;
 import com.trainingsplan.repository.TrainingRepository;
 import com.trainingsplan.repository.TrainingWeekRepository;
+import com.trainingsplan.repository.TrainingDescriptionRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,9 @@ public class TrainingPlanService {
 
     @Autowired
     private TrainingWeekRepository trainingWeekRepository;
+
+    @Autowired
+    private TrainingDescriptionRepository trainingDescriptionRepository;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -112,7 +117,7 @@ public class TrainingPlanService {
             
             Training training = new Training();
             training.setName(trainingNode.get("name").asText());
-            training.setDescription(trainingNode.get("description").asText(""));
+            training.setTrainingDescription(findOrCreateTrainingDescription(trainingNode.get("description").asText("")));
             training.setTrainingDate(trainingDate);
             training.setTrainingType(trainingNode.get("type").asText(""));
             training.setIntensityLevel(trainingNode.get("intensity").asText(""));
@@ -200,7 +205,7 @@ public class TrainingPlanService {
                 
                 Training training = new Training();
                 training.setName(capitalizeFirstLetter(dayName) + " - Woche " + weekNumber);
-                training.setDescription(workout);
+                training.setTrainingDescription(findOrCreateTrainingDescription(workout));
                 training.setTrainingDate(weekMonday.plusDays(dayIndex));
                 training.setTrainingType(extractTrainingType(workout));
                 training.setIntensityLevel(mapIntensityLevel(intensity));
@@ -259,6 +264,20 @@ public class TrainingPlanService {
         }
         
         return null;
+    }
+
+    private TrainingDescription findOrCreateTrainingDescription(String description) {
+        if (description == null || description.trim().isEmpty()) {
+            return null;
+        }
+        
+        return trainingDescriptionRepository.findByName(description.trim())
+            .orElseGet(() -> {
+                TrainingDescription newDescription = new TrainingDescription();
+                newDescription.setName(description.trim());
+                newDescription.setDetailedInstructions(description.trim());
+                return trainingDescriptionRepository.save(newDescription);
+            });
     }
 
     private String capitalizeFirstLetter(String str) {
