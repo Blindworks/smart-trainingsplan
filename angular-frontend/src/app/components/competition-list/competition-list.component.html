@@ -1,0 +1,54 @@
+<div class="competition-list-container">
+  <div class="header">
+    <h1>Wettkämpfe</h1>
+    <button mat-raised-button color="primary" routerLink="/competitions/new">
+      <mat-icon>add</mat-icon>
+      Neuer Wettkampf
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-spinner">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <div class="competitions-grid" *ngIf="!loading">
+    <mat-card *ngFor="let competition of competitions" class="competition-card">
+      <mat-card-header>
+        <mat-card-title>{{ competition.name }}</mat-card-title>
+        <mat-card-subtitle>{{ formatDate(competition.date || competition.targetDate || '') }}</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <p *ngIf="competition.location">
+          <mat-icon>place</mat-icon>
+          {{ competition.location }}
+        </p>
+        <p *ngIf="competition.description">{{ competition.description }}</p>
+      </mat-card-content>
+      
+      <mat-card-actions>
+        <button mat-button [routerLink]="['/competitions', competition.id, 'edit']">
+          <mat-icon>edit</mat-icon>
+          Bearbeiten
+        </button>
+        <button mat-button [routerLink]="['/competitions', competition.id, 'upload']">
+          <mat-icon>upload</mat-icon>
+          Trainingsplan
+        </button>
+        <button mat-button color="warn" (click)="deleteCompetition(competition.id!)">
+          <mat-icon>delete</mat-icon>
+          Löschen
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <div *ngIf="!loading && competitions.length === 0" class="no-competitions">
+    <mat-icon class="large-icon">sports</mat-icon>
+    <h2>Keine Wettkämpfe vorhanden</h2>
+    <p>Erstellen Sie Ihren ersten Wettkampf, um mit der Trainingsplanung zu beginnen.</p>
+    <button mat-raised-button color="primary" routerLink="/competitions/new">
+      Ersten Wettkampf erstellen
+    </button>
+  </div>
+</div>

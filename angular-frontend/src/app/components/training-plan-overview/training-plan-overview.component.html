@@ -1,0 +1,187 @@
+<div class="overview-container">
+  <!-- Header Section -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>view_week</mat-icon>
+        Trainingsplan Übersicht
+      </mat-card-title>
+      <mat-card-subtitle *ngIf="weekData">
+        KW {{ weekData.weekNumber }} - {{ formatDate(weekData.days[0].date) }} bis {{ formatDate(weekData.days[6].date) }}
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <!-- Competition Selection -->
+      <div class="competition-selection">
+        <h4>Ausgewählte Wettkämpfe:</h4>
+        <div class="competition-checkboxes">
+          <mat-checkbox 
+            *ngFor="let competition of competitions"
+            [checked]="selectedCompetitions.includes(competition.id!)"
+            (change)="$event.checked ? selectedCompetitions.push(competition.id!) : selectedCompetitions.splice(selectedCompetitions.indexOf(competition.id!), 1); onCompetitionSelectionChange()">
+            {{ competition.name }}
+          </mat-checkbox>
+        </div>
+      </div>
+
+      <!-- Week Navigation -->
+      <div class="week-navigation">
+        <button mat-icon-button (click)="goToPreviousWeek()" matTooltip="Vorherige Woche (←)">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        
+        <div class="week-info">
+          <button mat-raised-button (click)="goToToday()" matTooltip="Heute (T)">
+            <mat-icon>today</mat-icon>
+            Heute
+          </button>
+        </div>
+        
+        <button mat-icon-button (click)="goToNextWeek()" matTooltip="Nächste Woche (→)">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+
+      <!-- Week Statistics -->
+      <div class="week-stats" *ngIf="weekData">
+        <mat-chip-set>
+          <mat-chip [matBadge]="getTotalTrainingsCount()" matBadgeColor="primary">
+            <mat-icon>fitness_center</mat-icon>
+            Geplante Trainings
+          </mat-chip>
+          <mat-chip [matBadge]="getCompletedTrainingsCount()" matBadgeColor="accent">
+            <mat-icon>check_circle</mat-icon>
+            Absolviert
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading Indicator -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+    <p>Lade Trainingsdaten...</p>
+  </div>
+
+  <!-- Week Calendar -->
+  <div class="week-calendar" *ngIf="weekData && !loading">
+    <div class="calendar-grid">
+      <!-- Day Headers -->
+      <div class="day-header" *ngFor="let day of weekData.days; let i = index">
+        <div class="day-name">{{ formatDayName(day.date) }}</div>
+        <div class="day-date" [class.today]="isToday(day.date)">
+          {{ formatDate(day.date) }}
+        </div>
+      </div>
+
+      <!-- Day Content -->
+      <div 
+        class="day-content" 
+        *ngFor="let day of weekData.days; let i = index"
+        [class.today]="isToday(day.date)"
+        [class.empty]="day.isEmpty && !showEmptyDays">
+
+        <!-- Planned Trainings -->
+        <div class="training-section" *ngIf="day.trainings.length > 0">
+          <h5>Geplant</h5>
+          <div 
+            class="training-card planned-training"
+            *ngFor="let training of day.trainings"
+            [style.border-left-color]="getTrainingTypeColor(training.type)"
+            (click)="openTrainingDetails(training)"
+            matTooltip="{{ training.description || training.name }}">
+            
+            <div class="training-header">
+              <span class="training-name">{{ training.name }}</span>
+              <div class="training-badges">
+                <span 
+                  class="intensity-badge"
+                  [style.background-color]="getIntensityColor(training.intensity)">
+                  {{ training.intensity }}
+                </span>
+                <span class="type-badge">{{ training.type }}</span>
+              </div>
+            </div>
+            
+            <div class="training-details" *ngIf="training.startTime || training.duration">
+              <span *ngIf="training.startTime" class="training-time">
+                <mat-icon>schedule</mat-icon>
+                {{ training.startTime }}
+              </span>
+              <span *ngIf="training.duration" class="training-duration">
+                <mat-icon>timer</mat-icon>
+                {{ training.duration }}min
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Completed Trainings -->
+        <div class="training-section" *ngIf="day.completedTrainings.length > 0">
+          <h5>Absolviert</h5>
+          <div 
+            class="training-card completed-training"
+            *ngFor="let completed of day.completedTrainings">
+            
+            <div class="training-header">
+              <span class="training-name">{{ completed.sport }}</span>
+              <mat-icon class="completed-icon">check_circle</mat-icon>
+            </div>
+            
+            <div class="training-details">
+              <span *ngIf="completed.duration" class="training-time">
+                <mat-icon>schedule</mat-icon>
+                {{ (completed.duration / 60).toFixed(0) }}min
+              </span>
+              <span *ngIf="completed.distance" class="training-distance">
+                <mat-icon>straighten</mat-icon>
+                {{ (completed.distance / 1000).toFixed(1) }}km
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty Day -->
+        <div class="empty-day" *ngIf="day.isEmpty">
+          <mat-icon>fitness_center</mat-icon>
+          <p>Kein Training geplant</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Data -->
+  <div class="no-data" *ngIf="!weekData && !loading && selectedCompetitions.length === 0">
+    <mat-icon class="large-icon">sports</mat-icon>
+    <h2>Keine Wettkämpfe ausgewählt</h2>
+    <p>Wählen Sie mindestens einen Wettkampf aus, um die Trainingsübersicht anzuzeigen.</p>
+  </div>
+
+  <!-- Keyboard Shortcuts Help -->
+  <mat-card class="shortcuts-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>keyboard</mat-icon>
+        Tastaturkürzel
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="shortcuts">
+        <div class="shortcut">
+          <kbd>←</kbd>
+          <span>Vorherige Woche</span>
+        </div>
+        <div class="shortcut">
+          <kbd>→</kbd>
+          <span>Nächste Woche</span>
+        </div>
+        <div class="shortcut">
+          <kbd>T</kbd>
+          <span>Zu heute springen</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

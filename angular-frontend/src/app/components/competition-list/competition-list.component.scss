@@ -1,0 +1,80 @@
+.competition-list-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+
+    h1 {
+      margin: 0;
+      color: #333;
+    }
+  }
+
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    padding: 50px;
+  }
+
+  .competitions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+
+    .competition-card {
+      mat-card-content {
+        p {
+          display: flex;
+          align-items: center;
+          margin: 8px 0;
+
+          mat-icon {
+            margin-right: 8px;
+            color: #666;
+          }
+        }
+      }
+
+      mat-card-actions {
+        display: flex;
+        justify-content: space-between;
+        padding: 16px;
+
+        button {
+          mat-icon {
+            margin-right: 4px;
+          }
+        }
+      }
+    }
+  }
+
+  .no-competitions {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+
+    .large-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin: 20px 0 10px;
+      color: #555;
+    }
+
+    p {
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+  }
+}

@@ -1,0 +1,42 @@
+.form-container {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+
+  mat-card {
+    mat-card-header {
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        mat-icon {
+          color: #1976d2;
+        }
+      }
+    }
+
+    .form-field {
+      width: 100%;
+      margin-bottom: 20px;
+
+      mat-form-field {
+        width: 100%;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 16px 16px;
+      margin-top: 20px;
+
+      button {
+        mat-icon {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+}
