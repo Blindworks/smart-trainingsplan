@@ -10,13 +10,13 @@
         KW {{ weekData.weekNumber }} - {{ formatDate(weekData.days[0].date) }} bis {{ formatDate(weekData.days[6].date) }}
       </mat-card-subtitle>
     </mat-card-header>
-    
+
     <mat-card-content>
       <!-- Competition Selection -->
       <div class="competition-selection">
         <h4>Ausgewählte Wettkämpfe:</h4>
         <div class="competition-checkboxes">
-          <mat-checkbox 
+          <mat-checkbox
             *ngFor="let competition of competitions"
             [checked]="selectedCompetitions.includes(competition.id!)"
             (change)="$event.checked ? selectedCompetitions.push(competition.id!) : selectedCompetitions.splice(selectedCompetitions.indexOf(competition.id!), 1); onCompetitionSelectionChange()">
@@ -30,14 +30,14 @@
         <button mat-icon-button (click)="goToPreviousWeek()" matTooltip="Vorherige Woche (←)">
           <mat-icon>chevron_left</mat-icon>
         </button>
-        
+
         <div class="week-info">
           <button mat-raised-button (click)="goToToday()" matTooltip="Heute (T)">
             <mat-icon>today</mat-icon>
             Heute
           </button>
         </div>
-        
+
         <button mat-icon-button (click)="goToNextWeek()" matTooltip="Nächste Woche (→)">
           <mat-icon>chevron_right</mat-icon>
         </button>
@@ -77,8 +77,8 @@
       </div>
 
       <!-- Day Content -->
-      <div 
-        class="day-content" 
+      <div
+        class="day-content"
         *ngFor="let day of weekData.days; let i = index"
         [class.today]="isToday(day.date)"
         [class.empty]="day.isEmpty && !showEmptyDays">
@@ -86,17 +86,15 @@
         <!-- Planned Trainings -->
         <div class="training-section" *ngIf="day.trainings.length > 0">
           <h5>Geplant</h5>
-          <div 
+          <div
             class="training-card planned-training"
             *ngFor="let training of day.trainings"
             [style.border-left-color]="getTrainingTypeColor(training.type)"
-            (click)="openTrainingDetails(training)"
-            matTooltip="{{ training.description || training.name }}">
-            
+            (click)="openTrainingDetails(training)">
+
             <div class="training-header">
-              <span class="training-name">{{ training.name }}</span>
               <div class="training-badges">
-                <span 
+                <span
                   class="intensity-badge"
                   [style.background-color]="getIntensityColor(training.intensity)">
                   {{ training.intensity }}
@@ -104,7 +102,8 @@
                 <span class="type-badge">{{ training.type }}</span>
               </div>
             </div>
-            
+            <span class="training-name">{{ training.description }}</span>
+
             <div class="training-details" *ngIf="training.startTime || training.duration">
               <span *ngIf="training.startTime" class="training-time">
                 <mat-icon>schedule</mat-icon>
@@ -115,21 +114,39 @@
                 {{ training.duration }}min
               </span>
             </div>
+
+            <!-- Training Actions -->
+            <div class="training-actions">
+              <button
+                mat-icon-button
+                color="primary"
+                (click)="$event.stopPropagation(); toggleTrainingCompletion(training)"
+                [matTooltip]="training.completed ? 'Als unvollständig markieren' : 'Als abgeschlossen markieren'">
+                <mat-icon>{{ training.completed ? 'check_circle' : 'check_circle_outline' }}</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                color="accent"
+                (click)="$event.stopPropagation(); openFitFileUpload(training, day.date)"
+                matTooltip="FIT-Datei hochladen">
+                <mat-icon>upload_file</mat-icon>
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- Completed Trainings -->
         <div class="training-section" *ngIf="day.completedTrainings.length > 0">
           <h5>Absolviert</h5>
-          <div 
+          <div
             class="training-card completed-training"
             *ngFor="let completed of day.completedTrainings">
-            
+
             <div class="training-header">
               <span class="training-name">{{ completed.sport }}</span>
               <mat-icon class="completed-icon">check_circle</mat-icon>
             </div>
-            
+
             <div class="training-details">
               <span *ngIf="completed.duration" class="training-time">
                 <mat-icon>schedule</mat-icon>
@@ -184,4 +201,83 @@
       </div>
     </mat-card-content>
   </mat-card>
+
+  <!-- FIT File Upload Modal -->
+  <div class="fit-upload-overlay" *ngIf="showFitUploadModal" (click)="closeFitUploadModal()">
+    <mat-card class="fit-upload-modal" (click)="$event.stopPropagation()">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>upload_file</mat-icon>
+          FIT-Datei hochladen
+        </mat-card-title>
+        <mat-card-subtitle *ngIf="selectedTrainingForUpload">
+          {{ selectedTrainingForUpload.name }} - {{ formatDate(selectedUploadDate) }}
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- Upload Area -->
+        <div
+          class="upload-zone"
+          [class.drag-over]="dragOver"
+          [class.uploading]="isUploading"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          *ngIf="!selectedFile">
+
+          <mat-icon class="upload-icon">cloud_upload</mat-icon>
+          <h3>FIT-Datei hier ablegen</h3>
+          <p>oder klicken Sie zum Auswählen</p>
+
+          <input
+            type="file"
+            accept=".fit"
+            (change)="onFileSelected($event)"
+            #fileInput
+            style="display: none;">
+
+          <button mat-raised-button color="primary" (click)="fileInput.click()">
+            <mat-icon>folder_open</mat-icon>
+            FIT-Datei auswählen
+          </button>
+        </div>
+
+        <!-- Selected File -->
+        <div class="selected-file" *ngIf="selectedFile && !isUploading">
+          <mat-icon class="file-icon">description</mat-icon>
+          <div class="file-info">
+            <h4>{{ selectedFile.name }}</h4>
+            <p>{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</p>
+          </div>
+          <button mat-icon-button color="warn" (click)="removeFile()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <!-- Upload Progress -->
+        <div class="upload-progress" *ngIf="isUploading">
+          <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+          <p>Datei wird hochgeladen... {{ uploadProgress }}%</p>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-button (click)="closeFitUploadModal()">
+          <mat-icon>cancel</mat-icon>
+          Abbrechen
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="uploadFitFile()"
+          [disabled]="!selectedFile || isUploading"
+          *ngIf="selectedFile && !isUploading">
+          <mat-icon>upload</mat-icon>
+          Hochladen
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
 </div>

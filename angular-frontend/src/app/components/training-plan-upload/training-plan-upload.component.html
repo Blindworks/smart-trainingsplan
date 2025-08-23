@@ -6,7 +6,7 @@
         Trainingsplan hochladen
       </mat-card-title>
       <mat-card-subtitle *ngIf="competition">
-        für {{ competition.name }} ({{ formatDate(competition.targetDate) }})
+        für {{ competition.name }} ({{ competition.targetDate ? formatDate(competition.targetDate) : 'Kein Datum' }})
       </mat-card-subtitle>
     </mat-card-header>
   </mat-card>

@@ -9,6 +9,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 
@@ -43,6 +44,7 @@ interface WeekData {
     MatDialogModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    MatProgressBarModule,
     MatTooltipModule,
     MatBadgeModule
   ],
@@ -58,6 +60,15 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
   weekData: WeekData | null = null;
   loading = false;
   showEmptyDays = true;
+
+  // FIT File Upload
+  showFitUploadModal = false;
+  selectedFile: File | null = null;
+  selectedTrainingForUpload: Training | null = null;
+  selectedUploadDate = '';
+  dragOver = false;
+  isUploading = false;
+  uploadProgress = 0;
 
   // Training type colors
   trainingTypeColors: { [key: string]: string } = {
@@ -201,6 +212,9 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
       }
     });
 
+    // Load completed trainings for the week
+    this.loadCompletedTrainingsForWeek(weekData);
+
     this.weekData = weekData;
   }
 
@@ -287,4 +301,143 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     if (!this.weekData) return 0;
     return this.weekData.days.reduce((total, day) => total + day.completedTrainings.length, 0);
   }
+
+  private loadCompletedTrainingsForWeek(weekData: WeekData): void {
+    // Load completed trainings for each day of the week
+    weekData.days.forEach(day => {
+      this.apiService.getCompletedTrainingsByDate(day.date)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (completedTrainings) => {
+            day.completedTrainings = completedTrainings;
+            if (completedTrainings.length > 0) {
+              day.isEmpty = false;
+            }
+          },
+          error: (error) => {
+            // Silently handle errors for completed trainings
+            console.warn('Could not load completed trainings for', day.date);
+          }
+        });
+    });
+  }
+
+  // Training Completion Methods
+  toggleTrainingCompletion(training: Training): void {
+    const newCompletionStatus = !training.completed;
+    
+    this.apiService.updateTrainingFeedback(training.id!, {
+      completed: newCompletionStatus,
+      rating: training.rating || 5,
+      feedback: training.feedback || ''
+    }).pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: () => {
+        training.completed = newCompletionStatus;
+        const message = newCompletionStatus ? 'Training als abgeschlossen markiert' : 'Training als offen markiert';
+        this.snackBar.open(message, 'Schließen', { duration: 2000 });
+        this.loadWeekData(); // Reload to refresh display
+      },
+      error: (error) => {
+        this.snackBar.open('Fehler beim Aktualisieren des Training-Status', 'Schließen', { duration: 3000 });
+      }
+    });
+  }
+
+  // FIT File Upload Methods
+  openFitFileUpload(training: Training, date: string): void {
+    this.selectedTrainingForUpload = training;
+    this.selectedUploadDate = date;
+    this.showFitUploadModal = true;
+    this.selectedFile = null;
+    this.uploadProgress = 0;
+  }
+
+  closeFitUploadModal(): void {
+    this.showFitUploadModal = false;
+    this.selectedTrainingForUpload = null;
+    this.selectedUploadDate = '';
+    this.selectedFile = null;
+    this.dragOver = false;
+    this.isUploading = false;
+    this.uploadProgress = 0;
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.dragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.dragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.dragOver = false;
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.selectFile(files[0]);
+    }
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectFile(file);
+    }
+  }
+
+  selectFile(file: File): void {
+    if (!file.name.toLowerCase().endsWith('.fit')) {
+      this.snackBar.open('Bitte wählen Sie eine FIT-Datei aus', 'Schließen', { duration: 3000 });
+      return;
+    }
+    this.selectedFile = file;
+  }
+
+  removeFile(): void {
+    this.selectedFile = null;
+  }
+
+  uploadFitFile(): void {
+    if (!this.selectedFile) return;
+
+    this.isUploading = true;
+    this.uploadProgress = 0;
+
+    const formData = new FormData();
+    formData.append('file', this.selectedFile);
+    if (this.selectedUploadDate) {
+      formData.append('trainingDate', this.selectedUploadDate);
+    }
+
+    // Simulate progress for demo
+    const progressInterval = setInterval(() => {
+      this.uploadProgress += 10;
+      if (this.uploadProgress >= 90) {
+        clearInterval(progressInterval);
+      }
+    }, 200);
+
+    this.apiService.uploadFitFile(formData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          clearInterval(progressInterval);
+          this.uploadProgress = 100;
+          this.snackBar.open('FIT-Datei erfolgreich hochgeladen', 'Schließen', { duration: 3000 });
+          this.closeFitUploadModal();
+          this.loadWeekData(); // Reload to show completed training
+        },
+        error: (error) => {
+          clearInterval(progressInterval);
+          this.isUploading = false;
+          this.uploadProgress = 0;
+          this.snackBar.open('Fehler beim Upload: ' + (error.error?.message || 'FIT-Datei konnte nicht verarbeitet werden'), 'Schließen', { duration: 5000 });
+        }
+      });
+  }
+
 }

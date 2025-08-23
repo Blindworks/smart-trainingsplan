@@ -32,7 +32,13 @@
       "WebFetch(domain:localhost)",
       "Bash(curl:*)",
       "Bash(ng build:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "Bash(node server.js)",
+      "Bash(rd:*)",
+      "Bash(del \"C:\\Users\\bened\\IdeaProjects\\Smart_Trainingsplan\\angular-frontend\\proxy.conf.json\")",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
