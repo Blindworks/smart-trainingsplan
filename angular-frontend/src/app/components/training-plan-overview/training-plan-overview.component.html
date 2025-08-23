@@ -144,18 +144,33 @@
             *ngFor="let completed of day.completedTrainings">
 
             <div class="training-header">
-              <span class="training-name">{{ completed.sport }}</span>
+              <span class="training-name">{{ getSportName(completed.sport) }}</span>
               <mat-icon class="completed-icon">check_circle</mat-icon>
             </div>
 
             <div class="training-details">
-              <span *ngIf="completed.duration" class="training-time">
+              <!-- Trainingszeit -->
+              <span *ngIf="completed.durationSeconds" class="training-time">
                 <mat-icon>schedule</mat-icon>
-                {{ (completed.duration / 60).toFixed(0) }}min
+                {{ formatDuration(completed.durationSeconds) }}
               </span>
-              <span *ngIf="completed.distance" class="training-distance">
+              
+              <!-- Distanz -->
+              <span *ngIf="completed.distanceKm" class="training-distance">
                 <mat-icon>straighten</mat-icon>
-                {{ (completed.distance / 1000).toFixed(1) }}km
+                {{ completed.distanceKm.toFixed(1) }}km
+              </span>
+              
+              <!-- Durchschnittspace -->
+              <span *ngIf="completed.averagePaceSecondsPerKm" class="training-pace">
+                <mat-icon>speed</mat-icon>
+                {{ formatPace(completed.averagePaceSecondsPerKm) }}/km
+              </span>
+              
+              <!-- Durchschnitts-Herzfrequenz -->
+              <span *ngIf="completed.averageHeartRate" class="training-hr">
+                <mat-icon>favorite</mat-icon>
+                {{ completed.averageHeartRate }}bpm
               </span>
             </div>
           </div>

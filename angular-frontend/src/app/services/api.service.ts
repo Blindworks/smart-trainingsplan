@@ -132,4 +132,10 @@ export class ApiService {
       params: { date }
     });
   }
+
+  getCompletedTrainingsByDateRange(startDate: string, endDate: string): Observable<CompletedTraining[]> {
+    return this.http.get<CompletedTraining[]>(`${this.baseUrl}/completed-trainings/by-date-range`, {
+      params: { startDate, endDate }
+    });
+  }
 }

@@ -15,7 +15,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 
 import { ApiService } from '../../services/api.service';
 import { Competition, Training, CompletedTraining } from '../../models/competition.model';
-import { Subject, takeUntil, forkJoin } from 'rxjs';
+import { Subject, takeUntil, forkJoin, map, catchError, of } from 'rxjs';
 
 interface DayTraining {
   date: string;
@@ -183,7 +183,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     };
 
     this.populateTrainingsForWeek(weekData, allTrainings);
-    this.loadCompletedTrainingsForWeek(weekData);
+    this.loadCompletedTrainingsForWeekAsync(weekData);
     
     this.weekData = weekData;
   }
@@ -313,6 +313,89 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     return intensity ? this.intensityColors[intensity] || '#9e9e9e' : '#9e9e9e';
   }
 
+  formatDuration(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}min`;
+    } else {
+      return `${minutes}min`;
+    }
+  }
+
+  formatPace(secondsPerKm: number): string {
+    const minutes = Math.floor(secondsPerKm / 60);
+    const seconds = Math.floor(secondsPerKm % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  getSportName(sport: string | number | undefined): string {
+    if (!sport) return 'Training';
+    
+    // If it's already a string, return it
+    if (typeof sport === 'string' && isNaN(Number(sport))) {
+      return sport.charAt(0).toUpperCase() + sport.slice(1);
+    }
+    
+    // Map numeric sport IDs to names
+    const sportId = typeof sport === 'string' ? parseInt(sport, 10) : sport;
+    
+    const sportMappings: { [key: number]: string } = {
+      1: 'Laufen',
+      2: 'Radfahren', 
+      3: 'Schwimmen',
+      4: 'Transition',
+      5: 'Fitness Equipment',
+      6: 'Basketball',
+      7: 'Soccer',
+      8: 'Tennis',
+      9: 'American Football',
+      10: 'Training',
+      11: 'Walking',
+      12: 'Cross Country Skiing',
+      13: 'Alpine Skiing',
+      14: 'Snowboarding',
+      15: 'Rowing',
+      16: 'Mountaineering',
+      17: 'Hiking',
+      18: 'Multisport',
+      19: 'Paddling',
+      20: 'Flying',
+      21: 'E-Biking',
+      22: 'Motorcycling',
+      23: 'Boating',
+      24: 'Driving',
+      25: 'Golf',
+      26: 'Hang Gliding',
+      27: 'Horseback Riding',
+      28: 'Hunting',
+      29: 'Fishing',
+      30: 'Inline Skating',
+      31: 'Rock Climbing',
+      32: 'Sailing',
+      33: 'Ice Skating',
+      34: 'Sky Diving',
+      35: 'Snowshoeing',
+      36: 'Snowmobiling',
+      37: 'Stand Up Paddleboarding',
+      38: 'Surfing',
+      39: 'Wakeboarding',
+      40: 'Water Skiing',
+      41: 'Kayaking',
+      42: 'Rafting',
+      43: 'Windsurfing',
+      44: 'Kitesurfing',
+      45: 'Tactical',
+      46: 'Jumpmaster',
+      47: 'Boxing',
+      48: 'Floor Climbing',
+      254: 'All'
+    };
+    
+    return sportMappings[sportId] || `Sport ${sportId}`;
+  }
+
   openTrainingDetails(training: Training): void {
     // TODO: Implement training details modal
     this.snackBar.open('Training Details Modal wird noch implementiert', 'Schließen', { duration: 2000 });
@@ -333,23 +416,76 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     return this.weekData.days.reduce((total, day) => total + day.completedTrainings.length, 0);
   }
 
-  private loadCompletedTrainingsForWeek(weekData: WeekData): void {
-    // Load completed trainings for each day of the week
-    weekData.days.forEach(day => {
-      this.apiService.getCompletedTrainingsByDate(day.date)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (completedTrainings) => {
-            day.completedTrainings = completedTrainings;
-            if (completedTrainings.length > 0) {
-              day.isEmpty = false;
-            }
-          },
-          error: (error) => {
-            // Silently handle errors for completed trainings
-            console.warn('Could not load completed trainings for', day.date);
-          }
+  private loadCompletedTrainingsForWeekAsync(weekData: WeekData): void {
+    console.log('Loading completed trainings for week:', weekData.days.map(d => d.date));
+    
+    // Use the more efficient date range API instead of individual calls
+    const startDate = weekData.days[0].date;
+    const endDate = weekData.days[6].date;
+    
+    console.log(`Making API call for date range: ${startDate} to ${endDate}`);
+    
+    this.apiService.getCompletedTrainingsByDateRange(startDate, endDate).pipe(
+      takeUntil(this.destroy$),
+      catchError(error => {
+        console.warn('Could not load completed trainings for week', error);
+        return of([]);
+      })
+    ).subscribe(allCompletedTrainings => {
+      console.log('All completed trainings for week:', allCompletedTrainings);
+      
+      let totalCompletedTrainings = 0;
+      
+      // Group trainings by date
+      allCompletedTrainings.forEach(training => {
+        console.log('Processing completed training:', {
+          id: training.id,
+          trainingDate: training.trainingDate,
+          sport: training.sport,
+          duration: training.duration,
+          distance: training.distance,
+          averageSpeed: training.averageSpeed,
+          maxSpeed: training.maxSpeed,
+          averageHeartRate: training.averageHeartRate,
+          maxHeartRate: training.maxHeartRate,
+          calories: training.calories,
+          fileName: training.fileName,
+          uploadedAt: training.uploadedAt,
+          fullObject: training
         });
+        
+        const day = weekData.days.find(d => d.date === training.trainingDate);
+        if (day) {
+          if (!day.completedTrainings) {
+            day.completedTrainings = [];
+          }
+          day.completedTrainings.push(training);
+          totalCompletedTrainings++;
+          day.isEmpty = false;
+          console.log(`Added training to day ${day.date}, now has ${day.completedTrainings.length} completed trainings`);
+        } else {
+          console.warn(`Could not find day for training date: ${training.trainingDate}`);
+        }
+      });
+      
+      console.log(`Total completed trainings loaded: ${totalCompletedTrainings}`);
+      
+      // Show final state of each day
+      weekData.days.forEach(day => {
+        if (day.completedTrainings && day.completedTrainings.length > 0) {
+          console.log(`Day ${day.date} final state:`, {
+            date: day.date,
+            completedTrainingsCount: day.completedTrainings.length,
+            completedTrainings: day.completedTrainings,
+            isEmpty: day.isEmpty
+          });
+        }
+      });
+      
+      // Trigger change detection by reassigning weekData
+      this.weekData = { ...weekData };
+      
+      console.log('Updated weekData:', this.weekData);
     });
   }
 

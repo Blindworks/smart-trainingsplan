@@ -59,15 +59,57 @@ export interface TrainingDescription {
 export interface CompletedTraining {
   id?: number;
   trainingDate: string;
-  duration: number;
+  uploadDate?: string;
+  
+  // Basic Training Metrics
+  distanceKm?: number;
+  durationSeconds?: number;
+  movingTimeSeconds?: number;
+  
+  // Pace and Speed
+  averagePaceSecondsPerKm?: number;
+  averageSpeedKmh?: number;
+  maxSpeedKmh?: number;
+  
+  // Heart Rate Data
+  averageHeartRate?: number;
+  maxHeartRate?: number;
+  minHeartRate?: number;
+  
+  // Power Data
+  averagePowerWatts?: number;
+  maxPowerWatts?: number;
+  normalizedPowerWatts?: number;
+  
+  // Cadence Data
+  averageCadence?: number;
+  maxCadence?: number;
+  
+  // Other Data
+  calories?: number;
+  elevationGainM?: number;
+  elevationLossM?: number;
+  temperatureCelsius?: number;
+  
+  // Sport Information
+  sport?: string;
+  subSport?: string;
+  
+  // File Information
+  originalFilename?: string;
+  
+  // Device Information
+  deviceManufacturer?: string;
+  deviceProduct?: string;
+  deviceSerialNumber?: string;
+  softwareVersion?: string;
+  
+  // Legacy fields for compatibility
+  duration?: number;
   distance?: number;
   averageSpeed?: number;
   maxSpeed?: number;
-  averageHeartRate?: number;
-  maxHeartRate?: number;
-  calories?: number;
-  sport: string;
-  fileName: string;
+  fileName?: string;
   uploadedAt?: string;
 }
 
