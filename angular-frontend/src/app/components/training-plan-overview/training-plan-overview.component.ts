@@ -173,64 +173,87 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
   }
 
   private processWeekData(week: { startDate: Date; endDate: Date }, allTrainings: Training[]): void {
+    const mondayOfWeek = this.getMondayOfWeek(this.currentDate);
+    
     const weekData: WeekData = {
-      weekNumber: this.getWeekNumber(week.startDate),
-      startDate: week.startDate,
-      endDate: week.endDate,
-      days: []
+      weekNumber: this.getWeekNumber(mondayOfWeek),
+      startDate: mondayOfWeek,
+      endDate: new Date(mondayOfWeek.getTime() + 6 * 24 * 60 * 60 * 1000), // Sunday
+      days: this.createWeekDays(mondayOfWeek)
     };
 
-    // Initialize days
+    this.populateTrainingsForWeek(weekData, allTrainings);
+    this.loadCompletedTrainingsForWeek(weekData);
+    
+    this.weekData = weekData;
+  }
+
+  private createWeekDays(startDate: Date): DayTraining[] {
+    const days: DayTraining[] = [];
+    
     for (let i = 0; i < 7; i++) {
-      const date = new Date(week.startDate);
-      date.setDate(date.getDate() + i);
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
       
-      weekData.days.push({
-        date: date.toISOString().split('T')[0],
+      const dateString = this.formatDateString(date);
+      
+      days.push({
+        date: dateString,
         trainings: [],
         completedTrainings: [],
         isEmpty: true
       });
     }
+    
+    return days;
+  }
 
-    // Filter and process training data for the current week
-    allTrainings.forEach((training: Training) => {
+  private formatDateString(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private populateTrainingsForWeek(weekData: WeekData, allTrainings: Training[]): void {
+    allTrainings.forEach(training => {
       const dayIndex = weekData.days.findIndex(d => d.date === training.trainingDate);
       if (dayIndex !== -1) {
-        // Map backend fields to component expected structure
-        const mappedTraining = {
-          ...training,
-          date: training.trainingDate,
-          type: training.trainingType,
-          intensity: training.intensityLevel,
-          duration: training.durationMinutes,
-          completed: training.isCompleted,
-          description: training.trainingDescription?.name || training.name,
-          trainingPlanName: training.trainingPlanName,
-          trainingPlanId: training.trainingPlanId
-        };
+        const mappedTraining = this.mapTrainingForDisplay(training);
         weekData.days[dayIndex].trainings.push(mappedTraining);
         weekData.days[dayIndex].isEmpty = false;
       }
     });
+  }
 
-    // Load completed trainings for the week
-    this.loadCompletedTrainingsForWeek(weekData);
+  private mapTrainingForDisplay(training: Training): Training {
+    return {
+      ...training,
+      date: training.trainingDate,
+      type: training.trainingType,
+      intensity: training.intensityLevel,
+      duration: training.durationMinutes,
+      completed: training.isCompleted,
+      description: training.trainingDescription?.name || training.name,
+      trainingPlanName: training.trainingPlanName,
+      trainingPlanId: training.trainingPlanId
+    };
+  }
 
-    this.weekData = weekData;
+  private getMondayOfWeek(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+    const monday = new Date(d.setDate(diff));
+    monday.setHours(0, 0, 0, 0);
+    return monday;
   }
 
   private getWeekDates(date: Date): { startDate: Date; endDate: Date } {
-    const startDate = new Date(date);
-    const day = startDate.getDay();
-    const diff = startDate.getDate() - day + (day === 0 ? -6 : 1); // Monday
-    startDate.setDate(diff);
-    startDate.setHours(0, 0, 0, 0);
-
+    const startDate = this.getMondayOfWeek(date);
     const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6);
+    endDate.setDate(startDate.getDate() + 6); // Sunday
     endDate.setHours(23, 59, 59, 999);
-
     return { startDate, endDate };
   }
 
@@ -266,8 +289,14 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
   }
 
   formatDayName(dateString: string): string {
-    const date = new Date(dateString);
-    return this.dayNames[date.getDay() === 0 ? 6 : date.getDay() - 1];
+    // Parse the date string directly as YYYY-MM-DD
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed in Date constructor
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    
+    // Map JavaScript day (0=Sunday) to our array index (0=Monday)  
+    const dayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+    return dayNames[dayOfWeek];
   }
 
   isToday(dateString: string): boolean {
