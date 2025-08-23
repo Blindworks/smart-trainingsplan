@@ -577,7 +577,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     const formData = new FormData();
     formData.append('file', this.selectedFile);
     if (this.selectedUploadDate) {
-      formData.append('trainingDate', this.selectedUploadDate);
+      formData.append('date', this.selectedUploadDate);
     }
 
     // Simulate progress for demo
@@ -602,7 +602,24 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
           clearInterval(progressInterval);
           this.isUploading = false;
           this.uploadProgress = 0;
-          this.snackBar.open('Fehler beim Upload: ' + (error.error?.message || 'FIT-Datei konnte nicht verarbeitet werden'), 'Schließen', { duration: 5000 });
+          
+          console.error('FIT File upload error:', error);
+          console.log('FormData contents:', {
+            file: this.selectedFile?.name,
+            date: this.selectedUploadDate,
+            fileSize: this.selectedFile?.size
+          });
+          
+          let errorMessage = 'FIT-Datei konnte nicht verarbeitet werden';
+          if (error.error) {
+            if (typeof error.error === 'string') {
+              errorMessage = error.error;
+            } else if (error.error.message) {
+              errorMessage = error.error.message;
+            }
+          }
+          
+          this.snackBar.open('Fehler beim Upload: ' + errorMessage, 'Schließen', { duration: 5000 });
         }
       });
   }
