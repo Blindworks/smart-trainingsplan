@@ -205,7 +205,9 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
           intensity: training.intensityLevel,
           duration: training.durationMinutes,
           completed: training.isCompleted,
-          description: training.trainingDescription?.name || training.name
+          description: training.trainingDescription?.name || training.name,
+          trainingPlanName: training.trainingPlanName,
+          trainingPlanId: training.trainingPlanId
         };
         weekData.days[dayIndex].trainings.push(mappedTraining);
         weekData.days[dayIndex].isEmpty = false;

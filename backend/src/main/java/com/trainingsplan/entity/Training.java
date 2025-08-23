@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -160,5 +161,15 @@ public class Training {
 
     public void setTrainingWeek(TrainingWeek trainingWeek) {
         this.trainingWeek = trainingWeek;
+    }
+
+    @JsonProperty("trainingPlanName")
+    public String getTrainingPlanName() {
+        return trainingPlan != null ? trainingPlan.getName() : null;
+    }
+
+    @JsonProperty("trainingPlanId")
+    public Long getTrainingPlanId() {
+        return trainingPlan != null ? trainingPlan.getId() : null;
     }
 }

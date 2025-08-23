@@ -12,7 +12,7 @@ import java.util.List;
 public interface TrainingRepository extends JpaRepository<Training, Long> {
     List<Training> findByTrainingWeekId(Long trainingWeekId);
     
-    List<Training> findByTrainingPlanId(Long trainingPlanId);
+    List<Training> findByTrainingPlan_Id(Long trainingPlanId);
     
     List<Training> findByTrainingDate(LocalDate date);
     

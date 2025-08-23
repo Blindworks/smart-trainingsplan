@@ -38,7 +38,9 @@
       "Bash(node server.js)",
       "Bash(rd:*)",
       "Bash(del \"C:\\Users\\bened\\IdeaProjects\\Smart_Trainingsplan\\angular-frontend\\proxy.conf.json\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(wmic process where:*)",
+      "Bash(cmd /c:*)"
     ],
     "deny": [],
     "ask": []

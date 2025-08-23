@@ -30,6 +30,9 @@ export interface Training {
   trainingType: 'speed' | 'endurance' | 'strength' | 'race' | 'interval' | 'recovery' | 'swimming' | 'cycling' | 'general' | 'fartlek';
   isCompleted: boolean;
   completionStatus?: string;
+  // Training plan information
+  trainingPlanId?: number;
+  trainingPlanName?: string;
   // Legacy fields for compatibility
   description?: string;
   date?: string;

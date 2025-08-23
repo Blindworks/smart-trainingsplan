@@ -92,6 +92,7 @@
             [style.border-left-color]="getTrainingTypeColor(training.type)"
             (click)="openTrainingDetails(training)">
 
+            <span class="plan-badge" *ngIf="training.trainingPlanName">{{ training.trainingPlanName }}</span>
             <div class="training-header">
               <div class="training-badges">
                 <span
