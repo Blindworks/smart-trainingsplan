@@ -272,21 +272,25 @@
 
           .training-actions {
             display: flex;
-            justify-content: flex-end;
             gap: 4px;
             margin-top: auto;
             padding-top: 4px;
             border-top: 1px solid #eee;
 
             button {
-              width: 28px;
+              flex: 1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 4px;
+              font-size: 11px;
+              padding: 4px 8px;
               height: 28px;
-              line-height: 28px;
 
               mat-icon {
-                font-size: 16px;
-                width: 16px;
-                height: 16px;
+                font-size: 14px;
+                width: 14px;
+                height: 14px;
               }
             }
           }

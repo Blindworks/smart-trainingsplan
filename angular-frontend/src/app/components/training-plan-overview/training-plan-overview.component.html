@@ -119,18 +119,18 @@
             <!-- Training Actions -->
             <div class="training-actions">
               <button
-                mat-icon-button
+                mat-raised-button
                 color="primary"
                 (click)="$event.stopPropagation(); toggleTrainingCompletion(training)"
                 [matTooltip]="training.completed ? 'Als unvollständig markieren' : 'Als abgeschlossen markieren'">
-                <mat-icon>{{ training.completed ? 'check_circle' : 'check_circle_outline' }}</mat-icon>
+                Finished
               </button>
               <button
-                mat-icon-button
+                mat-raised-button
                 color="accent"
                 (click)="$event.stopPropagation(); openFitFileUpload(training, day.date)"
                 matTooltip="FIT-Datei hochladen">
-                <mat-icon>upload_file</mat-icon>
+                Upload
               </button>
             </div>
           </div>
@@ -154,19 +154,19 @@
                 <mat-icon>schedule</mat-icon>
                 {{ formatDuration(completed.durationSeconds) }}
               </span>
-              
+
               <!-- Distanz -->
               <span *ngIf="completed.distanceKm" class="training-distance">
                 <mat-icon>straighten</mat-icon>
                 {{ completed.distanceKm.toFixed(1) }}km
               </span>
-              
+
               <!-- Durchschnittspace -->
               <span *ngIf="completed.averagePaceSecondsPerKm" class="training-pace">
                 <mat-icon>speed</mat-icon>
                 {{ formatPace(completed.averagePaceSecondsPerKm) }}/km
               </span>
-              
+
               <!-- Durchschnitts-Herzfrequenz -->
               <span *ngIf="completed.averageHeartRate" class="training-hr">
                 <mat-icon>favorite</mat-icon>
