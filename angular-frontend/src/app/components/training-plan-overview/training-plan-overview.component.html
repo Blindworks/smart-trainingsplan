@@ -12,50 +12,7 @@
     </mat-card-header>
 
     <mat-card-content>
-      <!-- Competition Selection -->
-      <div class="competition-selection">
-        <h4>Ausgewählte Wettkämpfe:</h4>
-        <div class="competition-checkboxes">
-          <mat-checkbox
-            *ngFor="let competition of competitions"
-            [checked]="selectedCompetitions.includes(competition.id!)"
-            (change)="$event.checked ? selectedCompetitions.push(competition.id!) : selectedCompetitions.splice(selectedCompetitions.indexOf(competition.id!), 1); onCompetitionSelectionChange()">
-            {{ competition.name }}
-          </mat-checkbox>
-        </div>
-      </div>
 
-      <!-- Week Navigation -->
-      <div class="week-navigation">
-        <button mat-icon-button (click)="goToPreviousWeek()" matTooltip="Vorherige Woche (←)">
-          <mat-icon>chevron_left</mat-icon>
-        </button>
-
-        <div class="week-info">
-          <button mat-raised-button (click)="goToToday()" matTooltip="Heute (T)">
-            <mat-icon>today</mat-icon>
-            Heute
-          </button>
-        </div>
-
-        <button mat-icon-button (click)="goToNextWeek()" matTooltip="Nächste Woche (→)">
-          <mat-icon>chevron_right</mat-icon>
-        </button>
-      </div>
-
-      <!-- Week Statistics -->
-      <div class="week-stats" *ngIf="weekData">
-        <mat-chip-set>
-          <mat-chip [matBadge]="getTotalTrainingsCount()" matBadgeColor="primary">
-            <mat-icon>fitness_center</mat-icon>
-            Geplante Trainings
-          </mat-chip>
-          <mat-chip [matBadge]="getCompletedTrainingsCount()" matBadgeColor="accent">
-            <mat-icon>check_circle</mat-icon>
-            Absolviert
-          </mat-chip>
-        </mat-chip-set>
-      </div>
     </mat-card-content>
   </mat-card>
 
@@ -193,28 +150,24 @@
     <p>Wählen Sie mindestens einen Wettkampf aus, um die Trainingsübersicht anzuzeigen.</p>
   </div>
 
-  <!-- Keyboard Shortcuts Help -->
+  <!-- Navigation and Shortcuts -->
   <mat-card class="shortcuts-card">
-    <mat-card-header>
-      <mat-card-title>
-        <mat-icon>keyboard</mat-icon>
-        Tastaturkürzel
-      </mat-card-title>
-    </mat-card-header>
     <mat-card-content>
-      <div class="shortcuts">
-        <div class="shortcut">
-          <kbd>←</kbd>
-          <span>Vorherige Woche</span>
+      <div class="week-navigation">
+        <button mat-icon-button (click)="goToPreviousWeek()" matTooltip="Vorherige Woche (←)">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <div class="week-info">
+          <button mat-raised-button (click)="goToToday()" matTooltip="Heute (T)">
+            <mat-icon>today</mat-icon>
+            Heute
+          </button>
         </div>
-        <div class="shortcut">
-          <kbd>→</kbd>
-          <span>Nächste Woche</span>
-        </div>
-        <div class="shortcut">
-          <kbd>T</kbd>
-          <span>Zu heute springen</span>
-        </div>
+
+        <button mat-icon-button (click)="goToNextWeek()" matTooltip="Nächste Woche (→)">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
       </div>
     </mat-card-content>
   </mat-card>
