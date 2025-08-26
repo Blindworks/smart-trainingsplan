@@ -495,8 +495,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     
     this.apiService.updateTrainingFeedback(training.id!, {
       completed: newCompletionStatus,
-      rating: training.rating || 5,
-      feedback: training.feedback || ''
+      completionStatus: newCompletionStatus ? 'completed' : 'pending'
     }).pipe(takeUntil(this.destroy$))
     .subscribe({
       next: () => {
@@ -578,6 +577,9 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     formData.append('file', this.selectedFile);
     if (this.selectedUploadDate) {
       formData.append('date', this.selectedUploadDate);
+    }
+    if (this.selectedTrainingForUpload?.id) {
+      formData.append('trainingId', this.selectedTrainingForUpload.id.toString());
     }
 
     // Simulate progress for demo

@@ -114,9 +114,10 @@ export interface CompletedTraining {
 }
 
 export interface TrainingFeedback {
-  rating: number;
-  feedback: string;
+  rating?: number;
+  feedback?: string;
   completed: boolean;
+  completionStatus?: string;
 }
 
 export interface DailyTrainingCompletion {

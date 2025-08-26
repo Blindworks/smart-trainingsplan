@@ -18,10 +18,6 @@ public interface TrainingRepository extends JpaRepository<Training, Long> {
     
     List<Training> findByTrainingDateBetween(LocalDate startDate, LocalDate endDate);
     
-    List<Training> findByIsCompletedFalse();
-    
-    List<Training> findByIsCompletedTrue();
-    
     @Query("SELECT t FROM Training t WHERE t.trainingWeek.competition.id = :competitionId")
     List<Training> findByCompetitionId(Long competitionId);
     

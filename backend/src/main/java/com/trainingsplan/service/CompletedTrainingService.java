@@ -2,7 +2,9 @@ package com.trainingsplan.service;
 
 import com.garmin.fit.*;
 import com.trainingsplan.entity.CompletedTraining;
+import com.trainingsplan.entity.Training;
 import com.trainingsplan.repository.CompletedTrainingRepository;
+import com.trainingsplan.service.TrainingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,8 +20,15 @@ public class CompletedTrainingService {
 
     @Autowired
     private CompletedTrainingRepository completedTrainingRepository;
+    
+    @Autowired
+    private TrainingService trainingService;
 
     public CompletedTraining uploadAndParseFitFile(MultipartFile file, LocalDate trainingDate) throws IOException {
+        return uploadAndParseFitFile(file, trainingDate, null);
+    }
+
+    public CompletedTraining uploadAndParseFitFile(MultipartFile file, LocalDate trainingDate, Long trainingId) throws IOException {
         CompletedTraining training = new CompletedTraining();
         training.setTrainingDate(trainingDate);
         training.setOriginalFilename(file.getOriginalFilename());
@@ -32,7 +41,17 @@ public class CompletedTrainingService {
             throw new IOException("Fehler beim Parsen der FIT-Datei: " + e.getMessage(), e);
         }
 
-        return completedTrainingRepository.save(training);
+        CompletedTraining savedTraining = completedTrainingRepository.save(training);
+        
+        // If trainingId is provided, mark the planned training as completed
+        if (trainingId != null) {
+            Training plannedTraining = trainingService.findById(trainingId);
+            if (plannedTraining != null) {
+                trainingService.updateTrainingFeedback(trainingId, true, "completed");
+            }
+        }
+        
+        return savedTraining;
     }
 
     private void parseFitFileReal(byte[] fitData, CompletedTraining training) {

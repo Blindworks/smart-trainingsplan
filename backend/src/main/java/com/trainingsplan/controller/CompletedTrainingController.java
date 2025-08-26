@@ -24,7 +24,8 @@ public class CompletedTrainingController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFitFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate trainingDate) {
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate trainingDate,
+            @RequestParam(value = "trainingId", required = false) Long trainingId) {
         
         try {
             if (file.isEmpty()) {
@@ -35,7 +36,7 @@ public class CompletedTrainingController {
                 return ResponseEntity.badRequest().body("Nur .FIT-Dateien sind erlaubt");
             }
             
-            CompletedTraining training = completedTrainingService.uploadAndParseFitFile(file, trainingDate);
+            CompletedTraining training = completedTrainingService.uploadAndParseFitFile(file, trainingDate, trainingId);
             return ResponseEntity.ok(training);
             
         } catch (IOException e) {

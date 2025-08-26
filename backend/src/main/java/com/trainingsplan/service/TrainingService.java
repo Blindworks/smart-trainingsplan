@@ -54,13 +54,13 @@ public class TrainingService {
         trainingRepository.deleteById(id);
     }
 
-    public Training updateTrainingFeedback(Long trainingId, Boolean isCompleted, String completionStatus) {
+    public Training updateTrainingFeedback(Long trainingId, Boolean completed, String completionStatus) {
         Training training = findById(trainingId);
         if (training != null) {
-            training.setIsCompleted(isCompleted);
+            training.setCompleted(completed);
             training.setCompletionStatus(completionStatus);
             
-            if (!isCompleted) {
+            if (!completed) {
                 adjustWeeklyTraining(training);
             }
             
@@ -108,7 +108,7 @@ public class TrainingService {
             
             List<Training> weekTrainings = findByTrainingWeekId(week.getId());
             for (Training training : weekTrainings) {
-                if (!training.getId().equals(missedTraining.getId()) && !training.getIsCompleted()) {
+                if (!training.getId().equals(missedTraining.getId()) && !training.isCompleted()) {
                     if ("high".equals(missedTraining.getIntensityLevel())) {
                         training.setIntensityLevel("medium");
                     } else if ("medium".equals(missedTraining.getIntensityLevel())) {

@@ -81,7 +81,7 @@ public class TrainingController {
     @PutMapping("/{id}/feedback")
     public ResponseEntity<Training> updateTrainingFeedback(@PathVariable Long id, 
                                                           @Valid @RequestBody TrainingFeedbackDto feedback) {
-        Training training = trainingService.updateTrainingFeedback(id, feedback.getIsCompleted(), feedback.getCompletionStatus());
+        Training training = trainingService.updateTrainingFeedback(id, feedback.isCompleted(), feedback.getCompletionStatus());
         if (training != null) {
             return ResponseEntity.ok(training);
         }

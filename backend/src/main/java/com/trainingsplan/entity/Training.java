@@ -40,8 +40,8 @@ public class Training {
     @Column(name = "training_type")
     private String trainingType;
 
-    @Column(name = "is_completed")
-    private Boolean isCompleted = false;
+    @Column(name = "completed")
+    private Boolean completed = false;
 
     @Column(name = "completion_status")
     private String completionStatus;
@@ -131,12 +131,13 @@ public class Training {
         this.trainingType = trainingType;
     }
 
-    public Boolean getIsCompleted() {
-        return isCompleted;
+    @JsonProperty("isCompleted")
+    public Boolean isCompleted() {
+        return completed;
     }
 
-    public void setIsCompleted(Boolean isCompleted) {
-        this.isCompleted = isCompleted;
+    public void setCompleted(Boolean completed) {
+        this.completed = completed;
     }
 
     public String getCompletionStatus() {

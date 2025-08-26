@@ -88,6 +88,7 @@
           <h5>Geplant</h5>
           <div
             class="training-card planned-training"
+            [class.completed]="training.completed"
             *ngFor="let training of day.trainings"
             [style.border-left-color]="getTrainingTypeColor(training.type)"
             (click)="openTrainingDetails(training)">
@@ -120,10 +121,10 @@
             <div class="training-actions">
               <button
                 mat-raised-button
-                color="primary"
+                [color]="training.completed ? 'accent' : 'primary'"
                 (click)="$event.stopPropagation(); toggleTrainingCompletion(training)"
                 [matTooltip]="training.completed ? 'Als unvollständig markieren' : 'Als abgeschlossen markieren'">
-                Finished
+                {{ training.completed ? 'Completed' : 'Mark Done' }}
               </button>
               <button
                 mat-raised-button

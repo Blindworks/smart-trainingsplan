@@ -4,23 +4,23 @@ import jakarta.validation.constraints.NotNull;
 
 public class TrainingFeedbackDto {
     @NotNull
-    private Boolean isCompleted;
+    private Boolean completed;
     
     private String completionStatus;
 
     public TrainingFeedbackDto() {}
 
-    public TrainingFeedbackDto(Boolean isCompleted, String completionStatus) {
-        this.isCompleted = isCompleted;
+    public TrainingFeedbackDto(Boolean completed, String completionStatus) {
+        this.completed = completed;
         this.completionStatus = completionStatus;
     }
 
-    public Boolean getIsCompleted() {
-        return isCompleted;
+    public Boolean isCompleted() {
+        return completed;
     }
 
-    public void setIsCompleted(Boolean isCompleted) {
-        this.isCompleted = isCompleted;
+    public void setCompleted(Boolean completed) {
+        this.completed = completed;
     }
 
     public String getCompletionStatus() {
