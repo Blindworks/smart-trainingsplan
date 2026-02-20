@@ -684,3 +684,112 @@
     }
   }
 }
+
+// ─── Strava Integration ───────────────────────────────────────────────────────
+
+.strava-widget {
+  display: flex;
+  align-items: center;
+  padding: 8px 0 4px;
+}
+
+.strava-connect-btn {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #FC4C02, #e34400) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 0 16px !important;
+  height: 36px !important;
+  box-shadow: 0 2px 12px rgba(252, 76, 2, 0.35) !important;
+  transition: all 0.18s ease !important;
+
+  &:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 20px rgba(252, 76, 2, 0.5) !important;
+  }
+}
+
+.strava-connected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(252, 76, 2, 0.08);
+  border: 1px solid rgba(252, 76, 2, 0.2);
+
+  .athlete-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(252, 76, 2, 0.4);
+  }
+
+  .athlete-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+
+    .athlete-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .athlete-city {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+  }
+
+  .strava-disconnect-btn {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-muted) !important;
+    min-width: unset;
+    padding: 0 8px !important;
+
+    &:hover {
+      color: #FF6A6A !important;
+    }
+  }
+}
+
+.strava-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(252, 76, 2, 0.15);
+  color: #FC4C02;
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+.training-card.strava-activity {
+  background: rgba(252, 76, 2, 0.06);
+  border: 1px solid rgba(252, 76, 2, 0.2);
+  border-left: 3px solid #FC4C02;
+  cursor: default;
+
+  .training-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  &:hover {
+    border-color: rgba(252, 76, 2, 0.4);
+    background: rgba(252, 76, 2, 0.09);
+    transform: none;
+    box-shadow: none;
+  }
+}

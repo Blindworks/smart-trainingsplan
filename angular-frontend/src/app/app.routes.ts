@@ -4,6 +4,7 @@ import { CompetitionFormComponent } from './components/competition-form/competit
 import { TrainingPlanOverviewComponent } from './components/training-plan-overview/training-plan-overview.component';
 import { TrainingCompletionComponent } from './components/training-completion/training-completion.component';
 import { TrainingPlanUploadComponent } from './components/training-plan-upload/training-plan-upload.component';
+import { StravaCallbackComponent } from './components/strava-callback/strava-callback.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/competitions', pathMatch: 'full' },
@@ -13,5 +14,6 @@ export const routes: Routes = [
   { path: 'competitions/:id/upload', component: TrainingPlanUploadComponent },
   { path: 'overview', component: TrainingPlanOverviewComponent },
   { path: 'completion', component: TrainingCompletionComponent },
+  { path: 'strava/callback', component: StravaCallbackComponent },
   { path: '**', redirectTo: '/competitions' }
 ];

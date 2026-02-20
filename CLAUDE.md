@@ -6,63 +6,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Backend (Spring Boot + Maven)
 ```bash
-# Navigate to backend directory
 cd backend
-
-# Run the application in development mode
-mvn spring-boot:run
-
-# Run tests
-mvn test
-
-# Package for production
-mvn package
+mvn spring-boot:run          # Run in development mode (port 8080)
+mvn test                     # Run all tests
+mvn test -Dtest=ClassName    # Run a single test class
+mvn package                  # Build production jar
 ```
 
-The backend runs on `http://localhost:8080` and uses MariaDB as the primary database with H2 for testing.
-
-### Frontend (React)
+### Angular Frontend (Active)
 ```bash
-# Navigate to frontend directory  
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm start
-
-# Run tests
-npm test
-
-# Build for production
-npm run build
-```
-
-The React frontend runs on `http://localhost:3000` and proxies API requests to the backend on port 8080.
-
-### Angular Frontend (Alternative)
-```bash
-# Navigate to Angular frontend directory
 cd angular-frontend
-
-# Install dependencies
 npm install
-
-# Start development server
-npm start
-
-# Run tests
-npm test
-
-# Build for production
-npm run build
+npm start                    # Dev server on port 4200
+npm test                     # Run unit tests with Karma
+npm run build                # Production build
 ```
 
-The Angular frontend runs on `http://localhost:4200` and proxies API requests to the backend on port 8080.
-
-### Database Setup
-Create MariaDB database and user:
+### Database Setup (MariaDB)
 ```sql
 CREATE DATABASE smart_trainingsplan;
 CREATE USER 'smart_trainingsplan'@'localhost' IDENTIFIED BY 'taxcRH51#';
@@ -70,67 +30,50 @@ GRANT ALL PRIVILEGES ON smart_trainingsplan.* TO 'smart_trainingsplan'@'localhos
 FLUSH PRIVILEGES;
 ```
 
-## Architecture Overview
+Backend credentials are in `backend/src/main/resources/application.properties`. H2 in-memory DB is used for tests.
 
-### Backend (Spring Boot)
-- **Technology**: Java 21, Spring Boot 3.2.0, JPA/Hibernate, MariaDB
-- **Package Structure**: `com.trainingsplan` with clear separation of concerns
-  - `controller/` - REST endpoints for API layer
-  - `entity/` - JPA entities for data model
-  - `repository/` - Data access layer
-  - `service/` - Business logic layer  
-  - `dto/` - Data transfer objects
-- **Key Features**:
-  - CORS configured for frontend integration
-  - Garmin FIT file processing with external SDK
-  - Automatic training plan generation and management
-  - Training completion tracking with daily/weekly progress
+## Architecture
 
-### Frontend Options
+### Technology Stack
+- **Backend**: Java 21, Spring Boot 3.2.0, JPA/Hibernate, MariaDB, Garmin FIT SDK 21.176.0
+- **Angular Frontend**: Angular 19, Angular Material (Azure Blue theme), TypeScript, RxJS — **this is the active frontend**
+- **React Frontend** (`frontend/`): Legacy, kept for reference only
 
-#### React Frontend (Original)
-- **Technology**: React 18, React Bootstrap, React Router, Axios
-- **Port**: `http://localhost:3000`
-- **Key Components**:
-  - `TrainingPlanOverview.js` - Main unified calendar/planning view
-  - `CompetitionList.js` & `CompetitionForm.js` - Competition management
-  - `TrainingPlanUpload.js` - JSON training plan upload
-  - `TrainingCompletion.js` - Training feedback and completion tracking
-- **API Integration**: Centralized in `services/api.js` with axios
+### Backend Package Structure (`com.trainingsplan`)
+- `controller/` — REST endpoints (one controller per entity)
+- `entity/` — JPA entities: `Competition`, `TrainingPlan`, `TrainingWeek`, `Training`, `TrainingDescription`, `CompletedTraining`
+- `service/` — Business logic; `TrainingCompletionService` handles planned-vs-actual comparison
+- `repository/` — Spring Data JPA repositories
+- `dto/` — Data transfer objects; `DailyTrainingCompletionDto` aggregates daily stats
+- `config/` — CORS and Spring configuration
 
-#### Angular Frontend (Alternative)
-- **Technology**: Angular 19, Angular Material, TypeScript, RxJS
-- **Port**: `http://localhost:4200`
-- **Architecture**: Standalone Components with Reactive Forms
-- **Key Features**:
-  - Material Design UI with Azure Blue theme
-  - Type-safe API services with full TypeScript support
-  - Advanced UX features (keyboard shortcuts, drag & drop)
-  - Responsive design for all screen sizes
-  - Professional training calendar with multi-competition support
-- **Key Components**:
-  - `TrainingPlanOverviewComponent` - Advanced calendar with keyboard navigation
-  - `CompetitionListComponent` & `CompetitionFormComponent` - Material Design forms
-  - `TrainingPlanUploadComponent` - Drag & drop JSON upload with documentation
-  - `TrainingCompletionComponent` - FIT file upload with star ratings
-- **API Integration**: Observable-based services in `services/api.service.ts`
+### Entity Relationships
+```
+Competition → TrainingPlan → TrainingWeek → Training
+                                              ↓
+                                   TrainingDescription (optional rich text)
 
-### Core Business Logic
-1. **Competition Management**: Create competitions with target dates
-2. **Training Plan Upload**: JSON format upload with automatic week generation  
-3. **Unified Training View**: Multi-competition comparison with week-by-week navigation
-4. **FIT File Integration**: Upload and parse Garmin/Polar/Suunto .fit files for actual training data
-5. **Training Completion Tracking**: Mark trainings as completed with automatic plan adjustments
+CompletedTraining (from FIT file upload, linked to date — NOT a FK to Training)
+```
+`CompletedTraining` is matched to planned `Training` by date only, not by a foreign key.
 
-### Database Schema
-Key entities with JPA relationships:
-- `Competition` → `TrainingPlan` → `Training` (one-to-many chains)
-- `TrainingDescription` - detailed training instructions and metadata
-- `CompletedTraining` - FIT file derived actual training data
-- `TrainingWeek` - generated weekly training periods
+### Angular Frontend (`angular-frontend/src/app/`)
+- **Routing** (`app.routes.ts`): `/competitions` → list, `/competitions/new|:id/edit` → form, `/competitions/:id/upload` → plan upload, `/overview` → calendar, `/completion` → FIT upload
+- **API Service** (`services/api.service.ts`): Single injectable service wrapping all backend calls; base URL from `environments/environment.ts` (`http://localhost:8080/api`)
+- **Models** (`models/competition.model.ts`): All TypeScript interfaces in one file; `Training` has both new fields (`trainingDate`, `intensityLevel`, `trainingType`) and legacy fields (`date`, `intensity`, `type`) for compatibility
+- **Components** (all standalone): `TrainingPlanOverviewComponent` is the main calendar view with week navigation and multi-competition display; `TrainingDetailsDialogComponent` is a Material dialog for per-training details
 
-### JSON Training Plan Format
-Training plans are uploaded in JSON format:
+### Key API Endpoints
+- `POST /api/competitions/{id}/generate-weeks` — triggers automatic week generation after competition creation
+- `POST /api/training-plans/upload` — multipart upload of JSON training plan file
+- `POST /api/completed-trainings/upload` — multipart upload of `.fit` file (parsed by Garmin SDK)
+- `GET /api/completed-trainings/by-date?date=YYYY-MM-DD` — fetch actual training data by date
+- `PUT /api/trainings/{id}/feedback` — update completion status and rating
+
+### FIT File Processing
+The Garmin FIT SDK (`com.garmin:fit:21.176.0`) is a local dependency. It must be installed to the local Maven repository — see `MAVEN_SETUP.md`. `CompletedTrainingService` parses uploaded `.fit` files and stores metrics (HR, pace, power, cadence, elevation) in `CompletedTraining`.
+
+### Training Plan JSON Upload Format
 ```json
 {
   "trainings": [
@@ -146,18 +89,3 @@ Training plans are uploaded in JSON format:
   ]
 }
 ```
-
-## API Endpoints Structure
-- `/api/competitions` - Competition CRUD operations
-- `/api/training-plans` - Plan upload and management
-- `/api/trainings` - Individual training management and completion
-- `/api/training-descriptions` - Detailed training instruction management
-- `/api/completed-trainings` - FIT file upload and actual training data
-
-## Development Notes
-- Backend uses Java 21 features and Spring Boot 3.x patterns
-- Frontend follows React functional component patterns with hooks
-- Database credentials are in `application.properties` (dev) and `application-dev.properties`
-- CORS is configured for localhost development
-- The app supports multi-competition training plan comparison and mixing
-- FIT file processing requires the Garmin FIT SDK dependency

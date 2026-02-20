@@ -2,15 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { 
-  Competition, 
-  TrainingPlan, 
-  Training, 
-  TrainingDescription, 
+import {
+  Competition,
+  TrainingPlan,
+  Training,
+  TrainingDescription,
   CompletedTraining,
   TrainingFeedback,
-  DailyTrainingCompletion 
+  DailyTrainingCompletion
 } from '../models/competition.model';
+import { StravaStatus, StravaActivity } from '../models/strava.model';
 
 @Injectable({
   providedIn: 'root'
@@ -137,5 +138,24 @@ export class ApiService {
     return this.http.get<CompletedTraining[]>(`${this.baseUrl}/completed-trainings/by-date-range`, {
       params: { startDate, endDate }
     });
+  }
+
+  // Strava API
+  getStravaAuthUrl(): Observable<{url: string}> {
+    return this.http.get<{url: string}>(`${this.baseUrl}/strava/auth-url`);
+  }
+
+  getStravaStatus(): Observable<StravaStatus> {
+    return this.http.get<StravaStatus>(`${this.baseUrl}/strava/status`);
+  }
+
+  getStravaActivities(startDate: string, endDate: string): Observable<StravaActivity[]> {
+    return this.http.get<StravaActivity[]>(`${this.baseUrl}/strava/activities`, {
+      params: { startDate, endDate }
+    });
+  }
+
+  disconnectStrava(): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/strava/disconnect`);
   }
 }

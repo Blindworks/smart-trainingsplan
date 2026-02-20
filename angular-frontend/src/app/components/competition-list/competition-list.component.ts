@@ -41,7 +41,12 @@ export class CompetitionListComponent implements OnInit {
     this.loading = true;
     this.apiService.getAllCompetitions().subscribe({
       next: (competitions) => {
-        this.competitions = competitions;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        this.competitions = competitions.filter(c => {
+          const dateStr = c.date || c.targetDate;
+          return dateStr ? new Date(dateStr) >= today : true;
+        });
         this.loading = false;
       },
       error: (error) => {
