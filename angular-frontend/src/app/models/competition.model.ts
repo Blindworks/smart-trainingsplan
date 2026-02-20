@@ -125,3 +125,13 @@ export interface DailyTrainingCompletion {
   planned: number;
   completed: number;
 }
+
+export interface TrainingPlanDto {
+  id: number;
+  name: string;
+  description?: string;
+  isTemplate: boolean;
+  trainingCount?: number;
+  competitionId?: number;
+  uploadDate?: string;
+}

@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import {
   Competition,
   TrainingPlan,
+  TrainingPlanDto,
   Training,
   TrainingDescription,
   CompletedTraining,
@@ -73,6 +74,20 @@ export class ApiService {
 
   uploadTrainingPlan(formData: FormData): Observable<any> {
     return this.http.post(`${this.baseUrl}/training-plans/upload`, formData);
+  }
+
+  getTemplatePlans(): Observable<TrainingPlanDto[]> {
+    return this.http.get<TrainingPlanDto[]>(`${this.baseUrl}/training-plans/templates`);
+  }
+
+  uploadAsTemplate(formData: FormData): Observable<TrainingPlanDto> {
+    return this.http.post<TrainingPlanDto>(`${this.baseUrl}/training-plans/upload-template`, formData);
+  }
+
+  assignPlanToCompetition(planId: number, competitionId: number): Observable<any> {
+    return this.http.post(`${this.baseUrl}/training-plans/assign`, null, {
+      params: { planId: planId.toString(), competitionId: competitionId.toString() }
+    });
   }
 
   // Training API

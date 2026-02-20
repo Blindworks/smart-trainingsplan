@@ -144,6 +144,22 @@ html, body {
   border-radius: 12px !important;
 }
 
+// Assign plan dialog — transparent surface so the component's own container controls styling
+.assign-plan-dialog-panel {
+  .mat-mdc-dialog-surface {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 14px !important;
+    overflow: visible !important;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  .mat-mdc-dialog-container {
+    border: none !important;
+    border-radius: 14px !important;
+  }
+}
+
 // Form field input and container backgrounds
 .mat-mdc-text-field-wrapper {
   background-color: var(--bg-surface) !important;

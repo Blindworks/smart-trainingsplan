@@ -10,6 +10,7 @@
 - Training -> TrainingDescription (optional, rich text)
 - CompletedTraining: standalone, matched to Training by date only (no FK)
 - StravaToken: single-row table (singleton via findFirstByOrderByIdAsc)
+- TrainingPlan.competition is nullable (isTemplate=true plans have no competition)
 
 ## Established Patterns
 - DTOs: plain classes with getters/setters (not Records used here — team lead spec uses plain classes)
@@ -37,6 +38,15 @@
 - Status: GET /api/strava/status
 - Activities: GET /api/strava/activities?startDate=&endDate=
 - Disconnect: DELETE /api/strava/disconnect
+
+## TrainingPlan Template Feature (added 2026-02)
+- isTemplate=true: plan saved without competition; no Training records created yet
+- POST /api/training-plans/upload-template — file, name, description (no competitionId)
+- GET  /api/training-plans/templates — all templates
+- POST /api/training-plans/assign?planId=&competitionId= — clones plan, shifts dates, creates Trainings
+- Old-format JSON (has "trainings" array): dates shifted so last date == competition date
+- Marathon/half-marathon format: dates computed from competition.getDate() inside service, no shifting needed
+- TrainingPlanDto wraps entity to avoid Lazy-loading exceptions in controller responses
 
 ## Compilation
 - `mvn compile -q` from backend/ directory (clean output = success)

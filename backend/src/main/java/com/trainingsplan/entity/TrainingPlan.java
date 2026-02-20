@@ -11,6 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "training_plans")
 public class TrainingPlan {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,8 +29,14 @@ public class TrainingPlan {
     @Column(name = "json_content", columnDefinition = "TEXT")
     private String jsonContent;
 
+    @Column(name = "is_template", nullable = false)
+    private boolean isTemplate = false;
+
+    @Column(name = "training_count")
+    private Integer trainingCount;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "competition_id")
+    @JoinColumn(name = "competition_id", nullable = true)
     @JsonIgnore
     private Competition competition;
 
@@ -86,6 +93,22 @@ public class TrainingPlan {
 
     public void setJsonContent(String jsonContent) {
         this.jsonContent = jsonContent;
+    }
+
+    public boolean isTemplate() {
+        return isTemplate;
+    }
+
+    public void setTemplate(boolean isTemplate) {
+        this.isTemplate = isTemplate;
+    }
+
+    public Integer getTrainingCount() {
+        return trainingCount;
+    }
+
+    public void setTrainingCount(Integer trainingCount) {
+        this.trainingCount = trainingCount;
     }
 
     public Competition getCompetition() {

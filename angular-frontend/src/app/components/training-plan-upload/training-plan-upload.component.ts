@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,20 +8,28 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 import { ApiService } from '../../services/api.service';
 import { Competition } from '../../models/competition.model';
 
 @Component({
   selector: 'app-training-plan-upload',
+  standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
     MatProgressBarModule,
     MatSnackBarModule,
-    MatDividerModule
+    MatDividerModule,
+    MatCheckboxModule,
+    MatFormFieldModule,
+    MatInputModule
   ],
   templateUrl: './training-plan-upload.component.html',
   styleUrl: './training-plan-upload.component.scss'
@@ -32,25 +41,30 @@ export class TrainingPlanUploadComponent implements OnInit {
   uploading = false;
   dragOver = false;
 
+  // Template toggle
+  saveAsTemplate = false;
+  templateName = '';
+  templateDescription = '';
+
   // JSON Template for training plans
   jsonTemplate = {
     trainings: [
       {
-        name: "Intervalltraining",
-        description: "5x1000m Intervalle mit 3min Pause",
-        date: "2024-01-15",
-        type: "speed",
-        intensity: "high",
-        startTime: "18:00",
+        name: 'Intervalltraining',
+        description: '5x1000m Intervalle mit 3min Pause',
+        date: '2024-01-15',
+        type: 'speed',
+        intensity: 'high',
+        startTime: '18:00',
         duration: 90
       },
       {
-        name: "Grundlagenausdauer",
-        description: "Lockerer 10km Lauf",
-        date: "2024-01-16",
-        type: "endurance",
-        intensity: "medium",
-        startTime: "07:00",
+        name: 'Grundlagenausdauer',
+        description: 'Lockerer 10km Lauf',
+        date: '2024-01-16',
+        type: 'endurance',
+        intensity: 'medium',
+        startTime: '07:00',
         duration: 60
       }
     ]
@@ -96,7 +110,7 @@ export class TrainingPlanUploadComponent implements OnInit {
       next: (competition) => {
         this.competition = competition;
       },
-      error: (error) => {
+      error: () => {
         this.snackBar.open('Fehler beim Laden des Wettkampfs', 'Schließen', { duration: 3000 });
       }
     });
@@ -121,8 +135,9 @@ export class TrainingPlanUploadComponent implements OnInit {
     }
   }
 
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (file) {
       this.selectFile(file);
     }
@@ -142,18 +157,54 @@ export class TrainingPlanUploadComponent implements OnInit {
     this.uploading = true;
     const formData = new FormData();
     formData.append('file', this.selectedFile);
-    formData.append('competitionId', this.competitionId.toString());
 
-    this.apiService.uploadTrainingPlan(formData).subscribe({
-      next: (response) => {
-        this.snackBar.open('Trainingsplan erfolgreich hochgeladen', 'Schließen', { duration: 3000 });
-        this.router.navigate(['/overview']);
-      },
-      error: (error) => {
-        this.snackBar.open('Fehler beim Upload: ' + (error.error?.message || 'Unbekannter Fehler'), 'Schließen', { duration: 5000 });
-        this.uploading = false;
+    if (this.saveAsTemplate) {
+      // Upload as a reusable template — no competitionId
+      const name = this.templateName.trim() || this.selectedFile.name.replace('.json', '');
+      formData.append('name', name);
+      if (this.templateDescription.trim()) {
+        formData.append('description', this.templateDescription.trim());
       }
-    });
+
+      this.apiService.uploadAsTemplate(formData).subscribe({
+        next: () => {
+          this.snackBar.open('Trainingsplan als Vorlage gespeichert', 'Schließen', { duration: 3000 });
+          this.router.navigate(['/competitions']);
+        },
+        error: (error) => {
+          this.snackBar.open(
+            'Fehler beim Upload: ' + (error.error?.message || 'Unbekannter Fehler'),
+            'Schließen',
+            { duration: 5000 }
+          );
+          this.uploading = false;
+        }
+      });
+    } else {
+      // Upload directly for this competition
+      formData.append('competitionId', this.competitionId.toString());
+      if (this.templateName.trim()) {
+        formData.append('name', this.templateName.trim());
+      }
+      if (this.templateDescription.trim()) {
+        formData.append('description', this.templateDescription.trim());
+      }
+
+      this.apiService.uploadTrainingPlan(formData).subscribe({
+        next: () => {
+          this.snackBar.open('Trainingsplan erfolgreich hochgeladen', 'Schließen', { duration: 3000 });
+          this.router.navigate(['/overview']);
+        },
+        error: (error) => {
+          this.snackBar.open(
+            'Fehler beim Upload: ' + (error.error?.message || 'Unbekannter Fehler'),
+            'Schließen',
+            { duration: 5000 }
+          );
+          this.uploading = false;
+        }
+      });
+    }
   }
 
   downloadTemplate(): void {

@@ -22,7 +22,7 @@
             <p>Laden Sie eine Vorlage herunter oder erstellen Sie einen eigenen JSON-Trainingsplan</p>
           </div>
         </div>
-        
+
         <button mat-raised-button color="accent" (click)="downloadTemplate()">
           <mat-icon>download</mat-icon>
           Vorlage herunterladen
@@ -32,29 +32,66 @@
 
     <mat-divider></mat-divider>
 
+    <!-- Save as Template Toggle -->
+    <mat-card class="options-card">
+      <mat-card-content>
+        <div class="option-row">
+          <mat-checkbox
+            [(ngModel)]="saveAsTemplate"
+            class="template-checkbox"
+            color="primary">
+            Als Vorlage speichern (für alle Competitions verwendbar)
+          </mat-checkbox>
+        </div>
+
+        <p class="option-hint" *ngIf="saveAsTemplate">
+          Der Plan wird als wiederverwendbare Vorlage gespeichert und kann später beliebigen Wettkämpfen zugewiesen werden — ohne direkte Verknüpfung zu diesem Wettkampf.
+        </p>
+
+        <!-- Name and Description fields -->
+        <div class="plan-metadata" *ngIf="saveAsTemplate">
+          <mat-form-field appearance="outline" class="metadata-field">
+            <mat-label>Vorlagenname</mat-label>
+            <input matInput [(ngModel)]="templateName" placeholder="z.B. Halbmarathon < 1:30" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="metadata-field">
+            <mat-label>Beschreibung (optional)</mat-label>
+            <textarea
+              matInput
+              [(ngModel)]="templateDescription"
+              rows="2"
+              placeholder="Kurze Beschreibung der Vorlage"></textarea>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-divider></mat-divider>
+
     <!-- File Upload Section -->
     <mat-card class="upload-card">
       <mat-card-content>
         <!-- Drag & Drop Area -->
-        <div 
-          class="drop-zone" 
+        <div
+          class="drop-zone"
           [class.drag-over]="dragOver"
           (dragover)="onDragOver($event)"
           (dragleave)="onDragLeave($event)"
           (drop)="onDrop($event)"
           *ngIf="!selectedFile">
-          
+
           <mat-icon class="upload-icon">cloud_upload</mat-icon>
           <h3>Datei hier ablegen</h3>
           <p>oder klicken Sie zum Auswählen</p>
-          
-          <input 
-            type="file" 
-            accept=".json,application/json" 
+
+          <input
+            type="file"
+            accept=".json,application/json"
             (change)="onFileSelected($event)"
             #fileInput
             style="display: none;">
-          
+
           <button mat-raised-button color="primary" (click)="fileInput.click()">
             <mat-icon>folder_open</mat-icon>
             Datei auswählen
@@ -76,19 +113,19 @@
         <!-- Upload Progress -->
         <div class="upload-progress" *ngIf="uploading">
           <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-          <p>Trainingsplan wird hochgeladen...</p>
+          <p>{{ saveAsTemplate ? 'Vorlage wird gespeichert...' : 'Trainingsplan wird hochgeladen...' }}</p>
         </div>
       </mat-card-content>
-      
+
       <mat-card-actions *ngIf="selectedFile && !uploading">
         <button mat-button (click)="cancel()">
           <mat-icon>cancel</mat-icon>
           Abbrechen
         </button>
-        
+
         <button mat-raised-button color="primary" (click)="uploadFile()">
-          <mat-icon>upload</mat-icon>
-          Hochladen
+          <mat-icon>{{ saveAsTemplate ? 'bookmark_add' : 'upload' }}</mat-icon>
+          {{ saveAsTemplate ? 'Als Vorlage speichern' : 'Hochladen' }}
         </button>
       </mat-card-actions>
     </mat-card>
@@ -101,7 +138,7 @@
           JSON Format Dokumentation
         </mat-card-title>
       </mat-card-header>
-      
+
       <mat-card-content>
         <div class="format-section">
           <h4>Trainingstypen:</h4>

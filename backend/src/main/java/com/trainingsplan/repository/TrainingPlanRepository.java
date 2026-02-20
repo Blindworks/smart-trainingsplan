@@ -9,10 +9,15 @@ import java.util.List;
 
 @Repository
 public interface TrainingPlanRepository extends JpaRepository<TrainingPlan, Long> {
+
     List<TrainingPlan> findByCompetitionId(Long competitionId);
-    
+
     List<TrainingPlan> findByNameContainingIgnoreCase(String name);
-    
+
     @Query("SELECT tp FROM TrainingPlan tp WHERE tp.competition.id = :competitionId")
     List<TrainingPlan> findAllByCompetitionId(Long competitionId);
+
+    List<TrainingPlan> findByIsTemplateTrue();
+
+    List<TrainingPlan> findByCompetitionIdAndIsTemplateFalse(Long competitionId);
 }
