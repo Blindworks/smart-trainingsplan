@@ -1,11 +1,133 @@
-.spacer {
-  flex: 1 1 auto;
+.pacr-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 60px;
+  background-color: rgba(11, 15, 26, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
 }
 
-button {
-  margin-left: 10px;
-  
-  mat-icon {
-    margin-right: 8px;
+.nav-inner {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 24px;
+  gap: 40px;
+}
+
+// ─── Brand ────────────────────────────────────────────────────────────────────
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+
+  .brand-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+
+  .brand-name {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+// ─── Links ────────────────────────────────────────────────────────────────────
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.18s ease;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+    transition: color 0.18s ease;
+  }
+
+  &:hover {
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.05);
+
+    mat-icon {
+      color: var(--accent-blue);
+    }
+  }
+
+  &.active {
+    color: var(--text-primary);
+    background-color: rgba(45, 123, 255, 0.12);
+
+    mat-icon {
+      color: var(--accent-blue);
+    }
+
+    span {
+      background: var(--gradient-btn);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+}
+
+// ─── Status Pill ──────────────────────────────────────────────────────────────
+
+.nav-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--volt-green);
+  box-shadow: 0 0 8px rgba(0, 255, 156, 0.6);
+  animation: pulse-dot 2.4s ease-in-out infinite;
+}
+
+.status-text {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--volt-green);
+  text-transform: uppercase;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(0, 255, 156, 0.6); }
+  50%       { opacity: 0.6; box-shadow: 0 0 4px rgba(0, 255, 156, 0.3); }
 }
