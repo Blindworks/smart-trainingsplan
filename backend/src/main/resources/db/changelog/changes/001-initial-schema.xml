@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="001" author="liquibase">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="competitions"/>
+            </not>
+        </preConditions>
+
+        <!-- 1. training_descriptions (no FK) -->
+        <createTable tableName="training_descriptions">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="detailed_instructions" type="VARCHAR(5000)"/>
+            <column name="warmup_instructions" type="VARCHAR(1000)"/>
+            <column name="cooldown_instructions" type="VARCHAR(1000)"/>
+            <column name="equipment" type="VARCHAR(2000)"/>
+            <column name="tips" type="VARCHAR(1000)"/>
+            <column name="estimated_duration_minutes" type="INT"/>
+            <column name="difficulty_level" type="VARCHAR(255)"/>
+        </createTable>
+
+        <!-- 2. competitions (no FK) -->
+        <createTable tableName="competitions">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1000)"/>
+        </createTable>
+
+        <!-- 3. training_plans (FK → competitions) -->
+        <createTable tableName="training_plans">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1000)"/>
+            <column name="upload_date" type="DATETIME"/>
+            <column name="json_content" type="TEXT"/>
+            <column name="is_template" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="training_count" type="INT"/>
+            <column name="competition_id" type="BIGINT"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="training_plans"
+            baseColumnNames="competition_id"
+            constraintName="fk_training_plans_competition"
+            referencedTableName="competitions"
+            referencedColumnNames="id"/>
+
+        <!-- 4. training_weeks (FK → competitions) -->
+        <createTable tableName="training_weeks">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="week_number" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_modified" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="competition_id" type="BIGINT"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="training_weeks"
+            baseColumnNames="competition_id"
+            constraintName="fk_training_weeks_competition"
+            referencedTableName="competitions"
+            referencedColumnNames="id"/>
+
+        <!-- 5. trainings (FK → training_plans, training_weeks, training_descriptions) -->
+        <createTable tableName="trainings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="training_description_id" type="BIGINT"/>
+            <column name="training_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_time" type="TIME"/>
+            <column name="duration_minutes" type="INT"/>
+            <column name="intensity_level" type="VARCHAR(255)"/>
+            <column name="training_type" type="VARCHAR(255)"/>
+            <column name="completed" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="completion_status" type="VARCHAR(255)"/>
+            <column name="training_plan_id" type="BIGINT"/>
+            <column name="training_week_id" type="BIGINT"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="trainings"
+            baseColumnNames="training_description_id"
+            constraintName="fk_trainings_training_description"
+            referencedTableName="training_descriptions"
+            referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+            baseTableName="trainings"
+            baseColumnNames="training_plan_id"
+            constraintName="fk_trainings_training_plan"
+            referencedTableName="training_plans"
+            referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint
+            baseTableName="trainings"
+            baseColumnNames="training_week_id"
+            constraintName="fk_trainings_training_week"
+            referencedTableName="training_weeks"
+            referencedColumnNames="id"/>
+
+        <!-- 6. completed_trainings (no FK) -->
+        <createTable tableName="completed_trainings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="training_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="upload_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="distance_km" type="DOUBLE"/>
+            <column name="duration_seconds" type="INT"/>
+            <column name="moving_time_seconds" type="INT"/>
+            <column name="average_pace_seconds_per_km" type="INT"/>
+            <column name="average_speed_kmh" type="DOUBLE"/>
+            <column name="max_speed_kmh" type="DOUBLE"/>
+            <column name="average_heart_rate" type="INT"/>
+            <column name="max_heart_rate" type="INT"/>
+            <column name="min_heart_rate" type="INT"/>
+            <column name="elevation_gain_m" type="INT"/>
+            <column name="elevation_loss_m" type="INT"/>
+            <column name="min_elevation_m" type="DOUBLE"/>
+            <column name="max_elevation_m" type="DOUBLE"/>
+            <column name="average_power_watts" type="INT"/>
+            <column name="max_power_watts" type="INT"/>
+            <column name="normalized_power_watts" type="INT"/>
+            <column name="average_cadence" type="INT"/>
+            <column name="max_cadence" type="INT"/>
+            <column name="temperature_celsius" type="DOUBLE"/>
+            <column name="calories" type="INT"/>
+            <column name="time_in_hr_zone_1_seconds" type="INT"/>
+            <column name="time_in_hr_zone_2_seconds" type="INT"/>
+            <column name="time_in_hr_zone_3_seconds" type="INT"/>
+            <column name="time_in_hr_zone_4_seconds" type="INT"/>
+            <column name="time_in_hr_zone_5_seconds" type="INT"/>
+            <column name="total_laps" type="INT"/>
+            <column name="best_lap_time_seconds" type="INT"/>
+            <column name="original_filename" type="VARCHAR(255)"/>
+            <column name="device_manufacturer" type="VARCHAR(255)"/>
+            <column name="device_product" type="VARCHAR(255)"/>
+            <column name="device_serial_number" type="VARCHAR(255)"/>
+            <column name="software_version" type="VARCHAR(255)"/>
+            <column name="sport" type="VARCHAR(255)"/>
+            <column name="sub_sport" type="VARCHAR(255)"/>
+            <column name="total_gps_points" type="INT"/>
+            <column name="start_latitude" type="DOUBLE"/>
+            <column name="start_longitude" type="DOUBLE"/>
+            <column name="end_latitude" type="DOUBLE"/>
+            <column name="end_longitude" type="DOUBLE"/>
+        </createTable>
+
+        <!-- 7. strava_token (no FK) -->
+        <createTable tableName="strava_token">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="athlete_id" type="BIGINT"/>
+            <column name="access_token" type="VARCHAR(1000)"/>
+            <column name="refresh_token" type="VARCHAR(1000)"/>
+            <column name="expires_at" type="BIGINT"/>
+            <column name="athlete_name" type="VARCHAR(255)"/>
+            <column name="athlete_city" type="VARCHAR(255)"/>
+            <column name="profile_medium" type="VARCHAR(255)"/>
+        </createTable>
+
+    </changeSet>
+
+</databaseChangeLog>
