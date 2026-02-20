@@ -1,0 +1,317 @@
+/*
+ * Integration Guide: Modern Header Card Styles
+ * How to integrate these styles with your existing Angular Material components
+ * 
+ * STEP 1: Add these imports to your component's SCSS file
+ * STEP 2: Update your HTML classes as needed  
+ * STEP 3: Consider adding these Angular Material theme customizations
+ */
+
+/* === STEP 1: Custom Angular Material Theme Overrides === */
+
+/* Custom checkbox styling to match modern design */
+.modern-competition-checkbox {
+  .mdc-checkbox {
+    --mdc-checkbox-selected-checkmark-color: white;
+    --mdc-checkbox-selected-focus-icon-color: var(--primary-blue);
+    --mdc-checkbox-selected-hover-icon-color: var(--primary-blue-light);
+    --mdc-checkbox-selected-icon-color: var(--primary-blue);
+    --mdc-checkbox-selected-pressed-icon-color: var(--primary-blue-dark);
+  }
+
+  .mdc-form-field {
+    --mdc-form-field-label-text-color: var(--on-surface);
+    --mdc-form-field-label-text-font: 500 0.875rem/1.25rem Roboto, sans-serif;
+  }
+}
+
+/* Custom button styling */
+.modern-nav-button {
+  --mdc-filled-button-container-color: var(--primary-blue);
+  --mdc-filled-button-label-text-color: white;
+  --mdc-filled-button-container-shape: var(--border-radius-medium);
+  
+  &:hover {
+    --mdc-filled-button-container-color: var(--primary-blue-dark);
+  }
+}
+
+.modern-icon-button {
+  --mdc-icon-button-state-layer-size: 48px;
+  --mdc-icon-button-icon-size: 24px;
+  
+  &:hover {
+    --mdc-icon-button-hover-state-layer-color: var(--primary-blue);
+    --mdc-icon-button-hover-state-layer-opacity: 0.08;
+  }
+}
+
+/* Custom chip styling */
+.modern-stats-chip {
+  --mdc-chip-container-shape-family: rounded;
+  --mdc-chip-container-shape: var(--border-radius-large);
+  --mdc-chip-label-text-font: 600 0.875rem/1.25rem Roboto, sans-serif;
+  --mdc-chip-with-avatar-avatar-shape: 50%;
+  --mdc-chip-elevated-container-shadow-color: var(--primary-blue);
+  
+  &.planned-chip {
+    --mdc-chip-flat-container-color: rgba(25, 118, 210, 0.08);
+    --mdc-chip-label-text-color: var(--primary-blue-dark);
+  }
+  
+  &.completed-chip {
+    --mdc-chip-flat-container-color: rgba(76, 175, 80, 0.08);
+    --mdc-chip-label-text-color: var(--success-color);
+  }
+}
+
+/* === STEP 2: Enhanced Layout Classes === */
+
+/* Use these classes in your HTML template */
+.header-layout {
+  display: grid;
+  gap: 24px;
+  padding: 24px;
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+    gap: 16px;
+  }
+}
+
+.competition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.navigation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  
+  @media (max-width: 768px) {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+}
+
+.stats-container {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* === STEP 3: Interactive Enhancement Classes === */
+
+/* Add these for enhanced user feedback */
+.interactive-card {
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    transition-duration: 100ms;
+  }
+}
+
+.loading-state {
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    animation: shimmer 2s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* === STEP 4: Accessibility Enhancements === */
+
+/* Focus indicators for keyboard navigation */
+.focus-visible {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-small);
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  :root {
+    --primary-blue: #0d47a1;
+    --primary-blue-light: #1976d2;
+    --success-color: #2e7d32;
+    --accent-color: #c51162;
+  }
+  
+  .header-card {
+    border: 2px solid var(--primary-blue);
+  }
+  
+  mat-checkbox,
+  mat-chip,
+  button {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* === STEP 5: TypeScript Interface for Dynamic Styling === */
+
+/*
+// Add this interface to your component TypeScript file:
+
+interface HeaderCardTheme {
+  primaryColor: string;
+  accentColor: string;
+  surfaceColor: string;
+  elevationLevel: 1 | 2 | 4;
+  borderRadius: 'small' | 'medium' | 'large';
+}
+
+interface CompetitionCheckboxState {
+  checked: boolean;
+  disabled: boolean;
+  indeterminate: boolean;
+}
+
+interface WeekNavigationState {
+  canGoToPrevious: boolean;
+  canGoToNext: boolean;
+  currentWeekLabel: string;
+}
+
+interface WeekStatsData {
+  plannedCount: number;
+  completedCount: number;
+  completionRate: number;
+}
+
+// Example usage in component:
+export class TrainingPlanOverviewComponent {
+  theme: HeaderCardTheme = {
+    primaryColor: '#1976d2',
+    accentColor: '#ff4081',
+    surfaceColor: '#ffffff',
+    elevationLevel: 2,
+    borderRadius: 'medium'
+  };
+  
+  getCompetitionCheckboxClasses(competition: any): string[] {
+    return [
+      'modern-competition-checkbox',
+      this.selectedCompetitions.includes(competition.id) ? 'checked' : '',
+      competition.disabled ? 'disabled' : ''
+    ].filter(Boolean);
+  }
+  
+  getStatsChipClasses(type: 'planned' | 'completed'): string[] {
+    return [
+      'modern-stats-chip',
+      `${type}-chip`
+    ];
+  }
+}
+*/
+
+/* === STEP 6: Animation Classes for State Changes === */
+
+.fade-in {
+  animation: fadeIn 300ms ease-out forwards;
+}
+
+.slide-up {
+  animation: slideUp 300ms ease-out forwards;
+}
+
+.bounce-in {
+  animation: bounceIn 400ms ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* === STEP 7: Print Styles === */
+@media print {
+  .header-card {
+    background: white !important;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    
+    .week-navigation,
+    .training-actions {
+      display: none !important;
+    }
+    
+    .competition-selection {
+      background: white !important;
+      border: 1px solid #ddd !important;
+    }
+  }
+}

@@ -12,9 +12,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatDividerModule } from '@angular/material/divider';
 
 import { ApiService } from '../../services/api.service';
 import { Competition, Training, CompletedTraining } from '../../models/competition.model';
+import { TrainingDetailsDialogComponent } from '../training-details-dialog/training-details-dialog.component';
 import { Subject, takeUntil, forkJoin, map, catchError, of } from 'rxjs';
 
 interface DayTraining {
@@ -46,7 +48,8 @@ interface WeekData {
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatTooltipModule,
-    MatBadgeModule
+    MatBadgeModule,
+    MatDividerModule
   ],
   templateUrl: './training-plan-overview.component.html',
   styleUrl: './training-plan-overview.component.scss'
@@ -397,8 +400,18 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
   }
 
   openTrainingDetails(training: Training): void {
-    // TODO: Implement training details modal
-    this.snackBar.open('Training Details Modal wird noch implementiert', 'Schließen', { duration: 2000 });
+    const dialogRef = this.dialog.open(TrainingDetailsDialogComponent, {
+      width: '700px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'training-details-dialog',
+      data: { training: training }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      // Handle any actions after dialog closes if needed
+      // For example, refresh data if training was modified
+    });
   }
 
   getCompetitionName(competitionId: number): string {

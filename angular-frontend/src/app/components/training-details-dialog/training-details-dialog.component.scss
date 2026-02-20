@@ -1,0 +1,493 @@
+// Training Details Dialog Component Styles
+// Follows Material Design principles with Azure Blue primary theme (#1976d2)
+
+.dialog-container {
+  max-height: 80vh;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 700px;
+  padding: 0;
+
+  // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+}
+
+// Header Section
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px 24px 16px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid #dee2e6;
+
+  .header-content {
+    flex: 1;
+    margin-right: 16px;
+  }
+
+  .training-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    color: #212529;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  .training-meta {
+    .training-chips {
+      gap: 8px;
+
+      .mat-mdc-chip {
+        color: white;
+        font-weight: 500;
+        border-radius: 16px;
+        height: 32px;
+        font-size: 0.875rem;
+
+        .mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+
+        &.type-chip {
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        &.intensity-chip {
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        &.completion-chip {
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+      }
+    }
+  }
+
+  .close-button {
+    color: #6c757d;
+    margin: -8px;
+
+    &:hover {
+      background-color: rgba(108, 117, 125, 0.1);
+      color: #495057;
+    }
+
+    .mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
+// Main Content
+.dialog-content {
+  padding: 20px 24px 16px;
+
+  .info-section {
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    transition: box-shadow 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .mat-mdc-card-header {
+      padding: 16px 16px 0;
+
+      .mat-mdc-card-avatar {
+        color: #1976d2;
+        background-color: rgba(25, 118, 210, 0.1);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &.warmup-icon {
+          color: #ff9800;
+          background-color: rgba(255, 152, 0, 0.1);
+        }
+
+        &.cooldown-icon {
+          color: #2196f3;
+          background-color: rgba(33, 150, 243, 0.1);
+        }
+
+        &.tips-icon {
+          color: #ffc107;
+          background-color: rgba(255, 193, 7, 0.1);
+        }
+
+        &.feedback-icon {
+          color: #4caf50;
+          background-color: rgba(76, 175, 80, 0.1);
+        }
+
+        .mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      .mat-mdc-card-title {
+        color: #212529;
+        font-weight: 600;
+        font-size: 1.125rem;
+        margin: 0;
+      }
+    }
+
+    .mat-mdc-card-content {
+      padding: 16px;
+    }
+  }
+}
+
+// Basic Information Grid
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #1976d2;
+
+    .info-icon {
+      color: #1976d2;
+      margin-right: 12px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .info-content {
+      flex: 1;
+      min-width: 0;
+
+      .info-label {
+        display: block;
+        font-size: 0.875rem;
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 2px;
+      }
+
+      .info-value {
+        display: block;
+        font-size: 1rem;
+        color: #212529;
+        font-weight: 600;
+        word-break: break-word;
+      }
+    }
+  }
+}
+
+// Text Content Styling
+.training-description,
+.instruction-text,
+.equipment-text,
+.tips-text,
+.difficulty-text {
+  line-height: 1.6;
+  color: #495057;
+  font-size: 1rem;
+  margin: 0;
+  word-wrap: break-word;
+}
+
+.instruction-text {
+  white-space: pre-line;
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #1976d2;
+}
+
+.equipment-text {
+  background: #fff3e0;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #ff9800;
+}
+
+.tips-text {
+  background: #fffde7;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #ffc107;
+}
+
+.difficulty-text {
+  background: #f3e5f5;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #9c27b0;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+// Feedback Section
+.feedback-content {
+  .rating-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+
+    .rating-label {
+      font-weight: 600;
+      color: #495057;
+      margin-right: 12px;
+    }
+
+    .stars {
+      display: flex;
+      gap: 2px;
+
+      .mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+
+        &.star-filled {
+          color: #ffc107;
+        }
+
+        &.star-empty {
+          color: #dee2e6;
+        }
+      }
+    }
+  }
+
+  .feedback-text {
+    .feedback-label {
+      display: block;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.6;
+      color: #495057;
+    }
+  }
+}
+
+// Dialog Actions
+.dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #dee2e6;
+  background: #f8f9fa;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  .cancel-button {
+    color: #6c757d;
+
+    &:hover {
+      background-color: rgba(108, 117, 125, 0.1);
+    }
+  }
+
+  .primary-button {
+    background-color: #1976d2;
+    color: white;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+
+    &:hover {
+      background-color: #1565c0;
+      box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+    }
+
+    .mat-icon {
+      margin-right: 8px;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .dialog-container {
+    max-width: calc(100vw - 32px);
+    margin: 16px;
+  }
+
+  .dialog-header {
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+
+    .header-content {
+      margin-right: 0;
+      margin-bottom: 16px;
+    }
+
+    .training-title {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
+    .close-button {
+      align-self: flex-end;
+      margin-top: -8px;
+    }
+  }
+
+  .dialog-content {
+    padding: 16px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+
+    .info-item {
+      padding: 10px;
+
+      .info-icon {
+        margin-right: 8px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  .training-chips {
+    flex-wrap: wrap;
+
+    .mat-mdc-chip {
+      font-size: 0.8rem;
+      height: 28px;
+
+      .mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  .dialog-actions {
+    padding: 16px;
+    flex-direction: column;
+    gap: 8px;
+
+    .primary-button,
+    .cancel-button {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .dialog-container {
+    max-width: calc(100vw - 16px);
+    margin: 8px;
+  }
+
+  .dialog-header {
+    padding: 12px;
+
+    .training-title {
+      font-size: 1.25rem;
+    }
+  }
+
+  .dialog-content {
+    padding: 12px;
+  }
+
+  .info-section {
+    margin-bottom: 12px;
+
+    .mat-mdc-card-header {
+      padding: 12px 12px 0;
+
+      .mat-mdc-card-avatar {
+        width: 32px;
+        height: 32px;
+
+        .mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      .mat-mdc-card-title {
+        font-size: 1rem;
+      }
+    }
+
+    .mat-mdc-card-content {
+      padding: 12px;
+    }
+  }
+
+  .instruction-text,
+  .equipment-text,
+  .tips-text,
+  .difficulty-text {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+}
+
+// Animation for dialog entrance
+:host {
+  display: block;
+  animation: dialogSlideIn 0.3s ease-out;
+}
+
+@keyframes dialogSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

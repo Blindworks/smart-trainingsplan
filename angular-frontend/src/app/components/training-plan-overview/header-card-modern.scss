@@ -1,0 +1,414 @@
+/* 
+ * Modern Header Card Styles for Training Plan Overview
+ * Based on 2024 Dashboard UI Design Trends
+ * Compatible with Angular Material Components
+ */
+
+/* CSS Custom Properties for Easy Theming */
+:root {
+  --primary-blue: #1976d2;
+  --primary-blue-light: #42a5f5;
+  --primary-blue-dark: #1565c0;
+  --accent-color: #ff4081;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --surface-color: #ffffff;
+  --surface-variant: #f5f7fa;
+  --on-surface: #1a1a1a;
+  --on-surface-variant: #666666;
+  --elevation-1: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12);
+  --elevation-2: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0, 0.12);
+  --elevation-4: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  --transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-standard: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --border-radius-small: 8px;
+  --border-radius-medium: 12px;
+  --border-radius-large: 16px;
+}
+
+/* Enhanced Header Card Styles */
+.header-card {
+  background: linear-gradient(135deg, var(--surface-color) 0%, var(--surface-variant) 100%);
+  border-radius: var(--border-radius-large) !important;
+  box-shadow: var(--elevation-2);
+  transition: all var(--transition-standard);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 24px;
+
+  /* Subtle border for extra definition */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-blue), var(--primary-blue-light), var(--accent-color));
+  }
+
+  /* Hover effect for subtle interactivity */
+  &:hover {
+    box-shadow: var(--elevation-4);
+    transform: translateY(-2px);
+  }
+
+  /* Modern card header styling */
+  mat-card-header {
+    padding: 24px 24px 16px 24px;
+    background: transparent;
+
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--on-surface);
+      margin-bottom: 8px;
+
+      mat-icon {
+        color: var(--primary-blue);
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+        background: linear-gradient(135deg, var(--primary-blue-light), var(--primary-blue));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+    }
+
+    mat-card-subtitle {
+      font-size: 0.95rem;
+      color: var(--on-surface-variant);
+      font-weight: 500;
+      letter-spacing: 0.025em;
+    }
+  }
+
+  mat-card-content {
+    padding: 0 24px 24px 24px;
+  }
+
+  /* Enhanced Competition Selection */
+  .competition-selection {
+    margin-bottom: 28px;
+    padding: 20px;
+    background: rgba(var(--primary-blue-light), 0.04);
+    border-radius: var(--border-radius-medium);
+    border: 1px solid rgba(var(--primary-blue), 0.1);
+
+    h4 {
+      margin: 0 0 16px;
+      color: var(--on-surface);
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      &::before {
+        content: '';
+        width: 4px;
+        height: 20px;
+        background: linear-gradient(135deg, var(--primary-blue), var(--accent-color));
+        border-radius: 2px;
+      }
+    }
+
+    .competition-checkboxes {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+
+      mat-checkbox {
+        padding: 12px 16px;
+        background: var(--surface-color);
+        border-radius: var(--border-radius-small);
+        border: 1px solid rgba(var(--primary-blue), 0.1);
+        transition: all var(--transition-fast);
+        cursor: pointer;
+
+        &:hover {
+          border-color: var(--primary-blue-light);
+          background: rgba(var(--primary-blue), 0.04);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(var(--primary-blue), 0.15);
+        }
+
+        &.mat-mdc-checkbox-checked {
+          background: linear-gradient(135deg, rgba(var(--primary-blue), 0.08), rgba(var(--accent-color), 0.04));
+          border-color: var(--primary-blue);
+          box-shadow: 0 2px 8px rgba(var(--primary-blue), 0.2);
+        }
+
+        .mdc-label {
+          font-weight: 500;
+          color: var(--on-surface);
+        }
+      }
+    }
+  }
+
+  /* Modern Week Navigation */
+  .week-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 28px;
+    padding: 16px;
+    background: rgba(var(--surface-variant), 0.6);
+    border-radius: var(--border-radius-medium);
+
+    button[mat-icon-button] {
+      width: 48px;
+      height: 48px;
+      background: var(--surface-color);
+      border: 1px solid rgba(var(--primary-blue), 0.2);
+      border-radius: 50%;
+      transition: all var(--transition-fast);
+
+      &:hover {
+        background: var(--primary-blue);
+        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(var(--primary-blue), 0.3);
+      }
+
+      mat-icon {
+        font-size: 24px;
+      }
+    }
+
+    .week-info {
+      button[mat-raised-button] {
+        background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light));
+        color: white;
+        border-radius: var(--border-radius-medium);
+        padding: 12px 24px;
+        font-weight: 600;
+        text-transform: none;
+        box-shadow: var(--elevation-1);
+        transition: all var(--transition-fast);
+
+        &:hover {
+          background: linear-gradient(135deg, var(--primary-blue-dark), var(--primary-blue));
+          box-shadow: var(--elevation-2);
+          transform: translateY(-1px);
+        }
+
+        mat-icon {
+          margin-right: 8px;
+          font-size: 20px;
+        }
+      }
+    }
+  }
+
+  /* Enhanced Week Statistics */
+  .week-stats {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+
+    mat-chip-set {
+      display: flex;
+      gap: 16px;
+    }
+
+    mat-chip {
+      padding: 12px 20px;
+      background: var(--surface-color);
+      border: 1px solid rgba(var(--primary-blue), 0.2);
+      border-radius: var(--border-radius-large);
+      font-weight: 600;
+      transition: all var(--transition-fast);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(var(--primary-blue), 0.1), transparent);
+        transition: left var(--transition-standard);
+      }
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(var(--primary-blue), 0.2);
+
+        &::before {
+          left: 100%;
+        }
+      }
+
+      &:first-child {
+        background: linear-gradient(135deg, rgba(var(--primary-blue), 0.08), rgba(var(--primary-blue-light), 0.04));
+        color: var(--primary-blue-dark);
+
+        mat-icon {
+          color: var(--primary-blue);
+        }
+      }
+
+      &:last-child {
+        background: linear-gradient(135deg, rgba(var(--success-color), 0.08), rgba(var(--success-color), 0.04));
+        color: var(--success-color);
+
+        mat-icon {
+          color: var(--success-color);
+        }
+      }
+
+      mat-icon {
+        margin-right: 8px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+
+      .mat-mdc-chip-badge {
+        background: var(--accent-color);
+        color: white;
+        font-weight: 700;
+        min-width: 24px;
+        height: 24px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+      }
+    }
+  }
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 1200px) {
+  .header-card {
+    .competition-selection {
+      .competition-checkboxes {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 12px;
+      }
+    }
+
+    .week-navigation {
+      gap: 16px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .header-card {
+    margin-bottom: 16px;
+    border-radius: var(--border-radius-medium) !important;
+
+    mat-card-header,
+    mat-card-content {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    mat-card-header {
+      padding-top: 16px;
+      padding-bottom: 12px;
+
+      mat-card-title {
+        font-size: 1.3rem;
+      }
+    }
+
+    .competition-selection {
+      margin-bottom: 20px;
+      padding: 16px;
+
+      .competition-checkboxes {
+        grid-template-columns: 1fr;
+        gap: 8px;
+
+        mat-checkbox {
+          padding: 10px 12px;
+        }
+      }
+    }
+
+    .week-navigation {
+      gap: 12px;
+      padding: 12px;
+      flex-wrap: wrap;
+
+      button[mat-icon-button] {
+        width: 44px;
+        height: 44px;
+      }
+
+      .week-info button {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+      }
+    }
+
+    .week-stats {
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+
+      mat-chip-set {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+      }
+
+      mat-chip {
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+        text-align: center;
+        padding: 14px 20px;
+      }
+    }
+  }
+}
+
+/* Dark theme support (if needed) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-color: #1e1e1e;
+    --surface-variant: #2a2a2a;
+    --on-surface: #e0e0e0;
+    --on-surface-variant: #b0b0b0;
+  }
+
+  .header-card {
+    background: linear-gradient(135deg, var(--surface-color) 0%, var(--surface-variant) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Animation keyframes for enhanced effects */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apply slide-in animation */
+.header-card {
+  animation: slideIn var(--transition-standard) ease-out;
+}
