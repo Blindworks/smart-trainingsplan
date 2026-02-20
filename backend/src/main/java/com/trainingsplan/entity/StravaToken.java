@@ -1,5 +1,6 @@
 package com.trainingsplan.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -8,6 +9,11 @@ public class StravaToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     private Long athleteId;
 
@@ -39,4 +45,6 @@ public class StravaToken {
     public void setAthleteCity(String athleteCity) { this.athleteCity = athleteCity; }
     public String getProfileMedium() { return profileMedium; }
     public void setProfileMedium(String profileMedium) { this.profileMedium = profileMedium; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 }

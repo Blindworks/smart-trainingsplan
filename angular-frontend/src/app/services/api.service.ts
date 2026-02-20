@@ -10,7 +10,8 @@ import {
   TrainingDescription,
   CompletedTraining,
   TrainingFeedback,
-  DailyTrainingCompletion
+  DailyTrainingCompletion,
+  User
 } from '../models/competition.model';
 import { StravaStatus, StravaActivity } from '../models/strava.model';
 
@@ -54,10 +55,6 @@ export class ApiService {
 
   getTrainingPlanById(id: number): Observable<TrainingPlan> {
     return this.http.get<TrainingPlan>(`${this.baseUrl}/training-plans/${id}`);
-  }
-
-  getTrainingPlanByCompetition(competitionId: number): Observable<TrainingPlan[]> {
-    return this.http.get<TrainingPlan[]>(`${this.baseUrl}/training-plans/competition/${competitionId}`);
   }
 
   createTrainingPlan(trainingPlan: TrainingPlan): Observable<TrainingPlan> {
@@ -172,5 +169,22 @@ export class ApiService {
 
   disconnectStrava(): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/strava/disconnect`);
+  }
+
+  // User API
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.baseUrl}/users`);
+  }
+
+  updateUser(id: number, data: {
+    username: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    dateOfBirth?: string;
+    heightCm?: number | null;
+    weightKg?: number | null;
+  }): Observable<User> {
+    return this.http.put<User>(`${this.baseUrl}/users/${id}`, data);
   }
 }

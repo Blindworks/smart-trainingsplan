@@ -4,6 +4,7 @@ export interface Competition {
   date?: string;
   location?: string;
   description?: string;
+  trainingPlanId?: number;
   createdAt?: string;
   updatedAt?: string;
   // Legacy field for compatibility
@@ -12,7 +13,6 @@ export interface Competition {
 
 export interface TrainingPlan {
   id?: number;
-  competitionId: number;
   name: string;
   description?: string;
   createdAt?: string;
@@ -130,8 +130,18 @@ export interface TrainingPlanDto {
   id: number;
   name: string;
   description?: string;
-  isTemplate: boolean;
   trainingCount?: number;
-  competitionId?: number;
   uploadDate?: string;
+}
+
+export interface User {
+  id?: number;
+  username: string;
+  email: string;
+  createdAt?: string;
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  heightCm?: number;
+  weightKg?: number;
 }

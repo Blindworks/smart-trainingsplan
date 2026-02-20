@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- ChangeSet 003: Create users table -->
+    <changeSet id="003" author="dev">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="users"/>
+            </not>
+        </preConditions>
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uq_users_username"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uq_users_email"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 006: Add personal profile fields to users -->
+    <changeSet id="006" author="dev">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="users" columnName="first_name"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="users">
+            <column name="first_name" type="VARCHAR(100)"/>
+            <column name="last_name" type="VARCHAR(100)"/>
+            <column name="date_of_birth" type="DATE"/>
+            <column name="height_cm" type="INT"/>
+            <column name="weight_kg" type="DECIMAL(5,2)"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ChangeSet 004: Add nullable user_id column to strava_token -->
+    <changeSet id="004" author="dev">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="strava_token" columnName="user_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="strava_token">
+            <column name="user_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- ChangeSet 005: Add FK constraint from strava_token.user_id to users.id -->
+    <changeSet id="005" author="dev">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists
+                    foreignKeyTableName="strava_token"
+                    foreignKeyName="fk_strava_token_user"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="strava_token"
+            baseColumnNames="user_id"
+            constraintName="fk_strava_token_user"
+            referencedTableName="users"
+            referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

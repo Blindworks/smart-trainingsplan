@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Drop is_template column from training_plans if it still exists -->
+    <changeSet id="002" author="liquibase">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="training_plans" columnName="is_template"/>
+        </preConditions>
+        <dropColumn tableName="training_plans" columnName="is_template"/>
+    </changeSet>
+
+    <!-- Drop FK fk_training_plans_competition if it exists under that name
+         (may have been skipped if DB was created without Liquibase 001) -->
+    <changeSet id="003" author="liquibase">
+        <preConditions onFail="MARK_RAN">
+            <foreignKeyConstraintExists
+                foreignKeyTableName="training_plans"
+                foreignKeyName="fk_training_plans_competition"/>
+        </preConditions>
+        <dropForeignKeyConstraint
+            baseTableName="training_plans"
+            constraintName="fk_training_plans_competition"/>
+    </changeSet>
+
+    <!-- Drop competition_id column from training_plans.
+         The FK may have a Hibernate-generated name (e.g. FKfjicgn2vcrtsrs7s9ykwe867o),
+         so we use a stored procedure to find and drop it dynamically before removing the column. -->
+    <changeSet id="004" author="liquibase">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="training_plans" columnName="competition_id"/>
+        </preConditions>
+        <!-- Create helper procedure to drop FK by dynamic name lookup -->
+        <sql>DROP PROCEDURE IF EXISTS liq_drop_competition_fk</sql>
+        <sql endDelimiter="//">
+CREATE PROCEDURE liq_drop_competition_fk()
+BEGIN
+    DECLARE v_fk VARCHAR(255) DEFAULT NULL;
+    SELECT CONSTRAINT_NAME INTO v_fk
+    FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'training_plans'
+      AND COLUMN_NAME = 'competition_id'
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1;
+    IF v_fk IS NOT NULL THEN
+        SET @drop_sql = CONCAT('ALTER TABLE training_plans DROP FOREIGN KEY `', v_fk, '`');
+        PREPARE drop_stmt FROM @drop_sql;
+        EXECUTE drop_stmt;
+        DEALLOCATE PREPARE drop_stmt;
+    END IF;
+END//
+        </sql>
+        <sql>CALL liq_drop_competition_fk()</sql>
+        <sql>DROP PROCEDURE IF EXISTS liq_drop_competition_fk</sql>
+        <dropColumn tableName="training_plans" columnName="competition_id"/>
+    </changeSet>
+
+    <!-- Add training_plan_id (nullable) to competitions if it does not exist yet -->
+    <changeSet id="005" author="liquibase">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="competitions" columnName="training_plan_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="competitions">
+            <column name="training_plan_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- Add FK constraint from competitions.training_plan_id to training_plans -->
+    <changeSet id="006" author="liquibase">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists
+                    foreignKeyTableName="competitions"
+                    foreignKeyName="fk_competitions_training_plan"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+            baseTableName="competitions"
+            baseColumnNames="training_plan_id"
+            constraintName="fk_competitions_training_plan"
+            referencedTableName="training_plans"
+            referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

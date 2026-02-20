@@ -27,9 +27,10 @@ public class Competition {
     @Column(length = 1000)
     private String description;
 
-    @OneToMany(mappedBy = "competition", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "training_plan_id", nullable = true)
     @JsonIgnore
-    private List<TrainingPlan> trainingPlans = new ArrayList<>();
+    private TrainingPlan trainingPlan;
 
     @OneToMany(mappedBy = "competition", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
@@ -75,12 +76,12 @@ public class Competition {
         this.description = description;
     }
 
-    public List<TrainingPlan> getTrainingPlans() {
-        return trainingPlans;
+    public TrainingPlan getTrainingPlan() {
+        return trainingPlan;
     }
 
-    public void setTrainingPlans(List<TrainingPlan> trainingPlans) {
-        this.trainingPlans = trainingPlans;
+    public void setTrainingPlan(TrainingPlan trainingPlan) {
+        this.trainingPlan = trainingPlan;
     }
 
     public List<TrainingWeek> getTrainingWeeks() {

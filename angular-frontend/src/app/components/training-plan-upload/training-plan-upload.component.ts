@@ -183,12 +183,9 @@ export class TrainingPlanUploadComponent implements OnInit {
     } else {
       // Upload directly for this competition
       formData.append('competitionId', this.competitionId.toString());
-      if (this.templateName.trim()) {
-        formData.append('name', this.templateName.trim());
-      }
-      if (this.templateDescription.trim()) {
-        formData.append('description', this.templateDescription.trim());
-      }
+      const planName = this.templateName.trim() || this.selectedFile.name.replace(/\.json$/i, '');
+      formData.append('name', planName);
+      formData.append('description', this.templateDescription.trim());
 
       this.apiService.uploadTrainingPlan(formData).subscribe({
         next: () => {

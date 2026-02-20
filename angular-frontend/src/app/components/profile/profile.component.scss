@@ -447,3 +447,77 @@
     height: 18px;
   }
 }
+
+// Profile Info Card
+.profile-info-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &.edit-card {
+    gap: 8px;
+  }
+}
+
+.profile-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.field-value {
+  font-size: 15px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.edit-btn {
+  align-self: flex-start;
+  font-size: 13px !important;
+  height: 32px !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary) !important;
+  border-color: var(--border) !important;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.edit-field {
+  width: 100%;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.no-user-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+}

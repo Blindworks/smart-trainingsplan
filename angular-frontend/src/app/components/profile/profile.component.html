@@ -14,7 +14,7 @@
         <div class="avatar-ring"></div>
       </div>
       <div class="header-info">
-        <h1 class="profile-name">{{ stravaStatus?.athleteName || 'Athlet' }}</h1>
+        <h1 class="profile-name">{{ user?.username || stravaStatus?.athleteName || 'Athlet' }}</h1>
         <p class="profile-location" *ngIf="stravaStatus?.athleteCity">
           <mat-icon>location_on</mat-icon>
           {{ stravaStatus?.athleteCity }}
@@ -61,6 +61,95 @@
         <div class="stat-body">
           <span class="stat-value">{{ completionRate }}%</span>
           <span class="stat-label">Abschlussrate</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profil Section -->
+    <div class="section">
+      <h2 class="section-title">
+        <mat-icon>person</mat-icon>
+        Profil
+      </h2>
+
+      <!-- View Mode -->
+      <div class="profile-info-card" *ngIf="!editMode">
+        <div class="profile-fields">
+          <div class="profile-field">
+            <span class="field-label">Benutzername</span>
+            <span class="field-value">{{ user?.username || '–' }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="field-label">E-Mail</span>
+            <span class="field-value">{{ user?.email || '–' }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="field-label">Vorname</span>
+            <span class="field-value">{{ user?.firstName || '–' }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="field-label">Nachname</span>
+            <span class="field-value">{{ user?.lastName || '–' }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="field-label">Geburtsdatum</span>
+            <span class="field-value">{{ user?.dateOfBirth ? (user!.dateOfBirth | date:'dd.MM.yyyy') : '–' }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="field-label">Größe</span>
+            <span class="field-value">{{ user?.heightCm != null ? user!.heightCm + ' cm' : '–' }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="field-label">Gewicht</span>
+            <span class="field-value">{{ user?.weightKg != null ? user!.weightKg + ' kg' : '–' }}</span>
+          </div>
+        </div>
+        <button mat-stroked-button class="edit-btn" (click)="startEdit()" *ngIf="user">
+          <mat-icon>edit</mat-icon>
+          Bearbeiten
+        </button>
+        <div class="no-user-hint" *ngIf="!user">
+          <span>Kein Benutzerprofil gefunden.</span>
+        </div>
+      </div>
+
+      <!-- Edit Mode -->
+      <div class="profile-info-card edit-card" *ngIf="editMode">
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Benutzername</mat-label>
+          <input matInput [(ngModel)]="editUsername" placeholder="Benutzername">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>E-Mail</mat-label>
+          <input matInput [(ngModel)]="editEmail" type="email" placeholder="E-Mail">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Vorname</mat-label>
+          <input matInput [(ngModel)]="editFirstName" placeholder="Vorname">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Nachname</mat-label>
+          <input matInput [(ngModel)]="editLastName" placeholder="Nachname">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Geburtsdatum</mat-label>
+          <input matInput [(ngModel)]="editDateOfBirth" type="date" placeholder="JJJJ-MM-TT">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Größe (cm)</mat-label>
+          <input matInput [(ngModel)]="editHeightCm" type="number" min="50" max="300" placeholder="z.B. 175">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Gewicht (kg)</mat-label>
+          <input matInput [(ngModel)]="editWeightKg" type="number" min="20" max="500" step="0.1" placeholder="z.B. 72.5">
+        </mat-form-field>
+        <div class="edit-actions">
+          <button mat-flat-button class="pacr-btn-primary" (click)="saveUser()" [disabled]="saving">
+            <mat-spinner *ngIf="saving" diameter="16"></mat-spinner>
+            <mat-icon *ngIf="!saving">save</mat-icon>
+            Speichern
+          </button>
+          <button mat-stroked-button (click)="cancelEdit()" [disabled]="saving">Abbrechen</button>
         </div>
       </div>
     </div>

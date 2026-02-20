@@ -76,7 +76,7 @@ public class TrainingService {
         for (Long planId : planIds) {
             TrainingPlan plan = trainingPlanRepository.findById(planId).orElse(null);
             if (plan != null) {
-                List<Training> planTrainings = plan.getTrainings().stream()
+                List<Training> planTrainings = trainingRepository.findByTrainingPlan_Id(planId).stream()
                     .filter(t -> t.getTrainingDate().equals(date))
                     .toList();
 

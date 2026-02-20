@@ -1,29 +1,36 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 import { ApiService } from '../../services/api.service';
-import { Competition } from '../../models/competition.model';
+import { Competition, User } from '../../models/competition.model';
 import { StravaStatus, StravaActivity } from '../../models/strava.model';
 
 @Component({
   selector: 'app-profile',
   imports: [
     CommonModule,
+    FormsModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatDividerModule
+    MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    DatePipe
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
@@ -42,6 +49,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
   stravaStatus: StravaStatus | null = null;
   stravaActivities: StravaActivity[] = [];
 
+  user: User | null = null;
+  editMode = false;
+  saving = false;
+  editUsername = '';
+  editEmail = '';
+  editFirstName = '';
+  editLastName = '';
+  editDateOfBirth = '';
+  editHeightCm: number | null = null;
+  editWeightKg: number | null = null;
+
   constructor(
     private apiService: ApiService,
     private snackBar: MatSnackBar
@@ -50,6 +68,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadStats();
     this.loadStravaStatus();
+    this.loadUser();
   }
 
   ngOnDestroy(): void {
@@ -158,8 +177,59 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   getInitials(name?: string): string {
-    if (!name) return 'AT';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const resolved = this.user?.username || name;
+    if (!resolved) return 'AT';
+    return resolved.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  loadUser(): void {
+    this.apiService.getUsers()
+      .pipe(takeUntil(this.destroy$), catchError(() => of([])))
+      .subscribe(users => {
+        if (users.length > 0) this.user = users[0];
+      });
+  }
+
+  startEdit(): void {
+    this.editUsername = this.user?.username ?? '';
+    this.editEmail = this.user?.email ?? '';
+    this.editFirstName = this.user?.firstName ?? '';
+    this.editLastName = this.user?.lastName ?? '';
+    this.editDateOfBirth = this.user?.dateOfBirth ?? '';
+    this.editHeightCm = this.user?.heightCm ?? null;
+    this.editWeightKg = this.user?.weightKg ?? null;
+    this.editMode = true;
+  }
+
+  cancelEdit(): void {
+    this.editMode = false;
+  }
+
+  saveUser(): void {
+    if (!this.user?.id) return;
+    this.saving = true;
+    this.apiService.updateUser(this.user.id, {
+      username: this.editUsername,
+      email: this.editEmail,
+      firstName: this.editFirstName || undefined,
+      lastName: this.editLastName || undefined,
+      dateOfBirth: this.editDateOfBirth || undefined,
+      heightCm: this.editHeightCm,
+      weightKg: this.editWeightKg
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: updated => {
+          this.user = updated;
+          this.editMode = false;
+          this.saving = false;
+          this.snackBar.open('Profil gespeichert', 'Schließen', { duration: 3000 });
+        },
+        error: () => {
+          this.snackBar.open('Fehler beim Speichern', 'Schließen', { duration: 3000 });
+          this.saving = false;
+        }
+      });
   }
 
   getActivityIcon(type: string): string {

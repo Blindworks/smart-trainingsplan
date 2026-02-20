@@ -23,10 +23,6 @@ public class TrainingPlanController {
         this.trainingPlanService = trainingPlanService;
     }
 
-    // -------------------------------------------------------------------------
-    // Existing endpoints (return types changed to TrainingPlanDto)
-    // -------------------------------------------------------------------------
-
     @GetMapping
     public ResponseEntity<List<TrainingPlanDto>> getAllTrainingPlans() {
         List<TrainingPlanDto> plans = trainingPlanService.findAll()
@@ -43,15 +39,6 @@ public class TrainingPlanController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(new TrainingPlanDto(plan));
-    }
-
-    @GetMapping("/competition/{competitionId}")
-    public ResponseEntity<List<TrainingPlanDto>> getTrainingPlansByCompetition(@PathVariable Long competitionId) {
-        List<TrainingPlanDto> plans = trainingPlanService.findByCompetitionId(competitionId)
-                .stream()
-                .map(TrainingPlanDto::new)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(plans);
     }
 
     @PostMapping
@@ -95,10 +82,6 @@ public class TrainingPlanController {
         return ResponseEntity.noContent().build();
     }
 
-    // -------------------------------------------------------------------------
-    // Template endpoints
-    // -------------------------------------------------------------------------
-
     /**
      * Upload a plan JSON as a reusable template. No competition required.
      * No Training records are created at this point.
@@ -117,7 +100,7 @@ public class TrainingPlanController {
     }
 
     /**
-     * Returns all plans stored as templates.
+     * Returns all stored plans (all plans are implicitly templates).
      */
     @GetMapping("/templates")
     public ResponseEntity<List<TrainingPlanDto>> getTemplates() {
@@ -125,19 +108,19 @@ public class TrainingPlanController {
     }
 
     /**
-     * Assigns an existing plan (template or regular) to a competition.
-     * Creates a new TrainingPlan with all Training records date-shifted to
-     * align the last training with the competition date.
+     * Assigns an existing plan to a competition and generates Training records.
+     * Sets competition.trainingPlan = sourcePlan (no new plan created).
      */
     @PostMapping("/assign")
-    public ResponseEntity<TrainingPlanDto> assignPlanToCompetition(
+    public ResponseEntity<?> assignPlanToCompetition(
             @RequestParam Long planId,
             @RequestParam Long competitionId) {
         try {
             TrainingPlanDto dto = trainingPlanService.assignPlanToCompetition(planId, competitionId);
             return ResponseEntity.status(HttpStatus.CREATED).body(dto);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(java.util.Map.of(
+                    "error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
         }
     }
 }

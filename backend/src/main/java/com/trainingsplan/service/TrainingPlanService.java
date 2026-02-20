@@ -49,7 +49,7 @@ public class TrainingPlanService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // -------------------------------------------------------------------------
-    // Existing read/write operations
+    // Basic CRUD
     // -------------------------------------------------------------------------
 
     public List<TrainingPlan> findAll() {
@@ -58,10 +58,6 @@ public class TrainingPlanService {
 
     public TrainingPlan findById(Long id) {
         return trainingPlanRepository.findById(id).orElse(null);
-    }
-
-    public List<TrainingPlan> findByCompetitionId(Long competitionId) {
-        return trainingPlanRepository.findByCompetitionId(competitionId);
     }
 
     public TrainingPlan save(TrainingPlan trainingPlan) {
@@ -73,7 +69,7 @@ public class TrainingPlanService {
     }
 
     // -------------------------------------------------------------------------
-    // Upload plan directly linked to a competition (existing behaviour)
+    // Upload plan directly linked to a competition
     // -------------------------------------------------------------------------
 
     public TrainingPlan uploadTrainingPlan(MultipartFile file, String name, String description, Long competitionId) throws Exception {
@@ -82,12 +78,14 @@ public class TrainingPlanService {
 
         String jsonContent = new String(file.getBytes());
         TrainingPlan trainingPlan = new TrainingPlan(name, description, jsonContent);
-        trainingPlan.setCompetition(competition);
-        trainingPlan.setTemplate(false);
         trainingPlan.setTrainingCount(countTrainingsInJson(jsonContent));
 
         TrainingPlan savedPlan = trainingPlanRepository.save(trainingPlan);
-        parseAndCreateTrainings(savedPlan, jsonContent);
+
+        competition.setTrainingPlan(savedPlan);
+        competitionRepository.save(competition);
+
+        parseAndCreateTrainings(savedPlan, competition, jsonContent);
         return savedPlan;
     }
 
@@ -106,28 +104,26 @@ public class TrainingPlanService {
         objectMapper.readTree(jsonContent);
 
         TrainingPlan template = new TrainingPlan(name, description, jsonContent);
-        template.setTemplate(true);
-        template.setCompetition(null);
         template.setTrainingCount(countTrainingsInJson(jsonContent));
 
         return new TrainingPlanDto(trainingPlanRepository.save(template));
     }
 
     /**
-     * Returns all plans stored as templates (not bound to any competition).
+     * Returns all plans (all plans are implicitly templates in the new architecture).
      */
     public List<TrainingPlanDto> findAllTemplates() {
-        return trainingPlanRepository.findByIsTemplateTrue()
+        return trainingPlanRepository.findAll()
                 .stream()
                 .map(TrainingPlanDto::new)
                 .collect(Collectors.toList());
     }
 
     /**
-     * Creates a new competition-bound plan from any existing plan (template or
-     * regular) and immediately parses its JSON to generate Training records.
-     * Dates in old-format plans (absolute ISO dates) are shifted so the last
-     * training aligns with the competition date.
+     * Assigns an existing plan to a competition and generates Training records.
+     * Dates in old-format plans are shifted so the last training aligns with the
+     * competition date. No new TrainingPlan record is created — the source plan
+     * is reused directly.
      */
     public TrainingPlanDto assignPlanToCompetition(Long planId, Long competitionId) throws Exception {
         TrainingPlan sourcePlan = trainingPlanRepository.findById(planId)
@@ -139,14 +135,11 @@ public class TrainingPlanService {
         String jsonContent = sourcePlan.getJsonContent();
         String effectiveJson = prepareJsonForCompetition(jsonContent, competition.getDate());
 
-        TrainingPlan newPlan = new TrainingPlan(sourcePlan.getName(), sourcePlan.getDescription(), effectiveJson);
-        newPlan.setCompetition(competition);
-        newPlan.setTemplate(false);
-        newPlan.setTrainingCount(sourcePlan.getTrainingCount());
+        competition.setTrainingPlan(sourcePlan);
+        competitionRepository.save(competition);
 
-        TrainingPlan savedPlan = trainingPlanRepository.save(newPlan);
-        parseAndCreateTrainings(savedPlan, effectiveJson);
-        return new TrainingPlanDto(savedPlan);
+        parseAndCreateTrainings(sourcePlan, competition, effectiveJson);
+        return new TrainingPlanDto(sourcePlan);
     }
 
     // -------------------------------------------------------------------------
@@ -179,7 +172,7 @@ public class TrainingPlanService {
 
         LocalDate maxDate = LocalDate.MIN;
         for (JsonNode t : trainingsForMax) {
-            LocalDate d = LocalDate.parse(t.get("date").asText());
+            LocalDate d = LocalDate.parse(t.path("date").asText());
             if (d.isAfter(maxDate)) {
                 maxDate = d;
             }
@@ -191,7 +184,7 @@ public class TrainingPlanService {
         ArrayNode arr = (ArrayNode) mutable.get("trainings");
         for (int i = 0; i < arr.size(); i++) {
             ObjectNode t = (ObjectNode) arr.get(i);
-            LocalDate shifted = LocalDate.parse(t.get("date").asText()).plusDays(offsetDays);
+            LocalDate shifted = LocalDate.parse(t.path("date").asText()).plusDays(offsetDays);
             t.put("date", shifted.toString());
         }
         return objectMapper.writeValueAsString(mutable);
@@ -239,43 +232,42 @@ public class TrainingPlanService {
     }
 
     // -------------------------------------------------------------------------
-    // Training record creation (unchanged logic, extracted for reuse)
+    // Training record creation
     // -------------------------------------------------------------------------
 
-    private void parseAndCreateTrainings(TrainingPlan trainingPlan, String jsonContent) {
+    private void parseAndCreateTrainings(TrainingPlan trainingPlan, Competition competition, String jsonContent) {
         try {
             JsonNode rootNode = objectMapper.readTree(jsonContent);
             List<Training> trainings = new ArrayList<>();
 
             if (rootNode.has("trainings") && rootNode.get("trainings").isArray()) {
-                parseOldFormat(rootNode, trainings, trainingPlan);
+                parseOldFormat(rootNode, trainings, trainingPlan, competition);
             } else if (rootNode.has("marathon_plan")) {
-                parseMarathonPlanFormat(rootNode.get("marathon_plan"), trainings, trainingPlan);
+                parseMarathonPlanFormat(rootNode.get("marathon_plan"), trainings, trainingPlan, competition);
             } else if (rootNode.has("half_marathon_plan")) {
-                parseMarathonPlanFormat(rootNode.get("half_marathon_plan"), trainings, trainingPlan);
+                parseMarathonPlanFormat(rootNode.get("half_marathon_plan"), trainings, trainingPlan, competition);
             } else if (rootNode.has("weeks")) {
-                parseMarathonPlanFormat(rootNode, trainings, trainingPlan);
+                parseMarathonPlanFormat(rootNode, trainings, trainingPlan, competition);
             }
 
             trainingRepository.saveAll(trainings);
-            trainingPlan.setTrainings(trainings);
-            trainingPlanRepository.save(trainingPlan);
 
         } catch (Exception e) {
             throw new RuntimeException("Error parsing JSON training plan: " + e.getMessage(), e);
         }
     }
 
-    private void parseOldFormat(JsonNode rootNode, List<Training> trainings, TrainingPlan trainingPlan) {
+    private void parseOldFormat(JsonNode rootNode, List<Training> trainings,
+                                 TrainingPlan trainingPlan, Competition competition) {
         for (JsonNode trainingNode : rootNode.get("trainings")) {
-            LocalDate trainingDate = LocalDate.parse(trainingNode.get("date").asText());
+            LocalDate trainingDate = LocalDate.parse(trainingNode.path("date").asText());
 
             Training training = new Training();
-            training.setName(trainingNode.get("name").asText());
-            training.setTrainingDescription(findOrCreateTrainingDescription(trainingNode.get("description").asText("")));
+            training.setName(trainingNode.path("name").asText("Training"));
+            training.setTrainingDescription(findOrCreateTrainingDescription(trainingNode.path("description").asText("")));
             training.setTrainingDate(trainingDate);
-            training.setTrainingType(trainingNode.get("type").asText(""));
-            training.setIntensityLevel(trainingNode.get("intensity").asText(""));
+            training.setTrainingType(trainingNode.path("type").asText(""));
+            training.setIntensityLevel(trainingNode.path("intensity").asText(""));
 
             if (trainingNode.has("startTime")) {
                 training.setStartTime(LocalTime.parse(trainingNode.get("startTime").asText()));
@@ -286,7 +278,7 @@ public class TrainingPlanService {
 
             training.setTrainingPlan(trainingPlan);
 
-            TrainingWeek trainingWeek = findTrainingWeekForDate(trainingPlan.getCompetition(), trainingDate);
+            TrainingWeek trainingWeek = findTrainingWeekForDate(competition, trainingDate);
             if (trainingWeek != null) {
                 training.setTrainingWeek(trainingWeek);
             }
@@ -295,13 +287,14 @@ public class TrainingPlanService {
         }
     }
 
-    private void parseMarathonPlanFormat(JsonNode planNode, List<Training> trainings, TrainingPlan trainingPlan) {
+    private void parseMarathonPlanFormat(JsonNode planNode, List<Training> trainings,
+                                          TrainingPlan trainingPlan, Competition competition) {
         JsonNode weeksNode = planNode.get("weeks");
         if (weeksNode == null || !weeksNode.isArray()) {
             throw new RuntimeException("Invalid marathon plan format: missing weeks array");
         }
 
-        LocalDate competitionDate = trainingPlan.getCompetition().getDate();
+        LocalDate competitionDate = competition.getDate();
         LocalDate competitionSunday = competitionDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
         int maxWeekNumber = 0;
@@ -319,17 +312,16 @@ public class TrainingPlanService {
                 LocalDate weekSunday = competitionSunday.minusWeeks(weeksBeforeCompetition);
                 LocalDate weekMonday = weekSunday.minusDays(6);
 
-                if (!weekSunday.isBefore(LocalDate.now())) {
-                    parseWeekSchedule(scheduleNode, trainings, trainingPlan, weekMonday, weekNumber);
-                }
+                parseWeekSchedule(scheduleNode, trainings, trainingPlan, competition, weekMonday, weekNumber);
             }
         }
     }
 
     private void parseWeekSchedule(JsonNode scheduleNode, List<Training> trainings,
-                                   TrainingPlan trainingPlan, LocalDate weekMonday, int weekNumber) {
+                                   TrainingPlan trainingPlan, Competition competition,
+                                   LocalDate weekMonday, int weekNumber) {
         LocalDate weekSunday = weekMonday.plusDays(6);
-        TrainingWeek trainingWeek = findOrCreateTrainingWeek(trainingPlan.getCompetition(), weekNumber, weekMonday, weekSunday);
+        TrainingWeek trainingWeek = findOrCreateTrainingWeek(competition, weekNumber, weekMonday, weekSunday);
 
         String[] weekdays = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"};
 
@@ -365,7 +357,7 @@ public class TrainingPlanService {
     }
 
     // -------------------------------------------------------------------------
-    // Utility helpers (unchanged)
+    // Utility helpers
     // -------------------------------------------------------------------------
 
     private String extractTrainingType(String workout) {

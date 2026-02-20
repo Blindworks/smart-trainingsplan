@@ -2,11 +2,8 @@ package com.trainingsplan.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "training_plans")
@@ -29,20 +26,8 @@ public class TrainingPlan {
     @Column(name = "json_content", columnDefinition = "TEXT")
     private String jsonContent;
 
-    @Column(name = "is_template", nullable = false)
-    private boolean isTemplate = false;
-
     @Column(name = "training_count")
     private Integer trainingCount;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "competition_id", nullable = true)
-    @JsonIgnore
-    private Competition competition;
-
-    @OneToMany(mappedBy = "trainingPlan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Training> trainings = new ArrayList<>();
 
     public TrainingPlan() {
         this.uploadDate = LocalDateTime.now();
@@ -95,35 +80,11 @@ public class TrainingPlan {
         this.jsonContent = jsonContent;
     }
 
-    public boolean isTemplate() {
-        return isTemplate;
-    }
-
-    public void setTemplate(boolean isTemplate) {
-        this.isTemplate = isTemplate;
-    }
-
     public Integer getTrainingCount() {
         return trainingCount;
     }
 
     public void setTrainingCount(Integer trainingCount) {
         this.trainingCount = trainingCount;
-    }
-
-    public Competition getCompetition() {
-        return competition;
-    }
-
-    public void setCompetition(Competition competition) {
-        this.competition = competition;
-    }
-
-    public List<Training> getTrainings() {
-        return trainings;
-    }
-
-    public void setTrainings(List<Training> trainings) {
-        this.trainings = trainings;
     }
 }
