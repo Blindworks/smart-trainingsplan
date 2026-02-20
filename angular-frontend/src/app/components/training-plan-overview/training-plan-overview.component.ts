@@ -16,9 +16,8 @@ import { MatDividerModule } from '@angular/material/divider';
 
 import { ApiService } from '../../services/api.service';
 import { Competition, Training, CompletedTraining } from '../../models/competition.model';
-import { StravaStatus, StravaActivity } from '../../models/strava.model';
 import { TrainingDetailsDialogComponent } from '../training-details-dialog/training-details-dialog.component';
-import { Subject, takeUntil, forkJoin, map, catchError, of } from 'rxjs';
+import { Subject, takeUntil, catchError, of } from 'rxjs';
 
 interface DayTraining {
   date: string;
@@ -65,10 +64,6 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
   loading = false;
   showEmptyDays = true;
 
-  // Strava
-  stravaStatus: StravaStatus | null = null;
-  stravaActivities: StravaActivity[] = [];
-
   // FIT File Upload
   showFitUploadModal = false;
   selectedFile: File | null = null;
@@ -110,7 +105,6 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCompetitions();
-    this.loadStravaStatus();
   }
 
   ngOnDestroy(): void {
@@ -171,7 +165,6 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (allTrainings) => {
           this.processWeekData(week, allTrainings);
-          this.loadStravaActivities();
           this.loading = false;
         },
         error: (error) => {
@@ -507,59 +500,6 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
       
       console.log('Updated weekData:', this.weekData);
     });
-  }
-
-  // Strava Methods
-  loadStravaStatus(): void {
-    this.apiService.getStravaStatus().pipe(
-      takeUntil(this.destroy$),
-      catchError(() => of({ connected: false } as StravaStatus))
-    ).subscribe(status => {
-      this.stravaStatus = status;
-      if (status.connected) {
-        this.loadStravaActivities();
-      }
-    });
-  }
-
-  connectStrava(): void {
-    this.apiService.getStravaAuthUrl().pipe(takeUntil(this.destroy$)).subscribe(res => {
-      window.location.href = res.url;
-    });
-  }
-
-  disconnectStrava(): void {
-    this.apiService.disconnectStrava().pipe(takeUntil(this.destroy$)).subscribe(() => {
-      this.stravaStatus = { connected: false };
-      this.stravaActivities = [];
-      this.snackBar.open('Strava getrennt', 'Schließen', { duration: 2000 });
-    });
-  }
-
-  loadStravaActivities(): void {
-    if (!this.stravaStatus?.connected || !this.weekData) return;
-    const startDate = this.weekData.days[0].date;
-    const endDate = this.weekData.days[6].date;
-    this.apiService.getStravaActivities(startDate, endDate).pipe(
-      takeUntil(this.destroy$),
-      catchError(() => of([]))
-    ).subscribe(activities => {
-      this.stravaActivities = activities;
-    });
-  }
-
-  getStravaActivitiesForDay(date: string): StravaActivity[] {
-    return this.stravaActivities.filter(a => a.startDate && a.startDate.startsWith(date));
-  }
-
-  formatStravaDistance(meters: number): string {
-    return (meters / 1000).toFixed(1) + ' km';
-  }
-
-  formatStravaDuration(seconds: number): string {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
   }
 
   // Training Completion Methods

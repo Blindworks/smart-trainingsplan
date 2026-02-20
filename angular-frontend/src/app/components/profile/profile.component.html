@@ -1,0 +1,144 @@
+<div class="profile-page">
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- Header -->
+    <div class="profile-header">
+      <div class="avatar">
+        <span class="avatar-initials">{{ getInitials(stravaStatus?.athleteName) }}</span>
+        <div class="avatar-ring"></div>
+      </div>
+      <div class="header-info">
+        <h1 class="profile-name">{{ stravaStatus?.athleteName || 'Athlet' }}</h1>
+        <p class="profile-location" *ngIf="stravaStatus?.athleteCity">
+          <mat-icon>location_on</mat-icon>
+          {{ stravaStatus?.athleteCity }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon-wrap accent-blue">
+          <mat-icon>emoji_events</mat-icon>
+        </div>
+        <div class="stat-body">
+          <span class="stat-value">{{ competitions.length }}</span>
+          <span class="stat-label">Aktive Wettkämpfe</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrap accent-cyan">
+          <mat-icon>calendar_today</mat-icon>
+        </div>
+        <div class="stat-body">
+          <span class="stat-value">{{ totalTrainings }}</span>
+          <span class="stat-label">Geplante Trainings</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrap accent-green">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="stat-body">
+          <span class="stat-value">{{ completedTrainings }}</span>
+          <span class="stat-label">Abgeschlossen</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrap accent-purple">
+          <mat-icon>show_chart</mat-icon>
+        </div>
+        <div class="stat-body">
+          <span class="stat-value">{{ completionRate }}%</span>
+          <span class="stat-label">Abschlussrate</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strava Section -->
+    <div class="section">
+      <h2 class="section-title">
+        <mat-icon class="strava-icon">bolt</mat-icon>
+        Strava
+      </h2>
+
+      <!-- Connected -->
+      <div class="strava-card connected" *ngIf="stravaStatus?.connected">
+        <div class="strava-status-row">
+          <div class="strava-badge">
+            <div class="strava-dot connected"></div>
+            <span>Verbunden</span>
+          </div>
+          <button mat-stroked-button class="disconnect-btn" (click)="disconnectStrava()" [disabled]="stravaLoading">
+            <mat-spinner *ngIf="stravaLoading" diameter="16"></mat-spinner>
+            <mat-icon *ngIf="!stravaLoading">link_off</mat-icon>
+            <span>Trennen</span>
+          </button>
+        </div>
+
+        <mat-divider class="strava-divider"></mat-divider>
+
+        <!-- Recent Activities -->
+        <div class="activities-section">
+          <h3 class="activities-title">Letzte 30 Tage</h3>
+
+          <div class="activities-loading" *ngIf="activitiesLoading">
+            <mat-spinner diameter="24"></mat-spinner>
+          </div>
+
+          <div class="activity-list" *ngIf="!activitiesLoading && stravaActivities.length > 0">
+            <div class="activity-item" *ngFor="let activity of stravaActivities">
+              <div class="activity-icon">
+                <mat-icon>{{ getActivityIcon(activity.type) }}</mat-icon>
+              </div>
+              <div class="activity-info">
+                <span class="activity-name">{{ activity.name }}</span>
+                <span class="activity-meta">{{ formatDistance(activity.distanceMeters) }} &middot; {{ formatDuration(activity.movingTimeSeconds) }}</span>
+              </div>
+              <div class="activity-pace" *ngIf="activity.averageSpeed">
+                <span class="pace-value">{{ formatPace(activity.averageSpeed) }}</span>
+                <span class="activity-hr" *ngIf="activity.averageHeartrate">
+                  <mat-icon>favorite</mat-icon>{{ activity.averageHeartrate | number:'1.0-0' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-activities" *ngIf="!activitiesLoading && stravaActivities.length === 0">
+            <mat-icon>directions_run</mat-icon>
+            <p>Keine Aktivitäten in den letzten 30 Tagen</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Not connected -->
+      <div class="strava-card not-connected" *ngIf="!stravaStatus?.connected">
+        <div class="strava-prompt">
+          <div class="strava-logo-wrap">
+            <mat-icon>bolt</mat-icon>
+          </div>
+          <div class="strava-prompt-text">
+            <p class="prompt-title">Strava verbinden</p>
+            <p class="prompt-sub">Importiere deine Aktivitäten automatisch und tracke deinen Fortschritt.</p>
+          </div>
+        </div>
+        <button mat-flat-button class="pacr-btn-primary connect-btn" (click)="connectStrava()" [disabled]="stravaLoading">
+          <mat-spinner *ngIf="stravaLoading" diameter="16"></mat-spinner>
+          <mat-icon *ngIf="!stravaLoading">link</mat-icon>
+          Mit Strava verbinden
+        </button>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

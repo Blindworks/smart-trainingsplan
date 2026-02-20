@@ -11,25 +11,6 @@
       </mat-card-subtitle>
     </mat-card-header>
 
-    <mat-card-content>
-      <!-- Strava Connect Widget -->
-      <div class="strava-widget">
-        <div class="strava-connected" *ngIf="stravaStatus?.connected">
-          <img [src]="stravaStatus!.profileMedium" class="athlete-avatar" *ngIf="stravaStatus!.profileMedium" alt="Athlete" />
-          <div class="athlete-info">
-            <span class="athlete-name">{{ stravaStatus!.athleteName }}</span>
-            <span class="athlete-city" *ngIf="stravaStatus!.athleteCity">{{ stravaStatus!.athleteCity }}</span>
-          </div>
-          <button mat-button class="strava-disconnect-btn" (click)="disconnectStrava()">Trennen</button>
-        </div>
-        <button mat-raised-button class="strava-connect-btn" *ngIf="!stravaStatus?.connected" (click)="connectStrava()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0">
-            <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/>
-          </svg>
-          Mit Strava verbinden
-        </button>
-      </div>
-    </mat-card-content>
   </mat-card>
 
   <!-- Loading Indicator -->
@@ -145,30 +126,6 @@
               <span *ngIf="completed.averageHeartRate" class="training-hr">
                 <mat-icon>favorite</mat-icon>
                 {{ completed.averageHeartRate }}bpm
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Strava Activities -->
-        <div class="training-section" *ngIf="getStravaActivitiesForDay(day.date).length > 0">
-          <div class="training-card strava-activity" *ngFor="let activity of getStravaActivitiesForDay(day.date)">
-            <div class="training-header">
-              <span class="strava-badge">Strava</span>
-              <span class="training-name">{{ activity.name }}</span>
-            </div>
-            <div class="training-details">
-              <span *ngIf="activity.distanceMeters" class="training-distance">
-                <mat-icon>straighten</mat-icon>
-                {{ formatStravaDistance(activity.distanceMeters) }}
-              </span>
-              <span *ngIf="activity.movingTimeSeconds" class="training-time">
-                <mat-icon>schedule</mat-icon>
-                {{ formatStravaDuration(activity.movingTimeSeconds) }}
-              </span>
-              <span *ngIf="activity.averageHeartrate" class="training-hr">
-                <mat-icon>favorite</mat-icon>
-                {{ activity.averageHeartrate | number:'1.0-0' }}bpm
               </span>
             </div>
           </div>

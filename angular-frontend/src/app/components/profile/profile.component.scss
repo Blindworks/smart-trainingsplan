@@ -1,0 +1,449 @@
+.profile-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+// Loading
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+// Header
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.avatar {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.avatar-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2D7BFF 0%, #7A5CFF 100%);
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.05em;
+}
+
+.avatar-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  z-index: -1;
+  opacity: 0.4;
+}
+
+.header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-name {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.profile-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// Stats
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 16px;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: rgba(45, 123, 255, 0.3);
+  }
+}
+
+.stat-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &.accent-blue {
+    background: rgba(45, 123, 255, 0.15);
+    color: var(--accent-blue);
+  }
+
+  &.accent-cyan {
+    background: rgba(0, 229, 255, 0.12);
+    color: var(--accent-cyan);
+  }
+
+  &.accent-green {
+    background: rgba(0, 255, 156, 0.12);
+    color: var(--volt-green);
+  }
+
+  &.accent-purple {
+    background: rgba(122, 92, 255, 0.15);
+    color: var(--accent-purple);
+  }
+}
+
+.stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+// Section
+.section {
+  margin-bottom: 40px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+  letter-spacing: -0.01em;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #FC4C02;
+  }
+}
+
+.strava-icon {
+  color: #FC4C02 !important;
+}
+
+// Strava Card
+.strava-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+
+  &.connected {
+    padding: 20px;
+  }
+
+  &.not-connected {
+    padding: 28px 24px;
+  }
+}
+
+.strava-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.strava-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.strava-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+
+  &.connected {
+    background: var(--volt-green);
+    box-shadow: 0 0 8px rgba(0, 255, 156, 0.6);
+    animation: pulse 2s ease infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.disconnect-btn {
+  font-size: 13px !important;
+  height: 32px !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border) !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    border-color: rgba(255, 80, 80, 0.4) !important;
+    color: #ff5050 !important;
+  }
+}
+
+.strava-divider {
+  margin: 20px 0 !important;
+  border-color: var(--border) !important;
+}
+
+// Activities
+.activities-section {
+  margin-top: 4px;
+}
+
+.activities-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 16px;
+}
+
+.activities-loading {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(45, 123, 255, 0.06);
+  }
+}
+
+.activity-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(45, 123, 255, 0.12);
+  color: var(--accent-blue);
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.activity-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.activity-pace {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.pace-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+}
+
+.activity-hr {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-muted);
+
+  mat-icon {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+    color: #ff5050;
+  }
+}
+
+.empty-activities {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    opacity: 0.4;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+// Strava connect prompt
+.strava-prompt {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.strava-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(252, 76, 2, 0.12);
+  color: #FC4C02;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.strava-prompt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prompt-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.prompt-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.connect-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
