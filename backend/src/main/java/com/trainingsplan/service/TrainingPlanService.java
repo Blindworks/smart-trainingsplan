@@ -403,13 +403,16 @@ public class TrainingPlanService {
         if (description == null || description.trim().isEmpty()) {
             return null;
         }
-        return trainingDescriptionRepository.findByName(description.trim())
-                .orElseGet(() -> {
-                    TrainingDescription newDescription = new TrainingDescription();
-                    newDescription.setName(description.trim());
-                    newDescription.setDetailedInstructions(description.trim());
-                    return trainingDescriptionRepository.save(newDescription);
-                });
+        String normalized = description.trim();
+        List<TrainingDescription> existing = trainingDescriptionRepository.findAllByNameOrderByIdAsc(normalized);
+        if (!existing.isEmpty()) {
+            return existing.get(0);
+        }
+
+        TrainingDescription newDescription = new TrainingDescription();
+        newDescription.setName(normalized);
+        newDescription.setDetailedInstructions(normalized);
+        return trainingDescriptionRepository.save(newDescription);
     }
 
     private String capitalizeFirstLetter(String str) {
@@ -419,10 +422,10 @@ public class TrainingPlanService {
 
     private TrainingWeek findOrCreateTrainingWeek(Competition competition, int weekNumber,
                                                    LocalDate startDate, LocalDate endDate) {
-        TrainingWeek existingWeek = trainingWeekRepository.findByCompetitionIdAndWeekNumber(
+        List<TrainingWeek> existingWeeks = trainingWeekRepository.findByCompetitionIdAndWeekNumberOrderByIdAsc(
                 competition.getId(), weekNumber);
-        if (existingWeek != null) {
-            return existingWeek;
+        if (!existingWeeks.isEmpty()) {
+            return existingWeeks.get(0);
         }
         TrainingWeek newWeek = new TrainingWeek();
         newWeek.setWeekNumber(weekNumber);
@@ -434,6 +437,7 @@ public class TrainingPlanService {
     }
 
     private TrainingWeek findTrainingWeekForDate(Competition competition, LocalDate date) {
-        return trainingWeekRepository.findByCompetitionIdAndDate(competition.getId(), date);
+        List<TrainingWeek> weeks = trainingWeekRepository.findByCompetitionIdAndDate(competition.getId(), date);
+        return weeks.isEmpty() ? null : weeks.get(0);
     }
 }

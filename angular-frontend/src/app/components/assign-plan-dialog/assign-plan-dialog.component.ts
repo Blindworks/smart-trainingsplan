@@ -1,12 +1,13 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatRippleModule } from '@angular/material/core';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin } from 'rxjs';
 
 import { ApiService } from '../../services/api.service';
 import { Competition, TrainingPlanDto } from '../../models/competition.model';
@@ -62,7 +63,7 @@ export class AssignPlanDialogComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.snackBar.open('Fehler beim Laden der Wettkämpfe', 'Schließen', { duration: 3000 });
+        this.snackBar.open('Fehler beim Laden der Wettkaempfe', 'Schliessen', { duration: 3000 });
         this.loading = false;
       }
     });
@@ -95,11 +96,15 @@ export class AssignPlanDialogComponent implements OnInit {
         const msg = count === 1
           ? 'Plan zugewiesen'
           : `Plan ${count} Competitions zugewiesen`;
-        this.snackBar.open(msg, 'Schließen', { duration: 3000 });
+        this.snackBar.open(msg, 'Schliessen', { duration: 3000 });
         this.dialogRef.close(true);
       },
-      error: () => {
-        this.snackBar.open('Fehler beim Zuweisen des Plans', 'Schließen', { duration: 4000 });
+      error: (error: HttpErrorResponse) => {
+        const backendMessage = error.error?.error;
+        const message = backendMessage
+          ? `Fehler beim Zuweisen des Plans: ${backendMessage}`
+          : 'Fehler beim Zuweisen des Plans';
+        this.snackBar.open(message, 'Schliessen', { duration: 5000 });
         this.assigning = false;
       }
     });

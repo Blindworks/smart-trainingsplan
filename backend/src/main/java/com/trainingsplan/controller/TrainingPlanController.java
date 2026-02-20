@@ -4,6 +4,8 @@ import com.trainingsplan.dto.TrainingPlanDto;
 import com.trainingsplan.entity.TrainingPlan;
 import com.trainingsplan.service.TrainingPlanService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "http://localhost:4200")
 public class TrainingPlanController {
 
+    private static final Logger log = LoggerFactory.getLogger(TrainingPlanController.class);
     private final TrainingPlanService trainingPlanService;
 
     public TrainingPlanController(TrainingPlanService trainingPlanService) {
@@ -112,13 +115,12 @@ public class TrainingPlanController {
      * Sets competition.trainingPlan = sourcePlan (no new plan created).
      */
     @PostMapping("/assign")
-    public ResponseEntity<?> assignPlanToCompetition(
-            @RequestParam Long planId,
-            @RequestParam Long competitionId) {
+    public ResponseEntity<?> assignPlanToCompetition(@RequestParam Long planId, @RequestParam Long competitionId) {
         try {
             TrainingPlanDto dto = trainingPlanService.assignPlanToCompetition(planId, competitionId);
             return ResponseEntity.status(HttpStatus.CREATED).body(dto);
         } catch (Exception e) {
+            log.error("Error assigning plan {} to competition {}: {}", planId, competitionId, e.getMessage(), e);
             return ResponseEntity.badRequest().body(java.util.Map.of(
                     "error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
         }

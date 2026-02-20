@@ -14,11 +14,10 @@ public interface TrainingWeekRepository extends JpaRepository<TrainingWeek, Long
     
     List<TrainingWeek> findByCompetitionIdOrderByWeekNumber(Long competitionId);
     
-    @Query("SELECT tw FROM TrainingWeek tw WHERE tw.competition.id = :competitionId AND tw.startDate <= :date AND tw.endDate >= :date")
-    TrainingWeek findByCompetitionIdAndDate(Long competitionId, LocalDate date);
+    @Query("SELECT tw FROM TrainingWeek tw WHERE tw.competition.id = :competitionId AND tw.startDate <= :date AND tw.endDate >= :date ORDER BY tw.id ASC")
+    List<TrainingWeek> findByCompetitionIdAndDate(Long competitionId, LocalDate date);
     
-    @Query("SELECT tw FROM TrainingWeek tw WHERE tw.competition.id = :competitionId AND tw.weekNumber = :weekNumber")
-    TrainingWeek findByCompetitionIdAndWeekNumber(Long competitionId, Integer weekNumber);
+    List<TrainingWeek> findByCompetitionIdAndWeekNumberOrderByIdAsc(Long competitionId, Integer weekNumber);
     
     List<TrainingWeek> findByIsModifiedTrue();
 }
