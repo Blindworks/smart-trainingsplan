@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="004-add-strava-source" author="system">
+        <addColumn tableName="completed_trainings">
+            <column name="source" type="VARCHAR(20)" defaultValue="FIT_FILE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="strava_activity_id" type="BIGINT"/>
+            <column name="activity_name" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

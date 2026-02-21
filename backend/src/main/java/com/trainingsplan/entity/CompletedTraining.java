@@ -134,6 +134,16 @@ public class CompletedTraining {
     @Column(name = "sub_sport")
     private String subSport;
 
+    // Source tracking
+    @Column(name = "source", nullable = false)
+    private String source = "FIT_FILE";
+
+    @Column(name = "strava_activity_id", unique = true)
+    private Long stravaActivityId;
+
+    @Column(name = "activity_name")
+    private String activityName;
+
     // GPS Data Quality
     @Column(name = "total_gps_points")
     private Integer totalGpsPoints;
@@ -489,5 +499,29 @@ public class CompletedTraining {
 
     public void setEndLongitude(Double endLongitude) {
         this.endLongitude = endLongitude;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public Long getStravaActivityId() {
+        return stravaActivityId;
+    }
+
+    public void setStravaActivityId(Long stravaActivityId) {
+        this.stravaActivityId = stravaActivityId;
+    }
+
+    public String getActivityName() {
+        return activityName;
+    }
+
+    public void setActivityName(String activityName) {
+        this.activityName = activityName;
     }
 }

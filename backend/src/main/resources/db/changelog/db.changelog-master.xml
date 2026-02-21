@@ -7,5 +7,6 @@
     <include file="db/changelog/changes/001-initial-schema.xml"/>
     <include file="db/changelog/changes/002-restructure-plan-competition.xml"/>
     <include file="db/changelog/changes/003-add-user.xml"/>
+    <include file="db/changelog/changes/004-add-strava-source.xml"/>
 
 </databaseChangeLog>

@@ -91,74 +91,38 @@
           </div>
         </div>
 
-        <!-- Completed Trainings -->
+        <!-- Completed Trainings (including Strava) -->
         <div class="training-section" *ngIf="day.completedTrainings.length > 0">
           <h5>Absolviert</h5>
           <div
             class="training-card completed-training"
+            [class.strava-activity]="completed.source === 'STRAVA'"
             *ngFor="let completed of day.completedTrainings">
 
             <div class="training-header">
-              <span class="training-name">{{ getSportName(completed.sport) }}</span>
-              <mat-icon class="completed-icon">check_circle</mat-icon>
+              <span class="training-name">
+                {{ completed.source === 'STRAVA' ? completed.activityName : getSportName(completed.sport) }}
+              </span>
+              <span *ngIf="completed.source === 'STRAVA'" class="strava-badge">Strava</span>
+              <mat-icon *ngIf="completed.source !== 'STRAVA'" class="completed-icon">check_circle</mat-icon>
             </div>
 
             <div class="training-details">
-              <!-- Trainingszeit -->
               <span *ngIf="completed.durationSeconds" class="training-time">
                 <mat-icon>schedule</mat-icon>
                 {{ formatDuration(completed.durationSeconds) }}
               </span>
-
-              <!-- Distanz -->
               <span *ngIf="completed.distanceKm" class="training-distance">
                 <mat-icon>straighten</mat-icon>
                 {{ completed.distanceKm.toFixed(1) }}km
               </span>
-
-              <!-- Durchschnittspace -->
               <span *ngIf="completed.averagePaceSecondsPerKm" class="training-pace">
                 <mat-icon>speed</mat-icon>
                 {{ formatPace(completed.averagePaceSecondsPerKm) }}/km
               </span>
-
-              <!-- Durchschnitts-Herzfrequenz -->
               <span *ngIf="completed.averageHeartRate" class="training-hr">
                 <mat-icon>favorite</mat-icon>
                 {{ completed.averageHeartRate }}bpm
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Strava Activities -->
-        <div class="training-section" *ngIf="day.stravaActivities && day.stravaActivities.length > 0">
-          <div
-            class="training-card strava-activity"
-            *ngFor="let activity of day.stravaActivities"
-            (click)="openStravaActivityDetails(activity)"
-            style="cursor: pointer;">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
-              <span class="strava-badge">Strava</span>
-              <span style="font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">{{ formatStravaActivityType(activity.sport_type || activity.type) }}</span>
-            </div>
-            <span class="training-name">{{ activity.name }}</span>
-            <div class="training-details">
-              <span *ngIf="activity.moving_time" class="training-time">
-                <mat-icon>schedule</mat-icon>
-                {{ formatDuration(activity.moving_time) }}
-              </span>
-              <span *ngIf="activity.distance > 0" class="training-distance">
-                <mat-icon>straighten</mat-icon>
-                {{ formatStravaDistance(activity.distance) }}km
-              </span>
-              <span *ngIf="activity.average_speed > 0" class="training-pace">
-                <mat-icon>speed</mat-icon>
-                {{ formatStravaSpeedAsPace(activity.average_speed) }}/km
-              </span>
-              <span *ngIf="activity.average_heartrate" class="training-hr">
-                <mat-icon>favorite</mat-icon>
-                {{ activity.average_heartrate | number:'1.0-0' }}bpm
               </span>
             </div>
           </div>

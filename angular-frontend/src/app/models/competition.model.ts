@@ -94,6 +94,11 @@ export interface CompletedTraining {
   // Sport Information
   sport?: string;
   subSport?: string;
+
+  // Source Information
+  source?: string;
+  stravaActivityId?: number;
+  activityName?: string;
   
   // File Information
   originalFilename?: string;

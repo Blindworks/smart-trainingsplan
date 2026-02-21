@@ -5,8 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trainingsplan.dto.StravaActivityDto;
 import com.trainingsplan.dto.StravaStatusDto;
+import com.trainingsplan.entity.CompletedTraining;
 import com.trainingsplan.entity.StravaToken;
+import com.trainingsplan.repository.CompletedTrainingRepository;
 import com.trainingsplan.repository.StravaTokenRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -22,6 +26,8 @@ import java.util.Optional;
 @Service
 public class StravaService {
 
+    private static final Logger log = LoggerFactory.getLogger(StravaService.class);
+
     @Value("${strava.client-id}")
     private String clientId;
 
@@ -36,11 +42,14 @@ public class StravaService {
 
     private final StravaTokenRepository tokenRepository;
     private final ObjectMapper objectMapper;
+    private final CompletedTrainingRepository completedTrainingRepository;
     private final RestClient restClient;
 
-    public StravaService(StravaTokenRepository tokenRepository, ObjectMapper objectMapper) {
+    public StravaService(StravaTokenRepository tokenRepository, ObjectMapper objectMapper,
+                         CompletedTrainingRepository completedTrainingRepository) {
         this.tokenRepository = tokenRepository;
         this.objectMapper = objectMapper;
+        this.completedTrainingRepository = completedTrainingRepository;
         this.restClient = RestClient.create();
     }
 
@@ -144,10 +153,69 @@ public class StravaService {
                     .retrieve()
                     .body(String.class);
 
-            return objectMapper.readValue(responseBody, new TypeReference<List<StravaActivityDto>>() {});
+            List<StravaActivityDto> activities = objectMapper.readValue(responseBody, new TypeReference<List<StravaActivityDto>>() {});
+            syncActivitiesToDb(activities);
+            return activities;
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch Strava activities", e);
         }
+    }
+
+    private void syncActivitiesToDb(List<StravaActivityDto> activities) {
+        for (StravaActivityDto dto : activities) {
+            if (dto.getId() != null && !completedTrainingRepository.existsByStravaActivityId(dto.getId())) {
+                try {
+                    CompletedTraining ct = convertStravaActivityToCompletedTraining(dto);
+                    completedTrainingRepository.save(ct);
+                } catch (Exception e) {
+                    log.warn("Failed to persist Strava activity id={}: {}", dto.getId(), e.getMessage());
+                }
+            }
+        }
+    }
+
+    private CompletedTraining convertStravaActivityToCompletedTraining(StravaActivityDto dto) {
+        CompletedTraining ct = new CompletedTraining();
+        ct.setSource("STRAVA");
+        ct.setStravaActivityId(dto.getId());
+        ct.setActivityName(dto.getName());
+
+        String sport = dto.getSportType() != null ? dto.getSportType() : dto.getType();
+        ct.setSport(sport);
+
+        // Prefer start_date_local (user timezone) over UTC to get the correct calendar date
+        String dateStr = dto.getStartDateLocal() != null ? dto.getStartDateLocal() : dto.getStartDate();
+        ct.setTrainingDate(LocalDate.parse(dateStr.substring(0, 10)));
+
+        if (dto.getDistanceMeters() != null && dto.getDistanceMeters() > 0) {
+            ct.setDistanceKm(dto.getDistanceMeters() / 1000.0);
+        }
+        if (dto.getMovingTimeSeconds() != null) {
+            ct.setMovingTimeSeconds(dto.getMovingTimeSeconds());
+            ct.setDurationSeconds(dto.getMovingTimeSeconds());
+        }
+        if (dto.getTotalElevationGain() != null && dto.getTotalElevationGain() > 0) {
+            ct.setElevationGainM(dto.getTotalElevationGain().intValue());
+        }
+        if (dto.getAverageSpeed() != null && dto.getAverageSpeed() > 0) {
+            ct.setAverageSpeedKmh(dto.getAverageSpeed() * 3.6);
+            double paceSecondsPerKm = 1000.0 / dto.getAverageSpeed();
+            ct.setAveragePaceSecondsPerKm((int) paceSecondsPerKm);
+        }
+        if (dto.getMaxSpeed() != null && dto.getMaxSpeed() > 0) {
+            ct.setMaxSpeedKmh(dto.getMaxSpeed() * 3.6);
+        }
+        if (dto.getAverageHeartrate() != null) {
+            ct.setAverageHeartRate(dto.getAverageHeartrate().intValue());
+        }
+        if (dto.getMaxHeartrate() != null) {
+            ct.setMaxHeartRate(dto.getMaxHeartrate().intValue());
+        }
+        if (dto.getAverageWatts() != null) {
+            ct.setAveragePowerWatts(dto.getAverageWatts().intValue());
+        }
+
+        return ct;
     }
 
     public void disconnect() {

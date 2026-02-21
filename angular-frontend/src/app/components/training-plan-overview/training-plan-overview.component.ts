@@ -16,16 +16,14 @@ import { MatDividerModule } from '@angular/material/divider';
 
 import { ApiService } from '../../services/api.service';
 import { Competition, Training, CompletedTraining } from '../../models/competition.model';
-import { StravaActivity } from '../../models/strava.model';
 import { TrainingDetailsDialogComponent } from '../training-details-dialog/training-details-dialog.component';
 import { StravaActivityDialogComponent } from '../strava-activity-dialog/strava-activity-dialog.component';
-import { Subject, takeUntil, catchError, of } from 'rxjs';
+import { Subject, takeUntil, catchError, of, switchMap } from 'rxjs';
 
 interface DayTraining {
   date: string;
   trainings: Training[];
   completedTrainings: CompletedTraining[];
-  stravaActivities: StravaActivity[];
   isEmpty: boolean;
 }
 
@@ -189,8 +187,8 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     };
 
     this.populateTrainingsForWeek(weekData, allTrainings);
-    this.loadCompletedTrainingsForWeekAsync(weekData);
-    this.loadStravaActivitiesForWeekAsync(weekData);
+    // First sync Strava activities to DB, then load completed trainings (includes Strava entries)
+    this.syncStravaAndLoadCompleted(weekData);
 
     this.weekData = weekData;
   }
@@ -208,7 +206,6 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
         date: dateString,
         trainings: [],
         completedTrainings: [],
-        stravaActivities: [],
         isEmpty: true
       });
     }
@@ -419,16 +416,6 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     });
   }
 
-  openStravaActivityDetails(activity: StravaActivity): void {
-    this.dialog.open(StravaActivityDialogComponent, {
-      width: '700px',
-      maxWidth: '95vw',
-      maxHeight: '90vh',
-      panelClass: 'strava-activity-dialog',
-      data: { activity }
-    });
-  }
-
   getCompetitionName(competitionId: number): string {
     const competition = this.competitions.find(c => c.id === competitionId);
     return competition ? competition.name : 'Unbekannt';
@@ -444,131 +431,31 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     return this.weekData.days.reduce((total, day) => total + day.completedTrainings.length, 0);
   }
 
-  private loadCompletedTrainingsForWeekAsync(weekData: WeekData): void {
-    console.log('Loading completed trainings for week:', weekData.days.map(d => d.date));
-    
-    // Use the more efficient date range API instead of individual calls
-    const startDate = weekData.days[0].date;
-    const endDate = weekData.days[6].date;
-    
-    console.log(`Making API call for date range: ${startDate} to ${endDate}`);
-    
-    this.apiService.getCompletedTrainingsByDateRange(startDate, endDate).pipe(
-      takeUntil(this.destroy$),
-      catchError(error => {
-        console.warn('Could not load completed trainings for week', error);
-        return of([]);
-      })
-    ).subscribe(allCompletedTrainings => {
-      console.log('All completed trainings for week:', allCompletedTrainings);
-      
-      let totalCompletedTrainings = 0;
-      
-      // Group trainings by date
-      allCompletedTrainings.forEach(training => {
-        console.log('Processing completed training:', {
-          id: training.id,
-          trainingDate: training.trainingDate,
-          sport: training.sport,
-          duration: training.duration,
-          distance: training.distance,
-          averageSpeed: training.averageSpeed,
-          maxSpeed: training.maxSpeed,
-          averageHeartRate: training.averageHeartRate,
-          maxHeartRate: training.maxHeartRate,
-          calories: training.calories,
-          fileName: training.fileName,
-          uploadedAt: training.uploadedAt,
-          fullObject: training
-        });
-        
-        const day = weekData.days.find(d => d.date === training.trainingDate);
-        if (day) {
-          if (!day.completedTrainings) {
-            day.completedTrainings = [];
-          }
-          day.completedTrainings.push(training);
-          totalCompletedTrainings++;
-          day.isEmpty = false;
-          console.log(`Added training to day ${day.date}, now has ${day.completedTrainings.length} completed trainings`);
-        } else {
-          console.warn(`Could not find day for training date: ${training.trainingDate}`);
-        }
-      });
-      
-      console.log(`Total completed trainings loaded: ${totalCompletedTrainings}`);
-      
-      // Show final state of each day
-      weekData.days.forEach(day => {
-        if (day.completedTrainings && day.completedTrainings.length > 0) {
-          console.log(`Day ${day.date} final state:`, {
-            date: day.date,
-            completedTrainingsCount: day.completedTrainings.length,
-            completedTrainings: day.completedTrainings,
-            isEmpty: day.isEmpty
-          });
-        }
-      });
-      
-      // Trigger change detection by reassigning weekData
-      this.weekData = { ...weekData };
-      
-      console.log('Updated weekData:', this.weekData);
-    });
-  }
-
-  private loadStravaActivitiesForWeekAsync(weekData: WeekData): void {
+  private syncStravaAndLoadCompleted(weekData: WeekData): void {
     const startDate = weekData.days[0].date;
     const endDate = weekData.days[6].date;
 
+    // Sync Strava to DB first, then load all completed trainings (including newly synced Strava entries)
     this.apiService.getStravaActivities(startDate, endDate).pipe(
       takeUntil(this.destroy$),
-      catchError(error => {
-        console.warn('Could not load Strava activities', error);
-        return of([]);
-      })
-    ).subscribe(activities => {
-      activities.forEach(activity => {
-        // Prefer start_date_local (user's timezone) over UTC start_date
-        const dateSource = activity.start_date_local || activity.start_date;
-        const activityDate = dateSource.substring(0, 10);
-        const day = weekData.days.find(d => d.date === activityDate);
+      catchError(() => of([])),
+      switchMap(() => this.apiService.getCompletedTrainingsByDateRange(startDate, endDate).pipe(
+        catchError(() => of([]))
+      ))
+    ).subscribe(allCompletedTrainings => {
+      // Clear existing completed trainings before repopulating
+      weekData.days.forEach(d => { d.completedTrainings = []; });
+
+      allCompletedTrainings.forEach(training => {
+        const day = weekData.days.find(d => d.date === training.trainingDate);
         if (day) {
-          day.stravaActivities.push(activity);
+          day.completedTrainings.push(training);
           day.isEmpty = false;
         }
       });
+
       this.weekData = { ...weekData };
     });
-  }
-
-  formatStravaDistance(meters: number): string {
-    return (meters / 1000).toFixed(1);
-  }
-
-  formatStravaSpeedAsPace(speedMs: number): string {
-    if (!speedMs || speedMs === 0) return '';
-    const secondsPerKm = 1000 / speedMs;
-    return this.formatPace(secondsPerKm);
-  }
-
-  formatStravaActivityType(type: string): string {
-    const typeMap: { [key: string]: string } = {
-      'Run': 'Laufen',
-      'Ride': 'Radfahren',
-      'Swim': 'Schwimmen',
-      'Walk': 'Gehen',
-      'Hike': 'Wandern',
-      'WeightTraining': 'Krafttraining',
-      'Yoga': 'Yoga',
-      'Workout': 'Training',
-      'VirtualRide': 'Virtuelles Radfahren',
-      'TrailRun': 'Trailrunning',
-      'NordicSki': 'Skilanglauf',
-      'AlpineSki': 'Skifahren',
-      'Rowing': 'Rudern',
-    };
-    return typeMap[type] || type;
   }
 
   // Training Completion Methods

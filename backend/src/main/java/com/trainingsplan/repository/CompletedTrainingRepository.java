@@ -18,6 +18,10 @@ public interface CompletedTrainingRepository extends JpaRepository<CompletedTrai
     Optional<CompletedTraining> findTopByTrainingDateOrderByUploadDateDesc(LocalDate trainingDate);
     
     List<CompletedTraining> findBySportOrderByTrainingDateDesc(String sport);
-    
+
     long countByTrainingDateBetween(LocalDate startDate, LocalDate endDate);
+
+    boolean existsByStravaActivityId(Long stravaActivityId);
+
+    Optional<CompletedTraining> findByStravaActivityId(Long stravaActivityId);
 }
