@@ -1,0 +1,61 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: smart-trainingsplan-db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: smart_trainingsplan
+      MARIADB_USER: smart_trainingsplan
+      MARIADB_PASSWORD: smart_trainingsplan
+      MARIADB_ROOT_PASSWORD: root_change_me
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - app_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smart-trainingsplan-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: smart_trainingsplan
+      DB_USERNAME: smart_trainingsplan
+      DB_PASSWORD: smart_trainingsplan
+      APP_CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:4200
+      STRAVA_REDIRECT_URI: http://localhost/api/strava/callback
+      STRAVA_FRONTEND_URL: http://localhost
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  frontend:
+    build:
+      context: ./angular-frontend
+      dockerfile: Dockerfile
+    container_name: smart-trainingsplan-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - app_network
+
+volumes:
+  mariadb_data:
+
+networks:
+  app_network:
