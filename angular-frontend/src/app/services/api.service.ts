@@ -172,8 +172,8 @@ export class ApiService {
   }
 
   getVo2MaxEstimate(distanceKm: number, movingTimeSeconds: number, sport: string): Observable<{ vo2max: number }> {
-    return this.http.get<{ vo2max: number }>(`${this.baseUrl}/vo2max/estimate`, {
-      params: { distanceKm: distanceKm.toString(), movingTimeSeconds: movingTimeSeconds.toString(), sport }
+    return this.http.post<{ vo2max: number }>(`${this.baseUrl}/vo2max/estimate/training`, {
+      distanceKm, movingTimeSeconds, sport
     });
   }
 
