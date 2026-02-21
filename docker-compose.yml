@@ -16,7 +16,7 @@ services:
       STRAVA_REDIRECT_URI: http://localhost/api/strava/callback
       STRAVA_FRONTEND_URL: http://localhost
     networks:
-      - mariadb_network
+      - mariadb_default
       - app_network
 
   frontend:
@@ -35,5 +35,5 @@ services:
 networks:
   app_network:
 
-  mariadb_network:
+  mariadb_default:
       external: true
