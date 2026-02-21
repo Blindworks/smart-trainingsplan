@@ -16,6 +16,7 @@ import { MatDividerModule } from '@angular/material/divider';
 
 import { ApiService } from '../../services/api.service';
 import { Competition, Training, CompletedTraining } from '../../models/competition.model';
+import { StravaActivity } from '../../models/strava.model';
 import { TrainingDetailsDialogComponent } from '../training-details-dialog/training-details-dialog.component';
 import { Subject, takeUntil, catchError, of } from 'rxjs';
 
@@ -23,6 +24,7 @@ interface DayTraining {
   date: string;
   trainings: Training[];
   completedTrainings: CompletedTraining[];
+  stravaActivities: StravaActivity[];
   isEmpty: boolean;
 }
 
@@ -187,7 +189,8 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
 
     this.populateTrainingsForWeek(weekData, allTrainings);
     this.loadCompletedTrainingsForWeekAsync(weekData);
-    
+    this.loadStravaActivitiesForWeekAsync(weekData);
+
     this.weekData = weekData;
   }
 
@@ -204,6 +207,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
         date: dateString,
         trainings: [],
         completedTrainings: [],
+        stravaActivities: [],
         isEmpty: true
       });
     }
@@ -500,6 +504,60 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
       
       console.log('Updated weekData:', this.weekData);
     });
+  }
+
+  private loadStravaActivitiesForWeekAsync(weekData: WeekData): void {
+    const startDate = weekData.days[0].date;
+    const endDate = weekData.days[6].date;
+
+    this.apiService.getStravaActivities(startDate, endDate).pipe(
+      takeUntil(this.destroy$),
+      catchError(error => {
+        console.warn('Could not load Strava activities', error);
+        return of([]);
+      })
+    ).subscribe(activities => {
+      activities.forEach(activity => {
+        // Prefer start_date_local (user's timezone) over UTC start_date
+        const dateSource = activity.start_date_local || activity.start_date;
+        const activityDate = dateSource.substring(0, 10);
+        const day = weekData.days.find(d => d.date === activityDate);
+        if (day) {
+          day.stravaActivities.push(activity);
+          day.isEmpty = false;
+        }
+      });
+      this.weekData = { ...weekData };
+    });
+  }
+
+  formatStravaDistance(meters: number): string {
+    return (meters / 1000).toFixed(1);
+  }
+
+  formatStravaSpeedAsPace(speedMs: number): string {
+    if (!speedMs || speedMs === 0) return '';
+    const secondsPerKm = 1000 / speedMs;
+    return this.formatPace(secondsPerKm);
+  }
+
+  formatStravaActivityType(type: string): string {
+    const typeMap: { [key: string]: string } = {
+      'Run': 'Laufen',
+      'Ride': 'Radfahren',
+      'Swim': 'Schwimmen',
+      'Walk': 'Gehen',
+      'Hike': 'Wandern',
+      'WeightTraining': 'Krafttraining',
+      'Yoga': 'Yoga',
+      'Workout': 'Training',
+      'VirtualRide': 'Virtuelles Radfahren',
+      'TrailRun': 'Trailrunning',
+      'NordicSki': 'Skilanglauf',
+      'AlpineSki': 'Skifahren',
+      'Rowing': 'Rudern',
+    };
+    return typeMap[type] || type;
   }
 
   // Training Completion Methods

@@ -12,6 +12,12 @@ public class StravaActivityDto {
     @JsonProperty("start_date")
     private String startDate;
 
+    @JsonProperty("start_date_local")
+    private String startDateLocal;
+
+    @JsonProperty("sport_type")
+    private String sportType;
+
     @JsonProperty("distance")
     private Double distanceMeters;
 
@@ -49,6 +55,10 @@ public class StravaActivityDto {
     public void setType(String type) { this.type = type; }
     public String getStartDate() { return startDate; }
     public void setStartDate(String startDate) { this.startDate = startDate; }
+    public String getStartDateLocal() { return startDateLocal; }
+    public void setStartDateLocal(String startDateLocal) { this.startDateLocal = startDateLocal; }
+    public String getSportType() { return sportType; }
+    public void setSportType(String sportType) { this.sportType = sportType; }
     public Double getDistanceMeters() { return distanceMeters; }
     public void setDistanceMeters(Double distanceMeters) { this.distanceMeters = distanceMeters; }
     public Integer getMovingTimeSeconds() { return movingTimeSeconds; }

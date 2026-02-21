@@ -9,11 +9,17 @@ export interface StravaActivity {
   id: number;
   name: string;
   type: string;
-  startDate: string;
-  distanceMeters: number;
-  movingTimeSeconds: number;
-  totalElevationGain: number;
-  averageSpeed: number;
-  averageHeartrate?: number;
-  averageWatts?: number;
+  sport_type?: string;
+  start_date: string;
+  start_date_local?: string;
+  distance: number;
+  moving_time: number;
+  elapsed_time?: number;
+  total_elevation_gain: number;
+  average_speed: number;
+  max_speed?: number;
+  average_heartrate?: number;
+  max_heartrate?: number;
+  average_watts?: number;
+  kilojoules?: number;
 }

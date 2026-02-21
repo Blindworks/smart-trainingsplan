@@ -131,6 +131,37 @@
           </div>
         </div>
 
+        <!-- Strava Activities -->
+        <div class="training-section" *ngIf="day.stravaActivities && day.stravaActivities.length > 0">
+          <div
+            class="training-card strava-activity"
+            *ngFor="let activity of day.stravaActivities">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+              <span class="strava-badge">Strava</span>
+              <span style="font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">{{ formatStravaActivityType(activity.sport_type || activity.type) }}</span>
+            </div>
+            <span class="training-name">{{ activity.name }}</span>
+            <div class="training-details">
+              <span *ngIf="activity.moving_time" class="training-time">
+                <mat-icon>schedule</mat-icon>
+                {{ formatDuration(activity.moving_time) }}
+              </span>
+              <span *ngIf="activity.distance > 0" class="training-distance">
+                <mat-icon>straighten</mat-icon>
+                {{ formatStravaDistance(activity.distance) }}km
+              </span>
+              <span *ngIf="activity.average_speed > 0" class="training-pace">
+                <mat-icon>speed</mat-icon>
+                {{ formatStravaSpeedAsPace(activity.average_speed) }}/km
+              </span>
+              <span *ngIf="activity.average_heartrate" class="training-hr">
+                <mat-icon>favorite</mat-icon>
+                {{ activity.average_heartrate | number:'1.0-0' }}bpm
+              </span>
+            </div>
+          </div>
+        </div>
+
         <!-- Empty Day -->
         <div class="empty-day" *ngIf="day.isEmpty">
           <mat-icon>fitness_center</mat-icon>
