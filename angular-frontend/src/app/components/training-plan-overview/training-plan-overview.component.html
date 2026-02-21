@@ -135,7 +135,9 @@
         <div class="training-section" *ngIf="day.stravaActivities && day.stravaActivities.length > 0">
           <div
             class="training-card strava-activity"
-            *ngFor="let activity of day.stravaActivities">
+            *ngFor="let activity of day.stravaActivities"
+            (click)="openStravaActivityDetails(activity)"
+            style="cursor: pointer;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
               <span class="strava-badge">Strava</span>
               <span style="font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em;">{{ formatStravaActivityType(activity.sport_type || activity.type) }}</span>

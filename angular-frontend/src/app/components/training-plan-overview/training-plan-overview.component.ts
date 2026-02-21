@@ -18,6 +18,7 @@ import { ApiService } from '../../services/api.service';
 import { Competition, Training, CompletedTraining } from '../../models/competition.model';
 import { StravaActivity } from '../../models/strava.model';
 import { TrainingDetailsDialogComponent } from '../training-details-dialog/training-details-dialog.component';
+import { StravaActivityDialogComponent } from '../strava-activity-dialog/strava-activity-dialog.component';
 import { Subject, takeUntil, catchError, of } from 'rxjs';
 
 interface DayTraining {
@@ -415,6 +416,16 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       // Handle any actions after dialog closes if needed
       // For example, refresh data if training was modified
+    });
+  }
+
+  openStravaActivityDetails(activity: StravaActivity): void {
+    this.dialog.open(StravaActivityDialogComponent, {
+      width: '700px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'strava-activity-dialog',
+      data: { activity }
     });
   }
 

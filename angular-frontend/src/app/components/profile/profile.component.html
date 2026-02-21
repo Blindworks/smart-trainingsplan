@@ -192,12 +192,12 @@
               </div>
               <div class="activity-info">
                 <span class="activity-name">{{ activity.name }}</span>
-                <span class="activity-meta">{{ formatDistance(activity.distanceMeters) }} &middot; {{ formatDuration(activity.movingTimeSeconds) }}</span>
+                <span class="activity-meta">{{ formatDistance(activity.distance) }} &middot; {{ formatDuration(activity.moving_time) }}</span>
               </div>
-              <div class="activity-pace" *ngIf="activity.averageSpeed">
-                <span class="pace-value">{{ formatPace(activity.averageSpeed) }}</span>
-                <span class="activity-hr" *ngIf="activity.averageHeartrate">
-                  <mat-icon>favorite</mat-icon>{{ activity.averageHeartrate | number:'1.0-0' }}
+              <div class="activity-pace" *ngIf="activity.average_speed">
+                <span class="pace-value">{{ formatPace(activity.average_speed) }}</span>
+                <span class="activity-hr" *ngIf="activity.average_heartrate">
+                  <mat-icon>favorite</mat-icon>{{ activity.average_heartrate | number:'1.0-0' }}
                 </span>
               </div>
             </div>

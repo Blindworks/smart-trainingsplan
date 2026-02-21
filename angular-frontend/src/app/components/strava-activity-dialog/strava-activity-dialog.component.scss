@@ -1,0 +1,369 @@
+// Strava Activity Dialog
+
+$strava-orange: #FC4C02;
+$strava-orange-hover: #e04402;
+$accent-blue: #1976d2;
+$heartrate-red: #e91e63;
+$power-purple: #9c27b0;
+
+:host {
+  display: block;
+  animation: dialogSlideIn 0.22s ease-out;
+  background-color: var(--bg-elevated);
+}
+
+@keyframes dialogSlideIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ─── Container ────────────────────────────────────────────────────────────────
+
+.dialog-container {
+  max-height: 80vh;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 680px;
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  padding: 0;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  &::-webkit-scrollbar-track {
+    background: var(--bg-surface);
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+    &:hover { background: var(--text-muted); }
+  }
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────────
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px 16px;
+  background: linear-gradient(160deg, var(--bg-panel) 0%, var(--bg-elevated) 100%);
+  border-bottom: 1px solid var(--border);
+
+  .header-content {
+    flex: 1;
+    margin-right: 16px;
+  }
+
+  .activity-meta {
+    .activity-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+
+      .mat-mdc-chip {
+        font-weight: 600 !important;
+        font-size: 11px !important;
+        border-radius: 5px !important;
+        height: 26px !important;
+        min-height: 26px !important;
+
+        .mat-icon {
+          font-size: 14px !important;
+          width: 14px !important;
+          height: 14px !important;
+        }
+      }
+    }
+  }
+
+  .close-button {
+    color: var(--text-muted) !important;
+    margin: -6px;
+    flex-shrink: 0;
+
+    &:hover {
+      color: var(--text-secondary) !important;
+      background-color: rgba(255, 255, 255, 0.06) !important;
+    }
+
+    .mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
+  }
+}
+
+// ─── Strava Badge ─────────────────────────────────────────────────────────────
+
+.strava-badge {
+  display: inline-block;
+  background-color: $strava-orange;
+  color: #ffffff;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+// ─── Activity Title ────────────────────────────────────────────────────────────
+
+.activity-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 8px 0 12px;
+  color: var(--text-primary);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  word-break: break-word;
+}
+
+// ─── Sport Chip ───────────────────────────────────────────────────────────────
+
+.sport-chip {
+  background-color: $strava-orange !important;
+  color: #ffffff !important;
+  box-shadow: none;
+}
+
+// ─── Content ──────────────────────────────────────────────────────────────────
+
+.dialog-content {
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .info-section {
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    transition: border-color 0.15s ease;
+
+    &:hover {
+      border-color: rgba(45, 123, 255, 0.3) !important;
+    }
+
+    &--heartrate:hover {
+      border-color: rgba(233, 30, 99, 0.3) !important;
+    }
+
+    &--power:hover {
+      border-color: rgba(156, 39, 176, 0.3) !important;
+    }
+
+    .mat-mdc-card-header {
+      padding: 14px 16px 0;
+
+      .mat-mdc-card-avatar {
+        background-color: rgba(45, 123, 255, 0.1);
+        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $accent-blue;
+        flex-shrink: 0;
+
+        .mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      .mat-mdc-card-title {
+        color: var(--text-primary) !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+      }
+    }
+
+    .mat-mdc-card-content {
+      padding: 12px 16px 16px !important;
+    }
+  }
+}
+
+// ─── Avatar Icon Variants ─────────────────────────────────────────────────────
+
+.heartrate-avatar-icon {
+  color: $heartrate-red !important;
+
+  // Target the card-avatar wrapper when this icon is present
+  &.mat-mdc-card-avatar,
+  .mat-mdc-card-avatar & {
+    background-color: rgba(233, 30, 99, 0.1) !important;
+  }
+}
+
+.power-avatar-icon {
+  color: $power-purple !important;
+
+  &.mat-mdc-card-avatar,
+  .mat-mdc-card-avatar & {
+    background-color: rgba(156, 39, 176, 0.1) !important;
+  }
+}
+
+// Override card avatar backgrounds for Herzfrequenz and Leistung sections
+.info-section--heartrate .mat-mdc-card-avatar {
+  background-color: rgba(233, 30, 99, 0.1) !important;
+  color: $heartrate-red !important;
+}
+
+.info-section--power .mat-mdc-card-avatar {
+  background-color: rgba(156, 39, 176, 0.1) !important;
+  color: $power-purple !important;
+}
+
+// ─── Info Grid ────────────────────────────────────────────────────────────────
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-base);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-left: 3px solid $accent-blue;
+  }
+
+  .info-icon {
+    color: $accent-blue;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+
+    &--heartrate {
+      color: $heartrate-red;
+    }
+
+    &--power {
+      color: $power-purple;
+    }
+  }
+
+  .info-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .info-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  .info-value {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    word-break: break-word;
+  }
+}
+
+// Left border tint for heartrate items
+.info-section--heartrate .info-item {
+  border-left-color: $heartrate-red;
+}
+
+// Left border tint for power items
+.info-section--power .info-item {
+  border-left-color: $power-purple;
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+
+.dialog-actions {
+  padding: 8px 24px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+
+  .cancel-button {
+    color: var(--text-secondary) !important;
+    border-radius: 7px !important;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: var(--text-primary) !important;
+    }
+  }
+
+  .strava-link-button {
+    background-color: $strava-orange !important;
+    color: #ffffff !important;
+    border-radius: 7px !important;
+    font-weight: 600 !important;
+    text-decoration: none;
+    box-shadow: 0 2px 12px rgba(252, 76, 2, 0.35) !important;
+    transition: all 0.18s ease !important;
+
+    &:hover {
+      background-color: $strava-orange-hover !important;
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 20px rgba(252, 76, 2, 0.55) !important;
+    }
+
+    .mat-icon {
+      margin-right: 6px;
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+
+@media (max-width: 600px) {
+  .dialog-header {
+    padding: 16px;
+
+    .header-content { margin-right: 0; }
+    .activity-title { font-size: 1.2rem; }
+  }
+
+  .dialog-content {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .dialog-actions {
+    padding: 8px 14px 14px;
+    flex-direction: column;
+
+    .strava-link-button,
+    .cancel-button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
