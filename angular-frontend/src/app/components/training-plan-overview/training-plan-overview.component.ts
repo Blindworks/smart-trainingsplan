@@ -17,7 +17,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { ApiService } from '../../services/api.service';
 import { Competition, Training, CompletedTraining } from '../../models/competition.model';
 import { TrainingDetailsDialogComponent } from '../training-details-dialog/training-details-dialog.component';
-import { StravaActivityDialogComponent } from '../strava-activity-dialog/strava-activity-dialog.component';
+import { StravaActivityDialogComponent, CompletedTrainingDialogData } from '../strava-activity-dialog/strava-activity-dialog.component';
 import { Subject, takeUntil, catchError, of, switchMap } from 'rxjs';
 
 interface DayTraining {
@@ -399,6 +399,16 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     };
     
     return sportMappings[sportId] || `Sport ${sportId}`;
+  }
+
+  openCompletedTrainingDetails(completed: CompletedTraining): void {
+    this.dialog.open(StravaActivityDialogComponent, {
+      width: '700px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'strava-activity-dialog',
+      data: { completed } as CompletedTrainingDialogData
+    });
   }
 
   openTrainingDetails(training: Training): void {

@@ -1,15 +1,19 @@
 <div class="dialog-container" mat-dialog-content>
 
-  <!-- Header Section -->
+  <!-- Header -->
   <div class="dialog-header">
     <div class="header-content">
-      <span class="strava-badge">Strava</span>
-      <h2 class="activity-title">{{ activity.name }}</h2>
+      <span *ngIf="isStrava()" class="strava-badge">Strava</span>
+      <h2 class="activity-title">{{ getDisplayName() }}</h2>
       <div class="activity-meta">
         <mat-chip-set class="activity-chips">
           <mat-chip class="sport-chip">
-            <mat-icon matChipAvatar>{{ getSportIcon(activity.sport_type || activity.type) }}</mat-icon>
-            {{ formatActivityType(activity.sport_type || activity.type) }}
+            <mat-icon matChipAvatar>{{ getSportIcon(completed.sport) }}</mat-icon>
+            {{ formatSportName(completed.sport) }}
+          </mat-chip>
+          <mat-chip class="source-chip" *ngIf="!isStrava()">
+            <mat-icon matChipAvatar>check_circle</mat-icon>
+            FIT-Datei
           </mat-chip>
         </mat-chip-set>
       </div>
@@ -21,7 +25,7 @@
 
   <mat-divider></mat-divider>
 
-  <!-- Main Content Sections -->
+  <!-- Content -->
   <div class="dialog-content">
 
     <!-- Zeitinformationen -->
@@ -37,36 +41,24 @@
             <mat-icon class="info-icon">calendar_today</mat-icon>
             <div class="info-content">
               <span class="info-label">Datum</span>
-              <span class="info-value">
-                {{ formatDate(activity.start_date_local || activity.start_date) }}
-              </span>
+              <span class="info-value">{{ formatDate(completed.trainingDate) }}</span>
             </div>
           </div>
 
-          <div class="info-item">
-            <mat-icon class="info-icon">access_time</mat-icon>
-            <div class="info-content">
-              <span class="info-label">Uhrzeit</span>
-              <span class="info-value">
-                {{ formatTime(activity.start_date_local || activity.start_date) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="info-item">
+          <div class="info-item" *ngIf="completed.durationSeconds">
             <mat-icon class="info-icon">timer</mat-icon>
             <div class="info-content">
               <span class="info-label">Dauer</span>
-              <span class="info-value">{{ formatDuration(activity.moving_time) }}</span>
+              <span class="info-value">{{ formatDuration(completed.durationSeconds) }}</span>
             </div>
           </div>
 
           <div class="info-item"
-               *ngIf="activity.elapsed_time && activity.elapsed_time !== activity.moving_time">
-            <mat-icon class="info-icon">hourglass_bottom</mat-icon>
+               *ngIf="completed.movingTimeSeconds && completed.movingTimeSeconds !== completed.durationSeconds">
+            <mat-icon class="info-icon">directions_run</mat-icon>
             <div class="info-content">
-              <span class="info-label">Gesamtzeit</span>
-              <span class="info-value">{{ formatDuration(activity.elapsed_time) }}</span>
+              <span class="info-label">Bewegungszeit</span>
+              <span class="info-value">{{ formatDuration(completed.movingTimeSeconds) }}</span>
             </div>
           </div>
 
@@ -75,7 +67,8 @@
     </mat-card>
 
     <!-- Leistungsdaten -->
-    <mat-card class="info-section" appearance="outlined">
+    <mat-card class="info-section" appearance="outlined"
+              *ngIf="completed.distanceKm || completed.averagePaceSecondsPerKm || completed.averageSpeedKmh || completed.elevationGainM">
       <mat-card-header>
         <mat-icon mat-card-avatar>show_chart</mat-icon>
         <mat-card-title>Leistungsdaten</mat-card-title>
@@ -83,35 +76,51 @@
       <mat-card-content>
         <div class="info-grid">
 
-          <div class="info-item" *ngIf="activity.distance > 0">
+          <div class="info-item" *ngIf="completed.distanceKm">
             <mat-icon class="info-icon">straighten</mat-icon>
             <div class="info-content">
               <span class="info-label">Distanz</span>
-              <span class="info-value">{{ formatDistance(activity.distance) }}</span>
+              <span class="info-value">{{ completed.distanceKm.toFixed(2) }} km</span>
             </div>
           </div>
 
-          <div class="info-item" *ngIf="activity.average_speed > 0">
+          <div class="info-item" *ngIf="completed.averagePaceSecondsPerKm">
             <mat-icon class="info-icon">speed</mat-icon>
             <div class="info-content">
               <span class="info-label">Ø Pace</span>
-              <span class="info-value">{{ formatPace(activity.average_speed) }}</span>
+              <span class="info-value">{{ formatPace(completed.averagePaceSecondsPerKm) }}</span>
             </div>
           </div>
 
-          <div class="info-item" *ngIf="activity.max_speed">
+          <div class="info-item" *ngIf="completed.averageSpeedKmh && !completed.averagePaceSecondsPerKm">
+            <mat-icon class="info-icon">speed</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Ø Geschwindigkeit</span>
+              <span class="info-value">{{ formatSpeed(completed.averageSpeedKmh) }}</span>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="completed.maxSpeedKmh">
             <mat-icon class="info-icon">flash_on</mat-icon>
             <div class="info-content">
-              <span class="info-label">Max. Tempo</span>
-              <span class="info-value">{{ formatPace(activity.max_speed) }}</span>
+              <span class="info-label">Max. Geschwindigkeit</span>
+              <span class="info-value">{{ formatSpeed(completed.maxSpeedKmh) }}</span>
             </div>
           </div>
 
-          <div class="info-item" *ngIf="activity.total_elevation_gain > 0">
+          <div class="info-item" *ngIf="completed.elevationGainM">
             <mat-icon class="info-icon">terrain</mat-icon>
             <div class="info-content">
               <span class="info-label">Höhenmeter</span>
-              <span class="info-value">{{ formatElevation(activity.total_elevation_gain) }}</span>
+              <span class="info-value">{{ completed.elevationGainM }} m</span>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="completed.calories">
+            <mat-icon class="info-icon">local_fire_department</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Kalorien</span>
+              <span class="info-value">{{ completed.calories }} kcal</span>
             </div>
           </div>
 
@@ -119,9 +128,53 @@
       </mat-card-content>
     </mat-card>
 
+    <!-- VO2Max (nur Laufen) -->
+    <mat-card class="info-section info-section--vo2max" appearance="outlined" *ngIf="isRunning()">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="vo2max-avatar-icon">monitor_heart</mat-icon>
+        <mat-card-title>VO2max Schätzung</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="vo2max-container" *ngIf="!vo2MaxLoading; else loadingSpinner">
+          <div class="info-grid" *ngIf="vo2Max !== null">
+            <div class="info-item info-item--vo2max">
+              <mat-icon class="info-icon info-icon--vo2max">trending_up</mat-icon>
+              <div class="info-content">
+                <span class="info-label">VO2max</span>
+                <span class="info-value vo2max-value" [style.color]="getVo2MaxColor(vo2Max)">
+                  {{ vo2Max | number:'1.1-1' }} ml/kg/min
+                </span>
+              </div>
+            </div>
+            <div class="info-item info-item--vo2max">
+              <mat-icon class="info-icon info-icon--vo2max">grade</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Einordnung</span>
+                <span class="info-value" [style.color]="getVo2MaxColor(vo2Max)">
+                  {{ getVo2MaxCategory(vo2Max) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <p class="vo2max-hint" *ngIf="vo2Max === null">
+            VO2max konnte nicht berechnet werden. Distanz oder Zeit fehlt.
+          </p>
+          <p class="vo2max-method">
+            Schätzung nach Daniels/Gilbert VDOT-Methode aus Distanz und Zeit.
+          </p>
+        </div>
+        <ng-template #loadingSpinner>
+          <div class="vo2max-loading">
+            <mat-spinner diameter="24"></mat-spinner>
+            <span>Berechne VO2max...</span>
+          </div>
+        </ng-template>
+      </mat-card-content>
+    </mat-card>
+
     <!-- Herzfrequenz -->
     <mat-card class="info-section info-section--heartrate" appearance="outlined"
-              *ngIf="activity.average_heartrate || activity.max_heartrate">
+              *ngIf="completed.averageHeartRate || completed.maxHeartRate">
       <mat-card-header>
         <mat-icon mat-card-avatar class="heartrate-avatar-icon">favorite</mat-icon>
         <mat-card-title>Herzfrequenz</mat-card-title>
@@ -129,19 +182,19 @@
       <mat-card-content>
         <div class="info-grid">
 
-          <div class="info-item" *ngIf="activity.average_heartrate">
+          <div class="info-item" *ngIf="completed.averageHeartRate">
             <mat-icon class="info-icon info-icon--heartrate">favorite_border</mat-icon>
             <div class="info-content">
               <span class="info-label">Ø Herzfrequenz</span>
-              <span class="info-value">{{ activity.average_heartrate }} bpm</span>
+              <span class="info-value">{{ completed.averageHeartRate }} bpm</span>
             </div>
           </div>
 
-          <div class="info-item" *ngIf="activity.max_heartrate">
+          <div class="info-item" *ngIf="completed.maxHeartRate">
             <mat-icon class="info-icon info-icon--heartrate">favorite</mat-icon>
             <div class="info-content">
               <span class="info-label">Max. Herzfrequenz</span>
-              <span class="info-value">{{ activity.max_heartrate }} bpm</span>
+              <span class="info-value">{{ completed.maxHeartRate }} bpm</span>
             </div>
           </div>
 
@@ -149,9 +202,9 @@
       </mat-card-content>
     </mat-card>
 
-    <!-- Leistung -->
+    <!-- Leistung (Watt) -->
     <mat-card class="info-section info-section--power" appearance="outlined"
-              *ngIf="activity.average_watts || activity.kilojoules">
+              *ngIf="completed.averagePowerWatts || completed.maxPowerWatts">
       <mat-card-header>
         <mat-icon mat-card-avatar class="power-avatar-icon">bolt</mat-icon>
         <mat-card-title>Leistung</mat-card-title>
@@ -159,19 +212,27 @@
       <mat-card-content>
         <div class="info-grid">
 
-          <div class="info-item" *ngIf="activity.average_watts">
+          <div class="info-item" *ngIf="completed.averagePowerWatts">
             <mat-icon class="info-icon info-icon--power">bolt</mat-icon>
             <div class="info-content">
               <span class="info-label">Ø Leistung</span>
-              <span class="info-value">{{ activity.average_watts!.toFixed(0) }} W</span>
+              <span class="info-value">{{ completed.averagePowerWatts }} W</span>
             </div>
           </div>
 
-          <div class="info-item" *ngIf="activity.kilojoules">
-            <mat-icon class="info-icon info-icon--power">local_fire_department</mat-icon>
+          <div class="info-item" *ngIf="completed.maxPowerWatts">
+            <mat-icon class="info-icon info-icon--power">flash_on</mat-icon>
             <div class="info-content">
-              <span class="info-label">Energie</span>
-              <span class="info-value">{{ activity.kilojoules!.toFixed(0) }} kJ</span>
+              <span class="info-label">Max. Leistung</span>
+              <span class="info-value">{{ completed.maxPowerWatts }} W</span>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="completed.normalizedPowerWatts">
+            <mat-icon class="info-icon info-icon--power">equalizer</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Normalisierte Leistung</span>
+              <span class="info-value">{{ completed.normalizedPowerWatts }} W</span>
             </div>
           </div>
 
@@ -182,14 +243,15 @@
   </div>
 </div>
 
-<!-- Action Buttons -->
+<!-- Actions -->
 <div class="dialog-actions" mat-dialog-actions>
   <button mat-button class="cancel-button" (click)="onClose()">
     Schließen
   </button>
-  <a mat-raised-button
+  <a *ngIf="isStrava() && completed.stravaActivityId"
+     mat-raised-button
      class="strava-link-button"
-     [href]="'https://www.strava.com/activities/' + activity.id"
+     [href]="'https://www.strava.com/activities/' + completed.stravaActivityId"
      target="_blank"
      rel="noopener noreferrer">
     <mat-icon>open_in_new</mat-icon>

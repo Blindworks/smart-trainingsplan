@@ -5,6 +5,7 @@ $strava-orange-hover: #e04402;
 $accent-blue: #1976d2;
 $heartrate-red: #e91e63;
 $power-purple: #9c27b0;
+$vo2max-green: #2e7d32;
 
 :host {
   display: block;
@@ -211,6 +212,60 @@ $power-purple: #9c27b0;
   .mat-mdc-card-avatar & {
     background-color: rgba(156, 39, 176, 0.1) !important;
   }
+}
+
+// ─── VO2max ───────────────────────────────────────────────────────────────────
+
+.vo2max-avatar-icon {
+  color: $vo2max-green !important;
+}
+
+.info-section--vo2max .mat-mdc-card-avatar {
+  background-color: rgba(46, 125, 50, 0.1) !important;
+  color: $vo2max-green !important;
+}
+
+.info-section--vo2max:hover {
+  border-color: rgba(46, 125, 50, 0.3) !important;
+}
+
+.info-section--vo2max .info-item {
+  border-left-color: $vo2max-green;
+}
+
+.info-icon--vo2max { color: $vo2max-green; }
+
+.vo2max-value {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+.vo2max-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.vo2max-hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0 0 4px;
+}
+
+.vo2max-method {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin: 8px 0 0;
+  font-style: italic;
+}
+
+.source-chip {
+  background-color: #4caf50 !important;
+  color: #ffffff !important;
+  box-shadow: none;
 }
 
 // Override card avatar backgrounds for Herzfrequenz and Leistung sections

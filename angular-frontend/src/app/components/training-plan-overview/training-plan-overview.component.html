@@ -97,7 +97,9 @@
           <div
             class="training-card completed-training"
             [class.strava-activity]="completed.source === 'STRAVA'"
-            *ngFor="let completed of day.completedTrainings">
+            *ngFor="let completed of day.completedTrainings"
+            (click)="openCompletedTrainingDetails(completed)"
+            style="cursor: pointer;">
 
             <div class="training-header">
               <span class="training-name">

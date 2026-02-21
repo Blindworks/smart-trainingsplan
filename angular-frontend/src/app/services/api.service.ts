@@ -171,6 +171,12 @@ export class ApiService {
     return this.http.delete<void>(`${this.baseUrl}/strava/disconnect`);
   }
 
+  getVo2MaxEstimate(distanceKm: number, movingTimeSeconds: number, sport: string): Observable<{ vo2max: number }> {
+    return this.http.get<{ vo2max: number }>(`${this.baseUrl}/vo2max/estimate`, {
+      params: { distanceKm: distanceKm.toString(), movingTimeSeconds: movingTimeSeconds.toString(), sport }
+    });
+  }
+
   // User API
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.baseUrl}/users`);

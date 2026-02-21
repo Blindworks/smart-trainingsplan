@@ -134,3 +134,8 @@ dist/
 .dockerignore
 Dockerfile
 docker-compose.yml
+!docker-compose.yml
+!backend/Dockerfile
+!backend/.dockerignore
+!angular-frontend/Dockerfile
+!angular-frontend/.dockerignore
