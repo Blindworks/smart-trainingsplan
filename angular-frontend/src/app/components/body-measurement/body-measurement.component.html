@@ -1,0 +1,259 @@
+<div class="body-measurement-page">
+
+  <!-- ─── Page Header ─────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="page-title-group">
+        <span class="page-label">KÖRPERDATEN</span>
+        <h1 class="page-title">Messungen</h1>
+      </div>
+      <button class="add-btn"
+              *ngIf="editingId === null"
+              (click)="openNewForm()"
+              title="Neue Messung erfassen">
+        <mat-icon>add</mat-icon>
+        <span>Neue Messung</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Inline Form (new / edit) ────────────────────────────────────────── -->
+  <div class="form-panel" *ngIf="editingId !== null">
+    <div class="form-panel__header">
+      <div class="form-panel__title-row">
+        <div class="form-icon">
+          <mat-icon>scale</mat-icon>
+        </div>
+        <h2 class="form-panel__title">
+          {{ editingId === -1 ? 'Neue Messung' : 'Messung bearbeiten' }}
+        </h2>
+      </div>
+      <button class="icon-action-btn" (click)="cancelForm()" title="Abbrechen">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="measurement-form" novalidate>
+
+      <!-- Row 1: Datum + Gewicht -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Datum</mat-label>
+          <input matInput
+                 [matDatepicker]="picker"
+                 formControlName="measuredAt"
+                 placeholder="TT.MM.JJJJ">
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-error *ngIf="form.get('measuredAt')?.hasError('required')">
+            Datum ist ein Pflichtfeld
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Gewicht (kg)</mat-label>
+          <input matInput type="number" min="0" step="0.1" formControlName="weightKg" placeholder="z. B. 75.5">
+          <span matTextSuffix>kg</span>
+          <mat-error *ngIf="form.get('weightKg')?.hasError('min')">
+            Muss positiv sein
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>BMI</mat-label>
+          <input matInput type="number" min="0" step="0.1" formControlName="bmi" placeholder="z. B. 22.4">
+          <mat-error *ngIf="form.get('bmi')?.hasError('min')">
+            Muss positiv sein
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Row 2: Körperfett + Wasser + Muskelmasse -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Körperfett (%)</mat-label>
+          <input matInput type="number" min="0" max="100" step="0.1"
+                 formControlName="fatPercentage" placeholder="z. B. 18.5">
+          <span matTextSuffix>%</span>
+          <mat-error *ngIf="form.get('fatPercentage')?.hasError('min') || form.get('fatPercentage')?.hasError('max')">
+            Muss zwischen 0 und 100 liegen
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Wasseranteil (%)</mat-label>
+          <input matInput type="number" min="0" max="100" step="0.1"
+                 formControlName="waterPercentage" placeholder="z. B. 55.0">
+          <span matTextSuffix>%</span>
+          <mat-error *ngIf="form.get('waterPercentage')?.hasError('min') || form.get('waterPercentage')?.hasError('max')">
+            Muss zwischen 0 und 100 liegen
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Muskelmasse (kg)</mat-label>
+          <input matInput type="number" min="0" step="0.1"
+                 formControlName="muscleMassKg" placeholder="z. B. 35.2">
+          <span matTextSuffix>kg</span>
+          <mat-error *ngIf="form.get('muscleMassKg')?.hasError('min')">
+            Muss positiv sein
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Row 3: Knochenmasse + Viszeralfett + Metabolisches Alter -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Knochenmasse (kg)</mat-label>
+          <input matInput type="number" min="0" step="0.1"
+                 formControlName="boneMassKg" placeholder="z. B. 3.2">
+          <span matTextSuffix>kg</span>
+          <mat-error *ngIf="form.get('boneMassKg')?.hasError('min')">
+            Muss positiv sein
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Viszeralfett (Level)</mat-label>
+          <input matInput type="number" min="0" step="1"
+                 formControlName="visceralFatLevel" placeholder="z. B. 5">
+          <mat-error *ngIf="form.get('visceralFatLevel')?.hasError('min')">
+            Muss positiv sein
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Metabolisches Alter</mat-label>
+          <input matInput type="number" min="0" step="1"
+                 formControlName="metabolicAge" placeholder="z. B. 28">
+          <span matTextSuffix>Jahre</span>
+          <mat-error *ngIf="form.get('metabolicAge')?.hasError('min')">
+            Muss positiv sein
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Row 4: Notizen -->
+      <div class="form-row form-row--full">
+        <mat-form-field appearance="outline" class="form-field form-field--full">
+          <mat-label>Notizen</mat-label>
+          <textarea matInput formControlName="notes"
+                    rows="3"
+                    placeholder="Optionale Anmerkungen zur Messung..."></textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" (click)="cancelForm()" [disabled]="saving">
+          Abbrechen
+        </button>
+        <button type="submit" class="save-btn" [disabled]="saving">
+          <mat-spinner *ngIf="saving" diameter="16" class="btn-spinner"></mat-spinner>
+          <mat-icon *ngIf="!saving">check</mat-icon>
+          <span>{{ saving ? 'Speichern...' : 'Speichern' }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ─── Loading State ────────────────────────────────────────────────────── -->
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Messungen werden geladen...</span>
+  </div>
+
+  <!-- ─── Empty State ──────────────────────────────────────────────────────── -->
+  <div class="empty-state" *ngIf="!loading && measurements.length === 0 && editingId === null">
+    <div class="empty-icon">
+      <mat-icon>scale</mat-icon>
+    </div>
+    <h2>Noch keine Messungen</h2>
+    <p>
+      Erfasse deine erste Körpermessung, um deinen Fortschritt über die Zeit zu verfolgen.
+    </p>
+    <button class="add-btn" (click)="openNewForm()">
+      <mat-icon>add</mat-icon>
+      <span>Erste Messung erfassen</span>
+    </button>
+  </div>
+
+  <!-- ─── Measurement List ─────────────────────────────────────────────────── -->
+  <div class="measurement-list" *ngIf="!loading && measurements.length > 0">
+    <article class="measurement-card"
+             *ngFor="let m of measurements"
+             [class.measurement-card--editing]="isEditing(m)">
+
+      <!-- Card Header -->
+      <div class="measurement-card__header">
+        <div class="date-badge">
+          <mat-icon class="date-icon">calendar_today</mat-icon>
+          <span class="date-text">{{ formatDate(m.measuredAt) }}</span>
+        </div>
+        <div class="card-actions" *ngIf="editingId === null">
+          <button class="icon-action-btn" (click)="openEditForm(m)" title="Bearbeiten">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button class="icon-action-btn icon-action-btn--danger" (click)="deleteMeasurement(m)" title="Löschen">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Primary metrics row -->
+      <div class="metrics-row">
+        <div class="metric-chip" *ngIf="m.weightKg !== undefined && m.weightKg !== null">
+          <span class="metric-chip__value">{{ m.weightKg | number:'1.1-1' }}</span>
+          <span class="metric-chip__unit">kg</span>
+          <span class="metric-chip__label">Gewicht</span>
+        </div>
+        <div class="metric-chip metric-chip--fat" *ngIf="m.fatPercentage !== undefined && m.fatPercentage !== null">
+          <span class="metric-chip__value">{{ m.fatPercentage | number:'1.1-1' }}</span>
+          <span class="metric-chip__unit">%</span>
+          <span class="metric-chip__label">Körperfett</span>
+        </div>
+        <div class="metric-chip metric-chip--water" *ngIf="m.waterPercentage !== undefined && m.waterPercentage !== null">
+          <span class="metric-chip__value">{{ m.waterPercentage | number:'1.1-1' }}</span>
+          <span class="metric-chip__unit">%</span>
+          <span class="metric-chip__label">Wasser</span>
+        </div>
+        <div class="metric-chip metric-chip--muscle" *ngIf="m.muscleMassKg !== undefined && m.muscleMassKg !== null">
+          <span class="metric-chip__value">{{ m.muscleMassKg | number:'1.1-1' }}</span>
+          <span class="metric-chip__unit">kg</span>
+          <span class="metric-chip__label">Muskeln</span>
+        </div>
+      </div>
+
+      <!-- Secondary metrics row -->
+      <div class="metrics-row metrics-row--secondary"
+           *ngIf="(m.boneMassKg !== undefined && m.boneMassKg !== null)
+               || (m.visceralFatLevel !== undefined && m.visceralFatLevel !== null)
+               || (m.metabolicAge !== undefined && m.metabolicAge !== null)
+               || (m.bmi !== undefined && m.bmi !== null)">
+        <div class="meta-item" *ngIf="m.bmi !== undefined && m.bmi !== null">
+          <span class="meta-item__label">BMI</span>
+          <span class="meta-item__value">{{ m.bmi | number:'1.1-1' }}</span>
+        </div>
+        <div class="meta-item" *ngIf="m.boneMassKg !== undefined && m.boneMassKg !== null">
+          <span class="meta-item__label">Knochenmasse</span>
+          <span class="meta-item__value">{{ m.boneMassKg | number:'1.1-1' }} kg</span>
+        </div>
+        <div class="meta-item" *ngIf="m.visceralFatLevel !== undefined && m.visceralFatLevel !== null">
+          <span class="meta-item__label">Viszeralfett</span>
+          <span class="meta-item__value">Level {{ m.visceralFatLevel }}</span>
+        </div>
+        <div class="meta-item" *ngIf="m.metabolicAge !== undefined && m.metabolicAge !== null">
+          <span class="meta-item__label">Metab. Alter</span>
+          <span class="meta-item__value">{{ m.metabolicAge }} J.</span>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <p class="measurement-notes" *ngIf="m.notes">
+        <mat-icon class="notes-icon">notes</mat-icon>
+        {{ m.notes }}
+      </p>
+    </article>
+  </div>
+
+</div>

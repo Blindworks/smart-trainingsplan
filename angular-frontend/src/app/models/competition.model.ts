@@ -169,3 +169,17 @@ export interface BodyMetric {
   recordedAt?: string;
   sourceActivityId?: number;
 }
+
+export interface BodyMeasurement {
+  id?: number;
+  measuredAt: string;        // "YYYY-MM-DD"
+  weightKg?: number;         // Gewicht in kg
+  fatPercentage?: number;    // Körperfettanteil %
+  waterPercentage?: number;  // Wasseranteil %
+  muscleMassKg?: number;     // Muskelmasse in kg
+  boneMassKg?: number;       // Knochenmasse in kg
+  visceralFatLevel?: number; // Viszeralfett-Level (Skala)
+  metabolicAge?: number;     // Metabolisches Alter
+  bmi?: number;              // BMI
+  notes?: string;            // Notizen
+}

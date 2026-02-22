@@ -13,7 +13,8 @@ import {
   DailyTrainingCompletion,
   User,
   BodyStatusVo2Max,
-  BodyMetric
+  BodyMetric,
+  BodyMeasurement
 } from '../models/competition.model';
 import { StravaStatus, StravaActivity } from '../models/strava.model';
 
@@ -213,5 +214,26 @@ export class ApiService {
     maxHeartRate?: number | null;
   }): Observable<User> {
     return this.http.put<User>(`${this.baseUrl}/users/${id}`, data);
+  }
+
+  // Body Measurement API
+  getBodyMeasurements(): Observable<BodyMeasurement[]> {
+    return this.http.get<BodyMeasurement[]>(`${this.baseUrl}/body-measurements`);
+  }
+
+  getLatestBodyMeasurement(): Observable<BodyMeasurement> {
+    return this.http.get<BodyMeasurement>(`${this.baseUrl}/body-measurements/latest`);
+  }
+
+  createBodyMeasurement(measurement: BodyMeasurement): Observable<BodyMeasurement> {
+    return this.http.post<BodyMeasurement>(`${this.baseUrl}/body-measurements`, measurement);
+  }
+
+  updateBodyMeasurement(id: number, measurement: BodyMeasurement): Observable<BodyMeasurement> {
+    return this.http.put<BodyMeasurement>(`${this.baseUrl}/body-measurements/${id}`, measurement);
+  }
+
+  deleteBodyMeasurement(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/body-measurements/${id}`);
   }
 }

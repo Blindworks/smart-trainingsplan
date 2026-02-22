@@ -26,6 +26,13 @@ export const routes: Routes = [
   { path: 'overview', component: TrainingPlanOverviewComponent, canActivate: [authGuard] },
   { path: 'completion', component: TrainingCompletionComponent, canActivate: [authGuard] },
   { path: 'body-status', component: BodyStatusComponent, canActivate: [authGuard] },
+  {
+    path: 'body-measurements',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/body-measurement/body-measurement.component')
+        .then(m => m.BodyMeasurementComponent)
+  },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '' }
 ];
