@@ -14,45 +14,6 @@
     </div>
   </div>
 
-  <!-- Plan Library -->
-  <div class="library-section" *ngIf="templatePlans.length > 0 || templatesLoading">
-    <div class="library-header">
-      <div class="library-title-group">
-        <mat-icon class="library-icon">library_books</mat-icon>
-        <span class="library-title">Plan-Bibliothek</span>
-      </div>
-      <a class="library-upload-link" routerLink="/competitions/new">
-        <mat-icon>upload_file</mat-icon>
-        Plan hochladen
-      </a>
-    </div>
-
-    <div class="library-loading" *ngIf="templatesLoading">
-      <mat-spinner diameter="20"></mat-spinner>
-    </div>
-
-    <div class="library-grid" *ngIf="!templatesLoading">
-      <div class="plan-card" *ngFor="let plan of templatePlans">
-        <div class="plan-card__body">
-          <div class="plan-card__icon">
-            <mat-icon>route</mat-icon>
-          </div>
-          <div class="plan-card__info">
-            <span class="plan-card__name">{{ plan.name }}</span>
-            <span class="plan-card__description" *ngIf="plan.description">{{ plan.description }}</span>
-            <span class="plan-card__meta" *ngIf="plan.trainingCount != null">
-              {{ plan.trainingCount }} Trainings
-            </span>
-          </div>
-        </div>
-        <button class="plan-card__assign" mat-stroked-button (click)="openAssignDialog(plan)">
-          <mat-icon>assignment</mat-icon>
-          Zuweisen
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- Competitions Section Label -->
   <div class="section-label" *ngIf="!loading && competitions.length > 0">
     <span>Deine Races</span>

@@ -6,11 +6,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { ApiService } from '../../services/api.service';
-import { Competition, TrainingPlanDto } from '../../models/competition.model';
-import { AssignPlanDialogComponent } from '../assign-plan-dialog/assign-plan-dialog.component';
+import { Competition } from '../../models/competition.model';
 
 @Component({
   selector: 'app-competition-list',
@@ -21,27 +19,22 @@ import { AssignPlanDialogComponent } from '../assign-plan-dialog/assign-plan-dia
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatDialogModule
+    MatSnackBarModule
   ],
   templateUrl: './competition-list.component.html',
   styleUrl: './competition-list.component.scss'
 })
 export class CompetitionListComponent implements OnInit {
   competitions: Competition[] = [];
-  templatePlans: TrainingPlanDto[] = [];
   loading = false;
-  templatesLoading = false;
 
   constructor(
     private apiService: ApiService,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
     this.loadCompetitions();
-    this.loadTemplatePlans();
   }
 
   loadCompetitions(): void {
@@ -63,19 +56,6 @@ export class CompetitionListComponent implements OnInit {
     });
   }
 
-  loadTemplatePlans(): void {
-    this.templatesLoading = true;
-    this.apiService.getTemplatePlans().subscribe({
-      next: (plans) => {
-        this.templatePlans = plans;
-        this.templatesLoading = false;
-      },
-      error: () => {
-        this.templatesLoading = false;
-      }
-    });
-  }
-
   deleteCompetition(id: number): void {
     if (confirm('Möchten Sie diesen Wettkampf wirklich löschen?')) {
       this.apiService.deleteCompetition(id).subscribe({
@@ -88,21 +68,6 @@ export class CompetitionListComponent implements OnInit {
         }
       });
     }
-  }
-
-  openAssignDialog(plan: TrainingPlanDto, preSelectedCompetition?: Competition): void {
-    const dialogRef = this.dialog.open(AssignPlanDialogComponent, {
-      data: { plan, preSelectedCompetition },
-      panelClass: 'assign-plan-dialog-panel',
-      autoFocus: false,
-      restoreFocus: true
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.snackBar.open('Plan erfolgreich zugewiesen', 'Schließen', { duration: 3000 });
-      }
-    });
   }
 
   formatDate(dateString: string | undefined): string {
