@@ -43,6 +43,9 @@ public class User implements UserDetails {
     @Column
     private Double weightKg;
 
+    @Column
+    private Integer maxHeartRate;
+
     @JsonIgnore
     @Column(name = "password_hash")
     private String passwordHash;
@@ -165,6 +168,14 @@ public class User implements UserDetails {
 
     public void setWeightKg(Double weightKg) {
         this.weightKg = weightKg;
+    }
+
+    public Integer getMaxHeartRate() {
+        return maxHeartRate;
+    }
+
+    public void setMaxHeartRate(Integer maxHeartRate) {
+        this.maxHeartRate = maxHeartRate;
     }
 
     public String getPasswordHash() {

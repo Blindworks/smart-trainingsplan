@@ -190,6 +190,28 @@
       border-color: transparent;
     }
 
+    .legal-footer {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .legal-footer a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .legal-footer a:hover {
+      color: var(--text-primary);
+      border-color: var(--accent-blue);
+    }
+
     @media (max-width: 920px) {
       .grid {
         grid-template-columns: 1fr;
@@ -250,6 +272,11 @@
         <a class="cta" href="index.html">Zurueck zur Startseite</a>
       </div>
     </section>
+
+    <footer class="legal-footer">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </footer>
   </main>
 </body>
 </html>

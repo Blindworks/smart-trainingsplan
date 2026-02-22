@@ -3,6 +3,7 @@ package com.trainingsplan.controller;
 import com.trainingsplan.entity.CompletedTraining;
 import com.trainingsplan.service.CompletedTrainingService;
 import com.trainingsplan.dto.StravaActivityDto;
+import com.trainingsplan.security.SecurityUtils;
 import com.trainingsplan.service.Vo2MaxService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -23,10 +24,13 @@ public class Vo2MaxController {
 
     private final Vo2MaxService vo2MaxService;
     private final CompletedTrainingService completedTrainingService;
+    private final SecurityUtils securityUtils;
 
-    public Vo2MaxController(Vo2MaxService vo2MaxService, CompletedTrainingService completedTrainingService) {
+    public Vo2MaxController(Vo2MaxService vo2MaxService, CompletedTrainingService completedTrainingService,
+                            SecurityUtils securityUtils) {
         this.vo2MaxService = vo2MaxService;
         this.completedTrainingService = completedTrainingService;
+        this.securityUtils = securityUtils;
     }
 
     @PostMapping("/estimate/training")
@@ -82,9 +86,15 @@ public class Vo2MaxController {
             return ResponseEntity.ok(response);
         }
 
-        Optional<Double> vo2MaxHR = vo2MaxService.calculateHRCorrected(
-                distanceMeters, movingTimeSeconds,
-                training.getAverageHeartRate(), training.getMaxHeartRate());
+        Integer userMaxHR = null;
+        com.trainingsplan.entity.User currentUser = securityUtils.getCurrentUser();
+        if (currentUser != null) {
+            userMaxHR = currentUser.getMaxHeartRate();
+        }
+        Optional<Double> vo2MaxHR = userMaxHR != null
+                ? vo2MaxService.calculateHRCorrected(distanceMeters, movingTimeSeconds,
+                        training.getAverageHeartRate(), userMaxHR)
+                : Optional.empty();
 
         Map<String, Object> response = new HashMap<>();
         response.put("vo2max", vo2Max.get());

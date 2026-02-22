@@ -33,7 +33,8 @@ public class UserController {
             String lastName,
             LocalDate dateOfBirth,
             Integer heightCm,
-            Double weightKg
+            Double weightKg,
+            Integer maxHeartRate
     ) {}
 
     @GetMapping("/me")
@@ -70,7 +71,7 @@ public class UserController {
         try {
             User updated = userService.updateUser(id, request.username(), request.email(),
                     request.firstName(), request.lastName(),
-                    request.dateOfBirth(), request.heightCm(), request.weightKg());
+                    request.dateOfBirth(), request.heightCm(), request.weightKg(), request.maxHeartRate());
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Trainingsplan | Impressum</title>
+  <meta name="description" content="Impressum von Smart Trainingsplan.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0b0f1a;
+      --border: #1c2233;
+      --text-primary: #eaf0ff;
+      --text-secondary: #9aa3b2;
+      --accent-cyan: #00e5ff;
+      --accent-blue: #2d7bff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(0, 229, 255, 0.08), transparent 38%),
+        radial-gradient(circle at 88% 4%, rgba(122, 92, 255, 0.08), transparent 34%),
+        var(--bg-base);
+      color: var(--text-primary);
+      font-family: "Inter", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .page {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 28px 24px 70px;
+    }
+
+    .top-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .top-links a {
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      transition: border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    }
+
+    .top-links a:hover {
+      color: var(--text-primary);
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 24px;
+      background: linear-gradient(160deg, #161d2e 0%, #101624 70%, #0d1320 100%);
+    }
+
+    .kicker {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+    }
+
+    h1 {
+      margin: 10px 0 18px;
+      font-size: clamp(1.8rem, 3.8vw, 2.5rem);
+    }
+
+    h2 {
+      margin: 20px 0 8px;
+      font-size: 1.02rem;
+    }
+
+    p {
+      margin: 0;
+      color: var(--text-secondary);
+      line-height: 1.62;
+      font-size: 0.96rem;
+    }
+
+    p + p {
+      margin-top: 8px;
+    }
+
+    .hint {
+      margin-top: 22px;
+      border: 1px solid rgba(45, 123, 255, 0.35);
+      border-radius: 12px;
+      background: rgba(45, 123, 255, 0.09);
+      padding: 12px 14px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="top-links">
+      <a href="index.html">Startseite</a>
+      <a href="features.html">Features</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="contact.html">Contact</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </div>
+
+    <section class="card">
+      <p class="kicker">Rechtliches</p>
+      <h1>Impressum</h1>
+
+      <h2>Angaben gemaess 5 TMG</h2>
+      <p>Smart Trainingsplan GmbH</p>
+      <p>Musterstrasse 12</p>
+      <p>12345 Musterstadt</p>
+      <p>Deutschland</p>
+
+      <h2>Vertreten durch</h2>
+      <p>Max Mustermann (Geschaeftsfuehrer)</p>
+
+      <h2>Kontakt</h2>
+      <p>Telefon: +49 000 0000000</p>
+      <p>E-Mail: info@smart-trainingsplan.app</p>
+
+      <h2>Registereintrag</h2>
+      <p>Handelsregister: HRB 00000</p>
+      <p>Registergericht: Amtsgericht Musterstadt</p>
+
+      <h2>Umsatzsteuer-ID</h2>
+      <p>Umsatzsteuer-Identifikationsnummer gemaess 27a UStG: DE000000000</p>
+
+      <h2>Verantwortlich fuer den Inhalt gemaess 18 Abs. 2 MStV</h2>
+      <p>Max Mustermann, Anschrift wie oben.</p>
+
+      <p class="hint">
+        Hinweis: Diese Angaben sind Platzhalter und muessen vor dem Livegang mit den echten Unternehmensdaten ersetzt werden.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

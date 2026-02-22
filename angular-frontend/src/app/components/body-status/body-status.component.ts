@@ -15,7 +15,7 @@ import { BodyMetric } from '../../models/competition.model';
     MatIconModule,
     MatProgressSpinnerModule,
     MatButtonModule,
-    MatSnackBarModule
+    MatSnackBarModule,
   ],
   templateUrl: './body-status.component.html',
   styleUrl: './body-status.component.scss'

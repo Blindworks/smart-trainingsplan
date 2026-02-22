@@ -103,6 +103,10 @@
             <span class="field-label">Gewicht</span>
             <span class="field-value">{{ user?.weightKg != null ? user!.weightKg + ' kg' : '–' }}</span>
           </div>
+          <div class="profile-field">
+            <span class="field-label">Max. Herzfrequenz</span>
+            <span class="field-value">{{ user?.maxHeartRate != null ? user!.maxHeartRate + ' bpm' : '–' }}</span>
+          </div>
         </div>
         <button mat-stroked-button class="edit-btn" (click)="startEdit()" *ngIf="user">
           <mat-icon>edit</mat-icon>
@@ -142,6 +146,11 @@
         <mat-form-field appearance="outline" class="edit-field">
           <mat-label>Gewicht (kg)</mat-label>
           <input matInput [(ngModel)]="editWeightKg" type="number" min="20" max="500" step="0.1" placeholder="z.B. 72.5">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Max. Herzfrequenz (bpm)</mat-label>
+          <input matInput [(ngModel)]="editMaxHeartRate" type="number" min="100" max="230" placeholder="z.B. 185">
+          <mat-hint>Wird für die HF-korrigierte VO2max-Berechnung benötigt</mat-hint>
         </mat-form-field>
         <div class="edit-actions">
           <button mat-flat-button class="pacr-btn-primary" (click)="saveUser()" [disabled]="saving">

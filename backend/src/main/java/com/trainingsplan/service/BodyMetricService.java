@@ -47,13 +47,15 @@ public class BodyMetricService {
                 .ifPresent(v -> upsert(user, "VO2MAX", v, "ml/kg/min",
                         training.getTrainingDate(), training.getId()));
 
-        // HR-corrected VO2Max
-        vo2MaxService.calculateHRCorrected(
-                        distanceMeters, movingTime,
-                        training.getAverageHeartRate(),
-                        training.getMaxHeartRate())
-                .ifPresent(v -> upsert(user, "VO2MAX_HR_CORRECTED", v, "ml/kg/min",
-                        training.getTrainingDate(), training.getId()));
+        // HR-corrected VO2Max — only when the athlete's maxHR is set in their profile
+        if (user.getMaxHeartRate() != null) {
+            vo2MaxService.calculateHRCorrected(
+                            distanceMeters, movingTime,
+                            training.getAverageHeartRate(),
+                            user.getMaxHeartRate())
+                    .ifPresent(v -> upsert(user, "VO2MAX_HR_CORRECTED", v, "ml/kg/min",
+                            training.getTrainingDate(), training.getId()));
+        }
     }
 
     /**

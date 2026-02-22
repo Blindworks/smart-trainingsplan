@@ -59,6 +59,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   editDateOfBirth = '';
   editHeightCm: number | null = null;
   editWeightKg: number | null = null;
+  editMaxHeartRate: number | null = null;
 
   constructor(
     private apiService: ApiService,
@@ -198,6 +199,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.editDateOfBirth = this.user?.dateOfBirth ?? '';
     this.editHeightCm = this.user?.heightCm ?? null;
     this.editWeightKg = this.user?.weightKg ?? null;
+    this.editMaxHeartRate = this.user?.maxHeartRate ?? null;
     this.editMode = true;
   }
 
@@ -215,7 +217,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
       lastName: this.editLastName || undefined,
       dateOfBirth: this.editDateOfBirth || undefined,
       heightCm: this.editHeightCm,
-      weightKg: this.editWeightKg
+      weightKg: this.editWeightKg,
+      maxHeartRate: this.editMaxHeartRate
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({

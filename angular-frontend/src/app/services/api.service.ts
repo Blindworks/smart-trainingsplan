@@ -210,6 +210,7 @@ export class ApiService {
     dateOfBirth?: string;
     heightCm?: number | null;
     weightKg?: number | null;
+    maxHeartRate?: number | null;
   }): Observable<User> {
     return this.http.put<User>(`${this.baseUrl}/users/${id}`, data);
   }

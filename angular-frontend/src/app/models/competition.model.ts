@@ -152,6 +152,7 @@ export interface User {
   dateOfBirth?: string;
   heightCm?: number;
   weightKg?: number;
+  maxHeartRate?: number;
 }
 
 export interface BodyStatusVo2Max {
