@@ -76,6 +76,8 @@ public class TrainingPlanService {
         Competition competition = competitionRepository.findById(competitionId)
                 .orElseThrow(() -> new RuntimeException("Competition not found: " + competitionId));
 
+        clearExistingTrainings(competition);
+
         String jsonContent = new String(file.getBytes());
         TrainingPlan trainingPlan = new TrainingPlan(name, description, jsonContent);
         trainingPlan.setTrainingCount(countTrainingsInJson(jsonContent));
@@ -131,6 +133,8 @@ public class TrainingPlanService {
 
         Competition competition = competitionRepository.findById(competitionId)
                 .orElseThrow(() -> new RuntimeException("Competition not found: " + competitionId));
+
+        clearExistingTrainings(competition);
 
         String jsonContent = sourcePlan.getJsonContent();
         String effectiveJson = prepareJsonForCompetition(jsonContent, competition.getDate());
@@ -439,5 +443,29 @@ public class TrainingPlanService {
     private TrainingWeek findTrainingWeekForDate(Competition competition, LocalDate date) {
         List<TrainingWeek> weeks = trainingWeekRepository.findByCompetitionIdAndDate(competition.getId(), date);
         return weeks.isEmpty() ? null : weeks.get(0);
+    }
+
+    /**
+     * Deletes all Training records belonging to a competition before a new plan
+     * is assigned, preventing duplicate entries in the calendar view.
+     *
+     * Covers two cases:
+     *  1. Trainings linked via TrainingWeek → Competition (all plan formats).
+     *  2. Trainings linked only via TrainingPlan but without a TrainingWeek
+     *     (old-format upload when no TrainingWeek existed for the date).
+     */
+    private void clearExistingTrainings(Competition competition) {
+        List<Training> viaWeek = trainingRepository.findByCompetitionId(competition.getId());
+        if (!viaWeek.isEmpty()) {
+            trainingRepository.deleteAll(viaWeek);
+        }
+
+        if (competition.getTrainingPlan() != null) {
+            List<Training> orphans = trainingRepository
+                    .findByTrainingPlanIdAndTrainingWeekIsNull(competition.getTrainingPlan().getId());
+            if (!orphans.isEmpty()) {
+                trainingRepository.deleteAll(orphans);
+            }
+        }
     }
 }
