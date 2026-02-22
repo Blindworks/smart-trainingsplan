@@ -153,3 +153,9 @@ export interface User {
   heightCm?: number;
   weightKg?: number;
 }
+
+export interface BodyStatusVo2Max {
+  vo2max: number | null;
+  trainingDate?: string;
+  activityName?: string;
+}

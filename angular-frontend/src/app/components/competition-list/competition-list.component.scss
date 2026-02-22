@@ -107,6 +107,23 @@
   text-transform: uppercase;
 }
 
+.card-countdown {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 1px 6px;
+
+  &--soon {
+    color: #FFB347;
+    background: rgba(255, 179, 71, 0.1);
+    border-color: rgba(255, 179, 71, 0.3);
+  }
+}
+
 .card-badge {
   display: flex;
   align-items: center;

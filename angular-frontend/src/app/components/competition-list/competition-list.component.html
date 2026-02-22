@@ -34,6 +34,11 @@
       <div class="card-body">
         <div class="card-meta">
           <span class="card-date">{{ formatDate(competition.date || competition.targetDate || '') }}</span>
+          <span class="card-countdown"
+                *ngIf="getDaysUntil(competition.date || competition.targetDate) !== null"
+                [class.card-countdown--soon]="getDaysUntil(competition.date || competition.targetDate)! <= 14">
+            {{ getDaysUntil(competition.date || competition.targetDate) }} Tage
+          </span>
           <span class="card-badge" *ngIf="competition.type">
             <mat-icon>flag</mat-icon>
             {{ competition.type }}

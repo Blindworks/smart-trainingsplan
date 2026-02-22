@@ -10,6 +10,7 @@ import { LandingPageComponent } from './components/landing-page/landing-page.com
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { PlanLibraryComponent } from './components/plan-library/plan-library.component';
+import { BodyStatusComponent } from './components/body-status/body-status.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -24,6 +25,7 @@ export const routes: Routes = [
   { path: 'plans', component: PlanLibraryComponent, canActivate: [authGuard] },
   { path: 'overview', component: TrainingPlanOverviewComponent, canActivate: [authGuard] },
   { path: 'completion', component: TrainingCompletionComponent, canActivate: [authGuard] },
+  { path: 'body-status', component: BodyStatusComponent, canActivate: [authGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '' }
 ];

@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CompletedTrainingService {
@@ -202,5 +203,14 @@ public class CompletedTrainingService {
 
     public List<CompletedTraining> getCompletedTrainingsBetweenDates(LocalDate startDate, LocalDate endDate) {
         return completedTrainingRepository.findByTrainingDateBetweenOrderByTrainingDate(startDate, endDate);
+    }
+
+    public Optional<CompletedTraining> getLatestRunningTrainingForCurrentUser() {
+        Long userId = securityUtils.getCurrentUserId();
+        if (userId == null) {
+            return Optional.empty();
+        }
+        return completedTrainingRepository
+                .findTopByUserIdAndSportContainingIgnoreCaseOrderByTrainingDateDescUploadDateDesc(userId, "run");
     }
 }

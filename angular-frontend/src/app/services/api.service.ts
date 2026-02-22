@@ -11,7 +11,8 @@ import {
   CompletedTraining,
   TrainingFeedback,
   DailyTrainingCompletion,
-  User
+  User,
+  BodyStatusVo2Max
 } from '../models/competition.model';
 import { StravaStatus, StravaActivity } from '../models/strava.model';
 
@@ -175,6 +176,10 @@ export class ApiService {
     return this.http.post<{ vo2max: number }>(`${this.baseUrl}/vo2max/estimate/training`, {
       distanceKm, movingTimeSeconds, sport
     });
+  }
+
+  getCurrentVo2Max(): Observable<BodyStatusVo2Max> {
+    return this.http.get<BodyStatusVo2Max>(`${this.baseUrl}/vo2max/current`);
   }
 
   // User API

@@ -1,0 +1,48 @@
+<div class="body-status-page">
+  <div class="page-header">
+    <div class="page-title-group">
+      <span class="page-label">BODY STATUS</span>
+      <h1 class="page-title">Körperstatus</h1>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Status wird geladen...</span>
+  </div>
+
+  <div class="status-grid" *ngIf="!loading">
+    <article class="metric-card metric-card--vo2">
+      <div class="metric-card__header">
+        <div class="metric-icon">
+          <mat-icon>monitor_heart</mat-icon>
+        </div>
+        <div>
+          <h2>Aktueller VO2max</h2>
+          <p>Geschätzt aus deiner letzten Laufaktivität</p>
+        </div>
+      </div>
+
+      <div class="metric-card__content" *ngIf="vo2max !== null; else noVo2Data">
+        <div class="vo2-value" [style.color]="getVo2MaxColor(vo2max!)">
+          {{ vo2max | number:'1.1-1' }}
+          <span>ml/kg/min</span>
+        </div>
+        <div class="vo2-category" [style.color]="getVo2MaxColor(vo2max!)">
+          {{ getVo2MaxCategory(vo2max!) }}
+        </div>
+        <p class="meta" *ngIf="trainingDate">
+          Letzte Berechnung: {{ formatDate(trainingDate) }}
+          <span *ngIf="activityName">• {{ activityName }}</span>
+        </p>
+      </div>
+
+      <ng-template #noVo2Data>
+        <div class="empty-metric">
+          <mat-icon>directions_run</mat-icon>
+          <p>Noch keine Laufdaten mit Distanz und Zeit vorhanden.</p>
+        </div>
+      </ng-template>
+    </article>
+  </div>
+</div>

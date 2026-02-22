@@ -74,4 +74,13 @@ export class CompetitionListComponent implements OnInit {
     if (!dateString) return 'Kein Datum';
     return new Date(dateString).toLocaleDateString('de-DE');
   }
+
+  getDaysUntil(dateString: string | undefined): number | null {
+    if (!dateString) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(dateString);
+    target.setHours(0, 0, 0, 0);
+    return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  }
 }
