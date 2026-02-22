@@ -3,6 +3,7 @@ package com.trainingsplan.service;
 import com.garmin.fit.*;
 import com.trainingsplan.entity.CompletedTraining;
 import com.trainingsplan.entity.Training;
+import com.trainingsplan.entity.User;
 import com.trainingsplan.repository.CompletedTrainingRepository;
 import com.trainingsplan.security.SecurityUtils;
 import com.trainingsplan.service.TrainingService;
@@ -27,6 +28,9 @@ public class CompletedTrainingService {
     private TrainingService trainingService;
 
     @Autowired
+    private BodyMetricService bodyMetricService;
+
+    @Autowired
     private SecurityUtils securityUtils;
 
     public CompletedTraining uploadAndParseFitFile(MultipartFile file, LocalDate trainingDate) throws IOException {
@@ -46,9 +50,13 @@ public class CompletedTrainingService {
             throw new IOException("Fehler beim Parsen der FIT-Datei: " + e.getMessage(), e);
         }
 
-        training.setUser(securityUtils.getCurrentUser());
+        User currentUser = securityUtils.getCurrentUser();
+        training.setUser(currentUser);
         CompletedTraining savedTraining = completedTrainingRepository.save(training);
-        
+
+        // Calculate and persist body metrics (VO2Max etc.) from this activity
+        bodyMetricService.calculateAndStore(savedTraining, currentUser);
+
         // If trainingId is provided, mark the planned training as completed
         if (trainingId != null) {
             Training plannedTraining = trainingService.findById(trainingId);

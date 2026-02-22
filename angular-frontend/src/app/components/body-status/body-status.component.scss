@@ -4,8 +4,17 @@
   padding: 32px 24px 80px;
 }
 
+// ─── Page Header ───────────────────────────────────────────────────────────────
+
 .page-header {
   margin-bottom: 28px;
+}
+
+.page-header-inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .page-title-group {
@@ -30,6 +39,43 @@
   letter-spacing: -0.02em;
 }
 
+// ─── Recalculate button ────────────────────────────────────────────────────────
+
+.recalc-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    color: var(--text-primary);
+    border-color: rgba(45, 123, 255, 0.4);
+    background: rgba(45, 123, 255, 0.06);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+// ─── Loading ───────────────────────────────────────────────────────────────────
+
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -39,11 +85,15 @@
   color: var(--text-secondary);
 }
 
+// ─── Grid ──────────────────────────────────────────────────────────────────────
+
 .status-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 520px);
+  grid-template-columns: repeat(auto-fill, minmax(300px, 480px));
   gap: 16px;
 }
+
+// ─── Card ──────────────────────────────────────────────────────────────────────
 
 .metric-card {
   background: var(--gradient-card);
@@ -61,72 +111,106 @@
   h2 {
     margin: 0;
     color: var(--text-primary);
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
   }
 
   p {
     margin: 2px 0 0;
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: 12px;
   }
 }
 
 .metric-icon {
+  flex-shrink: 0;
   width: 44px;
   height: 44px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(76, 175, 80, 0.16);
-  color: #4caf50;
 }
 
-.vo2-value {
-  font-size: 40px;
+.metric-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric-value {
+  font-size: 42px;
   line-height: 1;
   font-weight: 800;
-
-  span {
-    font-size: 14px;
-    margin-left: 6px;
-    color: var(--text-secondary);
-    font-weight: 500;
-  }
 }
 
-.vo2-category {
-  margin-top: 8px;
+.metric-unit {
+  font-size: 14px;
+  margin-left: 6px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.metric-category {
   font-size: 15px;
   font-weight: 700;
 }
 
-.meta {
-  margin-top: 10px;
-  color: var(--text-secondary);
-  font-size: 13px;
-}
+// ─── Empty State ───────────────────────────────────────────────────────────────
 
-.empty-metric {
+.empty-state {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  color: var(--text-secondary);
+  gap: 12px;
+  padding: 80px 20px;
+  text-align: center;
 
-  mat-icon {
-    color: var(--accent-blue);
+  h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
   }
 
   p {
-    margin: 0;
-    font-size: 13px;
+    margin: 0 0 16px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 380px;
+    line-height: 1.6;
   }
 }
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: rgba(45, 123, 255, 0.1);
+  border: 1px solid rgba(45, 123, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+
+  mat-icon {
+    font-size: 30px;
+    width: 30px;
+    height: 30px;
+    color: var(--accent-blue);
+  }
+}
+
+// ─── Responsive ────────────────────────────────────────────────────────────────
 
 @media (max-width: 600px) {
   .body-status-page {
     padding: 20px 16px 60px;
+  }
+
+  .page-header-inner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .page-title {

@@ -10,5 +10,6 @@
     <include file="db/changelog/changes/004-add-strava-source.xml"/>
     <include file="db/changelog/changes/005-add-auth.xml"/>
     <include file="db/changelog/changes/006-add-competition-type-ranking.xml"/>
+    <include file="db/changelog/changes/007-add-body-metrics.xml"/>
 
 </databaseChangeLog>

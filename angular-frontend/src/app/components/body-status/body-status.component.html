@@ -1,8 +1,17 @@
 <div class="body-status-page">
   <div class="page-header">
-    <div class="page-title-group">
-      <span class="page-label">BODY STATUS</span>
-      <h1 class="page-title">Körperstatus</h1>
+    <div class="page-header-inner">
+      <div class="page-title-group">
+        <span class="page-label">BODY STATUS</span>
+        <h1 class="page-title">Körperstatus</h1>
+      </div>
+      <button class="recalc-btn"
+              (click)="recalculate()"
+              [disabled]="recalculating"
+              title="Metriken aus allen gespeicherten Aktivitäten neu berechnen">
+        <mat-icon>refresh</mat-icon>
+        <span>{{ recalculating ? 'Berechne...' : 'Neu berechnen' }}</span>
+      </button>
     </div>
   </div>
 
@@ -11,38 +20,47 @@
     <span>Status wird geladen...</span>
   </div>
 
-  <div class="status-grid" *ngIf="!loading">
-    <article class="metric-card metric-card--vo2">
+  <!-- Metrics grid -->
+  <div class="status-grid" *ngIf="!loading && metrics.length > 0">
+    <article class="metric-card" *ngFor="let metric of metrics">
       <div class="metric-card__header">
-        <div class="metric-icon">
-          <mat-icon>monitor_heart</mat-icon>
+        <div class="metric-icon"
+             [style.background]="getMetricIconColor(metric.metricType)"
+             [style.color]="getMetricIconFgColor(metric.metricType)">
+          <mat-icon>{{ getMetricIcon(metric.metricType) }}</mat-icon>
         </div>
         <div>
-          <h2>Aktueller VO2max</h2>
-          <p>Geschätzt aus deiner letzten Laufaktivität</p>
+          <h2>{{ metric.label }}</h2>
+          <p *ngIf="metric.recordedAt">{{ formatDate(metric.recordedAt) }}</p>
         </div>
       </div>
 
-      <div class="metric-card__content" *ngIf="vo2max !== null; else noVo2Data">
-        <div class="vo2-value" [style.color]="getVo2MaxColor(vo2max!)">
-          {{ vo2max | number:'1.1-1' }}
-          <span>ml/kg/min</span>
+      <div class="metric-card__content">
+        <div class="metric-value" [style.color]="getMetricColor(metric)">
+          {{ metric.value | number:'1.1-1' }}
+          <span class="metric-unit">{{ metric.unit }}</span>
         </div>
-        <div class="vo2-category" [style.color]="getVo2MaxColor(vo2max!)">
-          {{ getVo2MaxCategory(vo2max!) }}
+        <div class="metric-category" [style.color]="getMetricColor(metric)"
+             *ngIf="getMetricCategory(metric)">
+          {{ getMetricCategory(metric) }}
         </div>
-        <p class="meta" *ngIf="trainingDate">
-          Letzte Berechnung: {{ formatDate(trainingDate) }}
-          <span *ngIf="activityName">• {{ activityName }}</span>
-        </p>
       </div>
-
-      <ng-template #noVo2Data>
-        <div class="empty-metric">
-          <mat-icon>directions_run</mat-icon>
-          <p>Noch keine Laufdaten mit Distanz und Zeit vorhanden.</p>
-        </div>
-      </ng-template>
     </article>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!loading && metrics.length === 0">
+    <div class="empty-icon">
+      <mat-icon>monitor_heart</mat-icon>
+    </div>
+    <h2>Noch keine Körperdaten</h2>
+    <p>
+      Lade eine Lauf-Aktivität als FIT-Datei hoch, oder klicke auf
+      <strong>Neu berechnen</strong>, um Metriken aus bestehenden Aktivitäten zu berechnen.
+    </p>
+    <button class="recalc-btn" (click)="recalculate()" [disabled]="recalculating">
+      <mat-icon>refresh</mat-icon>
+      <span>{{ recalculating ? 'Berechne...' : 'Neu berechnen' }}</span>
+    </button>
   </div>
 </div>

@@ -26,9 +26,9 @@ public class Vo2MaxService {
     }
 
     /**
-     * Estimates VO2max from a distance-time effort.
+     * Estimates VO2max from a distance-time effort (Daniels/Gilbert VDOT approach).
      *
-     * @param distanceMeters distance in meters
+     * @param distanceMeters    distance in meters
      * @param movingTimeSeconds moving time in seconds
      */
     public Optional<Double> calculate(Double distanceMeters, Integer movingTimeSeconds) {
@@ -42,7 +42,7 @@ public class Vo2MaxService {
         double timeMinutes = movingTimeSeconds / 60.0;
         double speedMetersPerMinute = distanceMeters / timeMinutes;
 
-        double vo2AtRacePace = -4.60 + (0.182258 * speedMetersPerMinute) + (0.000104 * speedMetersPerMinute * speedMetersPerMinute);
+        double vo2AtRacePace = vo2AtPace(speedMetersPerMinute);
         double vo2Fraction = 0.8
                 + (0.1894393 * Math.exp(-0.012778 * timeMinutes))
                 + (0.2989558 * Math.exp(-0.1932605 * timeMinutes));
@@ -57,6 +57,55 @@ public class Vo2MaxService {
         }
 
         return Optional.of(round(vo2Max, 2));
+    }
+
+    /**
+     * HR-corrected VO2max: instead of the time-based effort fraction (Daniels),
+     * the actual heart-rate fraction is used.
+     *
+     * Formula: VO2max = vo2AtPace × (maxHR / avgHR)
+     *
+     * Rationale: at a given pace the body demands a fixed VO2 per kg per minute
+     * (vo2AtPace). If your heart only reaches avgHR of maxHR, that pace represents
+     * (avgHR/maxHR) × 100 % of your maximum capacity, so your VO2max scales
+     * proportionally.
+     *
+     * @param distanceMeters    distance in meters
+     * @param movingTimeSeconds moving time in seconds
+     * @param avgHeartRate      average heart rate during the effort (bpm)
+     * @param maxHeartRate      athlete's maximum heart rate (bpm)
+     */
+    public Optional<Double> calculateHRCorrected(Double distanceMeters, Integer movingTimeSeconds,
+                                                  Integer avgHeartRate, Integer maxHeartRate) {
+        if (distanceMeters == null || movingTimeSeconds == null
+                || avgHeartRate == null || maxHeartRate == null) {
+            return Optional.empty();
+        }
+        if (distanceMeters <= 0 || movingTimeSeconds <= 0
+                || avgHeartRate <= 0 || maxHeartRate <= 0 || avgHeartRate > maxHeartRate) {
+            return Optional.empty();
+        }
+
+        double timeMinutes = movingTimeSeconds / 60.0;
+        double speedMetersPerMinute = distanceMeters / timeMinutes;
+
+        double vo2AtRacePace = vo2AtPace(speedMetersPerMinute);
+        double hrFraction = (double) avgHeartRate / maxHeartRate;
+
+        if (hrFraction <= 0.0) {
+            return Optional.empty();
+        }
+
+        double vo2Max = vo2AtRacePace / hrFraction;
+        if (!Double.isFinite(vo2Max) || vo2Max <= 0.0) {
+            return Optional.empty();
+        }
+
+        return Optional.of(round(vo2Max, 2));
+    }
+
+    private double vo2AtPace(double speedMetersPerMinute) {
+        return -4.60 + (0.182258 * speedMetersPerMinute) + (0.000104 * speedMetersPerMinute * speedMetersPerMinute);
     }
 
     private boolean isRunningActivity(StravaActivityDto activity) {

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Trainingsplan | Features</title>
+  <meta name="description" content="Die wichtigsten Features von Smart Trainingsplan fuer ambitioniertes und strukturiertes Lauftraining.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0b0f1a;
+      --bg-elevated: #161d2e;
+      --bg-panel: #1a2235;
+      --accent-cyan: #00e5ff;
+      --accent-blue: #2d7bff;
+      --accent-purple: #7a5cff;
+      --text-primary: #eaf0ff;
+      --text-secondary: #9aa3b2;
+      --border: #1c2233;
+      --gradient-accent: linear-gradient(135deg, #00e5ff 0%, #2d7bff 50%, #7a5cff 100%);
+      --gradient-btn: linear-gradient(135deg, #2d7bff 0%, #7a5cff 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(0, 229, 255, 0.08), transparent 38%),
+        radial-gradient(circle at 88% 4%, rgba(122, 92, 255, 0.08), transparent 34%),
+        var(--bg-base);
+      color: var(--text-primary);
+      font-family: "Inter", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px 70px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0 20px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    .brand img {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+    }
+
+    .cta {
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.03);
+      transition: transform 0.18s ease, border-color 0.18s ease;
+    }
+
+    .cta:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-blue);
+    }
+
+    .hero {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 24px;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(0, 229, 255, 0.14), transparent 45%),
+        radial-gradient(circle at 80% 10%, rgba(122, 92, 255, 0.12), transparent 44%),
+        linear-gradient(160deg, #161d2e 0%, #101624 70%, #0d1320 100%);
+      text-align: center;
+    }
+
+    .kicker {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+    }
+
+    h1 {
+      margin: 12px 0 0;
+      font-size: clamp(1.9rem, 3.8vw, 3.1rem);
+      line-height: 1.14;
+      letter-spacing: -0.02em;
+    }
+
+    .gradient-text {
+      background: var(--gradient-accent);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      margin: 16px auto 0;
+      max-width: 740px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      font-size: 1rem;
+    }
+
+    .grid {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      background: linear-gradient(165deg, rgba(22, 29, 46, 0.9) 0%, rgba(15, 21, 34, 0.95) 100%);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 1.02rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      font-size: 0.96rem;
+    }
+
+    .highlight {
+      margin-top: 16px;
+      border: 1px solid rgba(45, 123, 255, 0.35);
+      border-radius: 14px;
+      background: rgba(45, 123, 255, 0.09);
+      padding: 16px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .highlight strong {
+      color: var(--text-primary);
+    }
+
+    .actions {
+      margin-top: 22px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--gradient-btn);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(45, 123, 255, 0.35);
+    }
+
+    .btn-primary:hover {
+      border-color: transparent;
+    }
+
+    @media (max-width: 920px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a class="brand" href="index.html">
+        <img src="pacr_logo.png" alt="PACR Logo">
+        Smart Trainingsplan
+      </a>
+      <a class="cta" href="index.html">Zur Startseite</a>
+    </div>
+
+    <section class="hero">
+      <p class="kicker">Features</p>
+      <h1>Alles, was du fuer <span class="gradient-text">konstante Fortschritte</span> brauchst.</h1>
+      <p class="subtitle">
+        Von der Zielsetzung bis zur abgeschlossenen Einheit bildet Smart Trainingsplan deinen kompletten Trainingsprozess ab.
+      </p>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Wettkampf-Fokus</h2>
+          <p>Plane gezielt auf 10K, Halbmarathon oder Marathon und arbeite mit klaren Meilensteinen.</p>
+        </article>
+        <article class="card">
+          <h2>Dynamische Wochenplanung</h2>
+          <p>Deine Wochenstruktur passt sich an verfuegbare Zeit, Form und Trainingsverlauf an.</p>
+        </article>
+        <article class="card">
+          <h2>Uebersichtlicher Fortschritt</h2>
+          <p>Sieh sofort, was erledigt ist, wo Kontinuitaet fehlt und wie nah du deinem Ziel bist.</p>
+        </article>
+        <article class="card">
+          <h2>Plan-Import</h2>
+          <p>Importiere bestehende Trainingsplaene und ueberfuehre sie in deinen persoenlichen Workflow.</p>
+        </article>
+        <article class="card">
+          <h2>Wochen- und Tagesansicht</h2>
+          <p>Nutze unterschiedliche Ansichten fuer schnelle Entscheidungen und langfristige Planung.</p>
+        </article>
+        <article class="card">
+          <h2>Motivierende Klarheit</h2>
+          <p>Weniger Chaos, mehr Fokus: jede Einheit hat ihren Platz in deinem Gesamtbild.</p>
+        </article>
+      </section>
+
+      <p class="highlight">
+        <strong>Ergebnis:</strong> ein Trainingssystem, das ambitioniert ist, aber im Alltag realistisch bleibt.
+      </p>
+
+      <div class="actions">
+        <a class="cta btn-primary" href="#">Jetzt loslegen</a>
+        <a class="cta" href="index.html">Zurueck zur Startseite</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

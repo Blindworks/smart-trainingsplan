@@ -82,11 +82,18 @@ public class Vo2MaxController {
             return ResponseEntity.ok(response);
         }
 
-        return ResponseEntity.ok(Map.of(
-                "vo2max", vo2Max.get(),
-                "trainingDate", training.getTrainingDate(),
-                "activityName", training.getActivityName()
-        ));
+        Optional<Double> vo2MaxHR = vo2MaxService.calculateHRCorrected(
+                distanceMeters, movingTimeSeconds,
+                training.getAverageHeartRate(), training.getMaxHeartRate());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("vo2max", vo2Max.get());
+        response.put("vo2maxHRCorrected", vo2MaxHR.orElse(null));
+        response.put("avgHeartRate", training.getAverageHeartRate());
+        response.put("maxHeartRate", training.getMaxHeartRate());
+        response.put("trainingDate", training.getTrainingDate());
+        response.put("activityName", training.getActivityName());
+        return ResponseEntity.ok(response);
     }
 
     public static class Vo2MaxTrainingRequest {

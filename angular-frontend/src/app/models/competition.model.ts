@@ -159,3 +159,12 @@ export interface BodyStatusVo2Max {
   trainingDate?: string;
   activityName?: string;
 }
+
+export interface BodyMetric {
+  metricType: string;
+  label: string;
+  value: number;
+  unit: string;
+  recordedAt?: string;
+  sourceActivityId?: number;
+}
