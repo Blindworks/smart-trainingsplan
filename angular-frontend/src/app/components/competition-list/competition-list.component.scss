@@ -142,6 +142,35 @@
   overflow: hidden;
 }
 
+// ─── Card Plan Info ────────────────────────────────────────────────────────────
+
+.card-plan-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 6px 10px;
+  background: rgba(45, 123, 255, 0.08);
+  border: 1px solid rgba(45, 123, 255, 0.2);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-blue);
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 // ─── Card Actions ─────────────────────────────────────────────────────────────
 
 .card-actions {

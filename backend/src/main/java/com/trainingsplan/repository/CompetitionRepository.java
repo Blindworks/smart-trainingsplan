@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CompetitionRepository extends JpaRepository<Competition, Long> {
@@ -18,4 +19,8 @@ public interface CompetitionRepository extends JpaRepository<Competition, Long> 
     List<Competition> findByDateBetween(LocalDate startDate, LocalDate endDate);
     
     List<Competition> findByNameContainingIgnoreCase(String name);
+
+    List<Competition> findByUserId(Long userId);
+
+    Optional<Competition> findByIdAndUserId(Long id, Long userId);
 }

@@ -178,6 +178,10 @@ export class ApiService {
   }
 
   // User API
+  getMe(): Observable<User> {
+    return this.http.get<User>(`${this.baseUrl}/users/me`);
+  }
+
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.baseUrl}/users`);
   }

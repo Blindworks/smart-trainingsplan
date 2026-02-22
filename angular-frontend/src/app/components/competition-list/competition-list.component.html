@@ -73,6 +73,14 @@
       <div class="card-body">
         <div class="card-meta">
           <span class="card-date">{{ formatDate(competition.date || competition.targetDate || '') }}</span>
+          <span class="card-badge" *ngIf="competition.type">
+            <mat-icon>flag</mat-icon>
+            {{ competition.type }}
+          </span>
+          <span class="card-badge" *ngIf="competition.ranking">
+            <mat-icon>military_tech</mat-icon>
+            {{ competition.ranking }}
+          </span>
           <span class="card-badge" *ngIf="competition.location">
             <mat-icon>place</mat-icon>
             {{ competition.location }}
@@ -82,6 +90,11 @@
         <h2 class="card-title">{{ competition.name }}</h2>
 
         <p class="card-description" *ngIf="competition.description">{{ competition.description }}</p>
+
+        <div class="card-plan-info" *ngIf="competition.trainingPlanId">
+          <mat-icon>route</mat-icon>
+          <span>{{ competition.trainingPlanName || 'Trainingsplan zugewiesen' }}</span>
+        </div>
       </div>
 
       <div class="card-actions">
@@ -89,7 +102,7 @@
           <mat-icon>edit</mat-icon>
           Edit
         </a>
-        <a class="action-link" [routerLink]="['/competitions', competition.id, 'upload']">
+        <a class="action-link" *ngIf="!competition.trainingPlanId" [routerLink]="['/competitions', competition.id, 'upload']">
           <mat-icon>upload_file</mat-icon>
           Upload Plan
         </a>

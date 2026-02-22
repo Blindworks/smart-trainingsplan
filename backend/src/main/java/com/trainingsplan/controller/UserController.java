@@ -1,6 +1,7 @@
 package com.trainingsplan.controller;
 
 import com.trainingsplan.entity.User;
+import com.trainingsplan.security.SecurityUtils;
 import com.trainingsplan.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +17,11 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final SecurityUtils securityUtils;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, SecurityUtils securityUtils) {
         this.userService = userService;
+        this.securityUtils = securityUtils;
     }
 
     public record CreateUserRequest(String username, String email) {}
@@ -32,6 +35,15 @@ public class UserController {
             Integer heightCm,
             Double weightKg
     ) {}
+
+    @GetMapping("/me")
+    public ResponseEntity<User> getMe() {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(user);
+    }
 
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody CreateUserRequest request) {

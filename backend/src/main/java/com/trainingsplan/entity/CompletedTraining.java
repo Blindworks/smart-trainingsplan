@@ -1,5 +1,6 @@
 package com.trainingsplan.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
@@ -159,6 +160,11 @@ public class CompletedTraining {
 
     @Column(name = "end_longitude")
     private Double endLongitude;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
     public CompletedTraining() {
         this.uploadDate = LocalDateTime.now();
@@ -523,5 +529,13 @@ public class CompletedTraining {
 
     public void setActivityName(String activityName) {
         this.activityName = activityName;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

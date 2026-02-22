@@ -2,9 +2,12 @@ export interface Competition {
   id?: number;
   name: string;
   date?: string;
+  type?: string;
+  ranking?: string;
   location?: string;
   description?: string;
   trainingPlanId?: number;
+  trainingPlanName?: string;
   createdAt?: string;
   updatedAt?: string;
   // Legacy field for compatibility

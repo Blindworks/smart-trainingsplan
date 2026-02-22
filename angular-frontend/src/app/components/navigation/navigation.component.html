@@ -38,5 +38,12 @@
     <a class="nav-link nav-profile" routerLink="/profile" routerLinkActive="active">
       <mat-icon>account_circle</mat-icon>
     </a>
+
+    <!-- Logout Button -->
+    @if (isLoggedIn()) {
+      <button mat-icon-button class="nav-logout" (click)="logout()" title="Abmelden">
+        <mat-icon>logout</mat-icon>
+      </button>
+    }
   </div>
 </nav>

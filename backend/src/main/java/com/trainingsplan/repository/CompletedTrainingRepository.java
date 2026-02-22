@@ -24,4 +24,12 @@ public interface CompletedTrainingRepository extends JpaRepository<CompletedTrai
     boolean existsByStravaActivityId(Long stravaActivityId);
 
     Optional<CompletedTraining> findByStravaActivityId(Long stravaActivityId);
+
+    List<CompletedTraining> findByUserId(Long userId);
+
+    List<CompletedTraining> findByUserIdAndTrainingDateBetweenOrderByTrainingDate(Long userId, LocalDate startDate, LocalDate endDate);
+
+    List<CompletedTraining> findByUserIdAndTrainingDateOrderByUploadDateDesc(Long userId, LocalDate trainingDate);
+
+    Optional<CompletedTraining> findTopByUserIdAndTrainingDateOrderByUploadDateDesc(Long userId, LocalDate trainingDate);
 }

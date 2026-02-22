@@ -4,6 +4,7 @@ import com.trainingsplan.entity.Competition;
 import com.trainingsplan.entity.TrainingWeek;
 import com.trainingsplan.repository.CompetitionRepository;
 import com.trainingsplan.repository.TrainingWeekRepository;
+import com.trainingsplan.security.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,14 @@ public class CompetitionService {
     @Autowired
     private TrainingWeekRepository trainingWeekRepository;
 
+    @Autowired
+    private SecurityUtils securityUtils;
+
     public List<Competition> findAll() {
+        Long userId = securityUtils.getCurrentUserId();
+        if (userId != null) {
+            return competitionRepository.findByUserId(userId);
+        }
         return competitionRepository.findAll();
     }
 
@@ -32,6 +40,9 @@ public class CompetitionService {
     }
 
     public Competition save(Competition competition) {
+        if (competition.getUser() == null) {
+            competition.setUser(securityUtils.getCurrentUser());
+        }
         return competitionRepository.save(competition);
     }
 

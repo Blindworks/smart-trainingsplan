@@ -7,13 +7,15 @@
 
 ## Entity Relationships (updated 2026-02)
 - Competition has ManyToOne TrainingPlan (competition.training_plan_id FK, nullable)
+- Competition has ManyToOne User (user_id FK, nullable, @JsonIgnore)
 - Competition has OneToMany TrainingWeek
 - TrainingWeek has OneToMany Training (via training_week_id FK)
 - Training has ManyToOne TrainingPlan (training_plan_id FK — always points to the template plan)
 - Training has ManyToOne TrainingDescription (optional, rich text)
-- CompletedTraining: standalone, matched to Training by date only (no FK)
+- CompletedTraining: standalone, matched to Training by date only (no FK); has ManyToOne User (user_id FK, nullable, @JsonIgnore)
 - StravaToken: single-row table (singleton via findFirstByOrderByIdAsc); ManyToOne User via user_id FK (nullable)
 - User has OneToOne StravaToken (mappedBy="user", cascade ALL, optional)
+- User implements UserDetails (Spring Security); password stored as passwordHash (@JsonIgnore)
 
 ## Architecture: All TrainingPlans are templates (2026-02 refactor)
 - TrainingPlan has NO competition_id and NO is_template columns
@@ -26,12 +28,25 @@
 - parseAndCreateTrainings() takes an explicit Competition parameter (not via trainingPlan.getCompetition())
 
 ## Established Patterns
-- DTOs: plain classes with getters/setters (not Records — team lead spec uses plain classes)
+- DTOs: plain classes with getters/setters (not Records — team lead spec uses plain classes); Auth DTOs are Records (AuthRequest, RegisterRequest, AuthResponse)
 - @Autowired field injection in service classes (legacy pattern in this project)
 - Constructor injection in controllers
 - RestClient (Spring 6) used for HTTP calls, not RestTemplate
-- @CrossOrigin(origins = "http://localhost:4200") on controllers
+- @CrossOrigin(origins = "http://localhost:4200") on controllers (may be removed post-security)
 - application.properties contains credentials and config (no application.yml)
+
+## JWT / Spring Security (added 2026-02)
+- SecurityConfig in config/ package: CSRF disabled, CORS from app.cors.allowed-origins, stateless sessions
+- Public endpoints: /api/auth/**, /api/strava/callback, OPTIONS /**
+- JWT: jjwt 0.12.6; secret in app.jwt.secret; expiry in app.jwt.expiration-ms (86400000 = 24h)
+- security/ package: JwtService, JwtAuthenticationFilter, UserDetailsServiceImpl, SecurityUtils
+- SecurityUtils.getCurrentUser() returns User from SecurityContext; null if not authenticated
+- CompetitionService.findAll() scoped by userId if authenticated, falls back to findAll() for tests
+- CompetitionService.save() sets user if null (guards against re-saves)
+- CompletedTrainingService sets user before save in uploadAndParseFitFile()
+- Liquibase 005: adds password_hash to users, user_id to competitions and completed_trainings
+- Auth endpoints: POST /api/auth/register, POST /api/auth/login
+- UserController: GET /api/users/me (returns current authenticated user)
 
 ## Key Files
 - `entity/TrainingPlan.java` — id, name, description, uploadDate, jsonContent, trainingCount only
