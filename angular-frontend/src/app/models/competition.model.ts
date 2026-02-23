@@ -181,6 +181,13 @@ export interface DailyMetrics {
   dailyTrimp?: number;
 }
 
+export interface DecouplingHistoryPoint {
+  date: string;
+  activityName?: string;
+  sport?: string;
+  decouplingPct: number;
+}
+
 export interface BodyStatusVo2Max {
   vo2max: number | null;
   trainingDate?: string;

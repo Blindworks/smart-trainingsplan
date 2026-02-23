@@ -225,6 +225,85 @@
     </div>
   </div>
 
+  <!-- Aerobic Decoupling History Chart -->
+  <div class="history-chart-card" *ngIf="!loading && decouplingChartHasData">
+    <div class="history-chart-header">
+      <div class="history-chart-title-group">
+        <div class="history-chart-icon" style="background: rgba(66,165,245,0.12); color: #42a5f5;">
+          <mat-icon>compare_arrows</mat-icon>
+        </div>
+        <div>
+          <h2>Aerobic Decoupling</h2>
+          <p>Letzte {{ decouplingChart.length }} Läufe</p>
+        </div>
+      </div>
+      <div class="history-chart-stats">
+        <div class="history-stat">
+          <span class="history-stat-value"
+                [style.color]="getDecouplingBarColor(decouplingChartStats.avg)">
+            {{ decouplingChartStats.avg >= 0 ? '+' : '' }}{{ decouplingChartStats.avg | number:'1.1-1' }}%
+          </span>
+          <span class="history-stat-label">Ø Drift</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value"
+                [style.color]="getDecouplingBarColor(decouplingChartStats.best)">
+            {{ decouplingChartStats.best >= 0 ? '+' : '' }}{{ decouplingChartStats.best | number:'1.1-1' }}%
+          </span>
+          <span class="history-stat-label">Bestes</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value">{{ decouplingChartStats.sessions }}</span>
+          <span class="history-stat-label">Läufe</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-chart-area decoupling-chart-area">
+      <div class="history-chart-bars">
+        <div class="history-bar-slot decoupling-bar-slot"
+             *ngFor="let p of decouplingChart; let i = index"
+             (mouseenter)="decouplingHoveredIndex = i"
+             (mouseleave)="decouplingHoveredIndex = null">
+          <div class="bar-tooltip" *ngIf="decouplingHoveredIndex === i">
+            <span class="bar-tooltip-day">{{ p.dateLabel }}</span>
+            <span class="bar-tooltip-date decoupling-tooltip-name">{{ p.activityName }}</span>
+            <span class="bar-tooltip-value" [style.color]="p.color">{{ p.tooltip }}</span>
+          </div>
+          <div class="history-bar"
+               [style.height.%]="p.barPct"
+               [style.background-color]="p.color">
+          </div>
+        </div>
+      </div>
+      <div class="history-chart-labels">
+        <div class="history-label-slot decoupling-label-slot"
+             *ngFor="let p of decouplingChart">
+          <span>{{ p.dateLabel }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-legend">
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#42a5f5"></span>
+        <span>Negativ / gut (&lt;0%)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#66bb6a"></span>
+        <span>Effizient (0–3%)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ffca28"></span>
+        <span>Leichter Drift (3–5%)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ef5350"></span>
+        <span>Starker Drift (&gt;8%)</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Empty state -->
   <div class="empty-state" *ngIf="!loading && metrics.length === 0 && todayStrain == null">
     <div class="empty-icon">

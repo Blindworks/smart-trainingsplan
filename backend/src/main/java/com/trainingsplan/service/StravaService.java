@@ -181,6 +181,7 @@ public class StravaService {
             if (dto.getId() != null && !completedTrainingRepository.existsByStravaActivityId(dto.getId())) {
                 try {
                     CompletedTraining ct = convertStravaActivityToCompletedTraining(dto);
+                    ct.setUser(user);
                     CompletedTraining saved = completedTrainingRepository.save(ct);
                     fetchStreamsAndPersistMetrics(dto.getId(), saved, accessToken, user);
                 } catch (Exception e) {
@@ -260,6 +261,10 @@ public class StravaService {
         token = refreshTokenIfExpired(token);
 
         User user = securityUtils.getCurrentUser();
+        if (ct.getUser() == null && user != null) {
+            ct.setUser(user);
+            ct = completedTrainingRepository.save(ct);
+        }
         fetchStreamsAndPersistMetrics(ct.getStravaActivityId(), ct, token.getAccessToken(), user);
 
         return activityMetricsRepository.findByCompletedTrainingId(completedTrainingId).orElse(null);

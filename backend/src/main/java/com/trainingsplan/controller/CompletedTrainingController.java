@@ -2,10 +2,15 @@ package com.trainingsplan.controller;
 
 import com.trainingsplan.entity.ActivityMetrics;
 import com.trainingsplan.entity.CompletedTraining;
+import com.trainingsplan.entity.User;
 import com.trainingsplan.repository.ActivityMetricsRepository;
+import com.trainingsplan.repository.CompletedTrainingRepository;
+import com.trainingsplan.security.SecurityUtils;
 import com.trainingsplan.service.CompletedTrainingService;
 import com.trainingsplan.service.StravaService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +19,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/completed-trainings")
@@ -29,6 +38,12 @@ public class CompletedTrainingController {
 
     @Autowired
     private StravaService stravaService;
+
+    @Autowired
+    private CompletedTrainingRepository completedTrainingRepository;
+
+    @Autowired
+    private SecurityUtils securityUtils;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFitFile(
@@ -94,6 +109,42 @@ public class CompletedTrainingController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Fehler beim Berechnen der Metriken: " + e.getMessage());
         }
+    }
+
+    /**
+     * Returns the last {@code limit} activities (default 20, max 50) with eligible aerobic
+     * decoupling data for the authenticated user, in chronological order.
+     *
+     * <p>As a lazy migration, any Strava activities that were synced before per-user tracking
+     * was added (user_id = NULL) are first claimed for the current user.
+     */
+    @Transactional
+    @GetMapping("/decoupling-history")
+    public ResponseEntity<List<Map<String, Object>>> getDecouplingHistory(
+            @RequestParam(defaultValue = "20") int limit) {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.ok(List.of());
+        }
+        // Claim any orphaned Strava activities (synced before user tracking was added)
+        completedTrainingRepository.claimOrphanedStravaActivities(user);
+
+        Long userId = user.getId();
+        List<ActivityMetrics> entries = activityMetricsRepository.findEligibleDecouplingByUserId(
+                userId, PageRequest.of(0, Math.min(limit, 50)));
+
+        List<Map<String, Object>> result = new ArrayList<>(entries.size());
+        for (ActivityMetrics am : entries) {
+            CompletedTraining ct = am.getCompletedTraining();
+            Map<String, Object> dto = new LinkedHashMap<>();
+            dto.put("date", ct.getTrainingDate().toString());
+            dto.put("activityName", ct.getActivityName() != null ? ct.getActivityName() : ct.getSport());
+            dto.put("sport", ct.getSport());
+            dto.put("decouplingPct", am.getDecouplingPct());
+            result.add(dto);
+        }
+        Collections.reverse(result); // chronological order for chart
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")

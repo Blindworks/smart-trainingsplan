@@ -5,7 +5,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiService } from '../../services/api.service';
-import { BodyMetric, DailyMetrics } from '../../models/competition.model';
+import { BodyMetric, DailyMetrics, DecouplingHistoryPoint } from '../../models/competition.model';
+import { catchError, of } from 'rxjs';
 
 interface BarChartPoint {
   date: string;
@@ -22,6 +23,15 @@ interface ChartStats {
   avg: number;
   max: number;
   sessions: number;
+}
+
+interface DecouplingChartPoint {
+  dateLabel: string;
+  activityName: string;
+  decouplingPct: number;
+  barPct: number;   // visual bar height (0–100), based on |decouplingPct| / 15
+  color: string;
+  tooltip: string;
 }
 
 @Component({
@@ -52,6 +62,10 @@ export class BodyStatusComponent implements OnInit {
   trimpChartStats: ChartStats = { avg: 0, max: 0, sessions: 0 };
   trimpHoveredIndex: number | null = null;
 
+  decouplingChart: DecouplingChartPoint[] = [];
+  decouplingChartStats = { avg: 0, best: 0, sessions: 0 };
+  decouplingHoveredIndex: number | null = null;
+
   constructor(
     private apiService: ApiService,
     private snackBar: MatSnackBar
@@ -60,6 +74,7 @@ export class BodyStatusComponent implements OnInit {
   ngOnInit(): void {
     this.loadMetrics();
     this.loadDailyHistory();
+    this.loadDecouplingHistory();
   }
 
   loadMetrics(): void {
@@ -211,6 +226,63 @@ export class BodyStatusComponent implements OnInit {
     if (trimp >= 100) return '#ff7043';
     if (trimp >= 50)  return '#ffca28';
     return '#66bb6a';
+  }
+
+  loadDecouplingHistory(): void {
+    this.apiService.getDecouplingHistory(20).pipe(
+      catchError(() => of([]))
+    ).subscribe((points: DecouplingHistoryPoint[]) => {
+      this.buildDecouplingChart(points);
+    });
+  }
+
+  private buildDecouplingChart(points: DecouplingHistoryPoint[]): void {
+    const MAX_PCT = 15;
+    this.decouplingChart = points.map(p => {
+      const pct = p.decouplingPct;
+      const [, month, day] = p.date.split('-');
+      const dateLabel = `${day}.${month}`;
+      return {
+        dateLabel,
+        activityName: p.activityName ?? p.sport ?? 'Aktivität',
+        decouplingPct: pct,
+        barPct: Math.max((Math.abs(pct) / MAX_PCT) * 100, 2),
+        color: this.getDecouplingBarColor(pct),
+        tooltip: `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`
+      };
+    });
+
+    if (points.length === 0) {
+      this.decouplingChartStats = { avg: 0, best: 0, sessions: 0 };
+      return;
+    }
+    const sum  = points.reduce((s, p) => s + p.decouplingPct, 0);
+    const best = Math.min(...points.map(p => p.decouplingPct));
+    this.decouplingChartStats = {
+      avg:      Math.round(sum / points.length * 10) / 10,
+      best:     Math.round(best * 10) / 10,
+      sessions: points.length
+    };
+  }
+
+  get decouplingChartHasData(): boolean {
+    return this.decouplingChart.length > 0;
+  }
+
+  getDecouplingBarColor(pct: number): string {
+    if (pct < 0)  return '#42a5f5'; // blau  — negativ (gut)
+    if (pct > 8)  return '#ef5350'; // rot   — starker Drift
+    if (pct > 5)  return '#ff7043'; // orange
+    if (pct > 3)  return '#ffca28'; // gelb
+    return '#66bb6a';               // grün  — effizient
+  }
+
+  getDecouplingCategory(pct: number): string {
+    if (pct < 0)  return 'Negativ (gut)';
+    if (pct > 8)  return 'Starker Drift';
+    if (pct > 5)  return 'Mäßiger Drift';
+    if (pct > 3)  return 'Leichter Drift';
+    return 'Effizient';
   }
 
   recalculate(): void {

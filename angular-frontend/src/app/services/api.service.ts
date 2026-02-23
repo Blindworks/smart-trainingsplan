@@ -16,7 +16,8 @@ import {
   BodyMetric,
   BodyMeasurement,
   ActivityMetrics,
-  DailyMetrics
+  DailyMetrics,
+  DecouplingHistoryPoint
 } from '../models/competition.model';
 import { StravaStatus, StravaActivity } from '../models/strava.model';
 
@@ -169,6 +170,13 @@ export class ApiService {
     return this.http.get<DailyMetrics[]>(`${this.baseUrl}/daily-metrics`, {
       params: { startDate, endDate }
     });
+  }
+
+  getDecouplingHistory(limit: number = 20): Observable<DecouplingHistoryPoint[]> {
+    return this.http.get<DecouplingHistoryPoint[]>(
+      `${this.baseUrl}/completed-trainings/decoupling-history`,
+      { params: { limit: limit.toString() } }
+    );
   }
 
   // Strava API

@@ -1,7 +1,9 @@
 package com.trainingsplan.repository;
 
 import com.trainingsplan.entity.CompletedTraining;
+import com.trainingsplan.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -39,4 +41,12 @@ public interface CompletedTrainingRepository extends JpaRepository<CompletedTrai
     Optional<CompletedTraining> findTopByUserIdAndTrainingDateOrderByUploadDateDesc(Long userId, LocalDate trainingDate);
 
     Optional<CompletedTraining> findTopByUserIdAndSportContainingIgnoreCaseOrderByTrainingDateDescUploadDateDesc(Long userId, String sport);
+
+    /**
+     * One-time migration: assigns the current user to any Strava activities that were
+     * synced before per-user tracking was added (user_id = NULL).
+     */
+    @Modifying
+    @Query("UPDATE CompletedTraining ct SET ct.user = :user WHERE ct.user IS NULL AND ct.source = 'STRAVA'")
+    int claimOrphanedStravaActivities(@Param("user") User user);
 }
