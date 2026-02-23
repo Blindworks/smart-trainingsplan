@@ -7,14 +7,21 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiService } from '../../services/api.service';
 import { BodyMetric, DailyMetrics } from '../../models/competition.model';
 
-interface TrIMPChartPoint {
+interface BarChartPoint {
   date: string;
+  dayLabel: string;
   label: string;
   showLabel: boolean;
-  trimp: number | null;
+  value: number | null;
   pct: number;
   color: string;
   tooltip: string;
+}
+
+interface ChartStats {
+  avg: number;
+  max: number;
+  sessions: number;
 }
 
 @Component({
@@ -37,8 +44,13 @@ export class BodyStatusComponent implements OnInit {
   todayStrain: number | null = null;
   todayStrainDate: string | null = null;
 
-  trimpChart: TrIMPChartPoint[] = [];
-  trimpChartStats = { avg: 0, max: 0, sessions: 0 };
+  strainChart: BarChartPoint[] = [];
+  strainChartStats: ChartStats = { avg: 0, max: 0, sessions: 0 };
+  strainHoveredIndex: number | null = null;
+
+  trimpChart: BarChartPoint[] = [];
+  trimpChartStats: ChartStats = { avg: 0, max: 0, sessions: 0 };
+  trimpHoveredIndex: number | null = null;
 
   constructor(
     private apiService: ApiService,
@@ -71,7 +83,7 @@ export class BodyStatusComponent implements OnInit {
   loadDailyHistory(): void {
     const today = new Date();
     const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 29); // 30-day window
+    startDate.setDate(today.getDate() - 29);
     const start = this.formatDateLocal(startDate);
     const end = this.formatDateLocal(today);
 
@@ -85,66 +97,99 @@ export class BodyStatusComponent implements OnInit {
           this.todayStrain = sorted[0].dailyStrain21!;
           this.todayStrainDate = sorted[0].date;
         }
-        // Build TRIMP chart
-        this.buildTrIMPChart(metrics, startDate, today);
+        this.buildStrainChart(metrics, startDate);
+        this.buildTrIMPChart(metrics, startDate);
       },
       error: () => {}
     });
   }
 
-  private buildTrIMPChart(metrics: DailyMetrics[], from: Date, to: Date): void {
+  private buildChart(
+    metrics: DailyMetrics[],
+    from: Date,
+    getValue: (m: DailyMetrics) => number | undefined | null,
+    yMax: number,
+    getColor: (v: number) => string,
+    tooltipLabel: string
+  ): { points: BarChartPoint[]; stats: ChartStats } {
     const map = new Map<string, number>();
     let max = 0;
     let sum = 0;
     let count = 0;
 
     for (const m of metrics) {
-      if (m.dailyTrimp != null && m.dailyTrimp > 0) {
-        map.set(m.date, m.dailyTrimp);
-        if (m.dailyTrimp > max) max = m.dailyTrimp;
-        sum += m.dailyTrimp;
+      const v = getValue(m);
+      if (v != null && v > 0) {
+        const dateStr = typeof m.date === 'string' ? m.date : this.formatDateLocal(new Date(m.date));
+        map.set(dateStr, v);
+        if (v > max) max = v;
+        sum += v;
         count++;
       }
     }
 
-    const yMax = Math.max(200, max);
-    const points: TrIMPChartPoint[] = [];
+    const scale = Math.max(yMax, max);
+    const points: BarChartPoint[] = [];
+    const DAY_LABELS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 
     for (let i = 0; i < 30; i++) {
       const d = new Date(from);
       d.setDate(from.getDate() + i);
       const dateStr = this.formatDateLocal(d);
-      const trimp = map.get(dateStr) ?? null;
+      const value = map.get(dateStr) ?? null;
       const label = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const dayLabel = DAY_LABELS[d.getDay()];
 
       points.push({
         date: dateStr,
+        dayLabel,
         label,
         showLabel: i % 7 === 0 || i === 29,
-        trimp,
-        pct: trimp != null ? Math.max((trimp / yMax) * 100, 1) : 0,
-        color: trimp != null ? this.getTRIMPBarColor(trimp) : 'transparent',
-        tooltip: trimp != null ? `${label}: TRIMP ${trimp.toFixed(0)}` : `${label}: kein Training`
+        value,
+        pct: value != null ? Math.max((value / scale) * 100, 1) : 0,
+        color: value != null ? getColor(value) : 'transparent',
+        tooltip: value != null
+          ? `${label}: ${tooltipLabel} ${value.toFixed(1)}`
+          : `${label}: kein Training`
       });
     }
 
-    this.trimpChart = points;
-    this.trimpChartStats = {
-      avg: count > 0 ? Math.round(sum / count) : 0,
-      max: Math.round(max),
-      sessions: count
+    return {
+      points,
+      stats: { avg: count > 0 ? Math.round(sum / count) : 0, max: Math.round(max), sessions: count }
     };
+  }
+
+  private buildStrainChart(metrics: DailyMetrics[], from: Date): void {
+    const result = this.buildChart(
+      metrics, from,
+      m => m.dailyStrain21,
+      21,
+      v => this.getStrainColor(v),
+      'Strain'
+    );
+    this.strainChart = result.points;
+    this.strainChartStats = result.stats;
+  }
+
+  private buildTrIMPChart(metrics: DailyMetrics[], from: Date): void {
+    const result = this.buildChart(
+      metrics, from,
+      m => m.dailyTrimp,
+      200,
+      v => this.getTRIMPBarColor(v),
+      'TRIMP'
+    );
+    this.trimpChart = result.points;
+    this.trimpChartStats = result.stats;
+  }
+
+  get strainChartHasData(): boolean {
+    return this.strainChartStats.sessions > 0;
   }
 
   get trimpChartHasData(): boolean {
     return this.trimpChartStats.sessions > 0;
-  }
-
-  getTRIMPBarColor(trimp: number): string {
-    if (trimp >= 150) return '#ef5350';
-    if (trimp >= 100) return '#ff7043';
-    if (trimp >= 50)  return '#ffca28';
-    return '#66bb6a';
   }
 
   getStrainColor(strain: number): string {
@@ -159,6 +204,13 @@ export class BodyStatusComponent implements OnInit {
     if (strain >= 10) return 'Hoch';
     if (strain >= 6)  return 'Moderat';
     return 'Leicht';
+  }
+
+  getTRIMPBarColor(trimp: number): string {
+    if (trimp >= 150) return '#ef5350';
+    if (trimp >= 100) return '#ff7043';
+    if (trimp >= 50)  return '#ffca28';
+    return '#66bb6a';
   }
 
   recalculate(): void {

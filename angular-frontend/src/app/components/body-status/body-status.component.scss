@@ -95,6 +95,10 @@
 
 // ─── Card ──────────────────────────────────────────────────────────────────────
 
+.strain-card {
+  grid-column: 1 / -1; // immer volle Breite, erzwingt neue Zeile
+}
+
 .metric-card {
   background: var(--gradient-card);
   border: 1px solid var(--border);
@@ -220,9 +224,9 @@
   min-width: 2px;
 }
 
-// ─── TRIMP History Chart ───────────────────────────────────────────────────────
+// ─── History Charts (Strain + TRIMP) ──────────────────────────────────────────
 
-.trimp-chart-card {
+.history-chart-card {
   margin-top: 24px;
   background: var(--gradient-card);
   border: 1px solid var(--border);
@@ -230,7 +234,7 @@
   padding: 20px 24px;
 }
 
-.trimp-chart-header {
+.history-chart-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -238,18 +242,16 @@
   margin-bottom: 20px;
 }
 
-.trimp-chart-title-group {
+.history-chart-title-group {
   display: flex;
   align-items: center;
   gap: 12px;
 
-  .trimp-chart-icon {
+  .history-chart-icon {
     flex-shrink: 0;
     width: 44px;
     height: 44px;
     border-radius: 12px;
-    background: rgba(255, 112, 67, 0.12);
-    color: #ff7043;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -269,26 +271,26 @@
   }
 }
 
-.trimp-chart-stats {
+.history-chart-stats {
   display: flex;
   gap: 24px;
 }
 
-.trimp-stat {
+.history-stat {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
 }
 
-.trimp-stat-value {
+.history-stat-value {
   font-size: 22px;
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1;
 }
 
-.trimp-stat-label {
+.history-stat-label {
   font-size: 10px;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -296,31 +298,33 @@
   white-space: nowrap;
 }
 
-.trimp-chart-area {
-  overflow: hidden;
+.history-chart-area {
+  overflow: visible;
 }
 
-.trimp-chart-bars {
+.history-chart-bars {
   display: flex;
   align-items: flex-end;
   gap: 3px;
   height: 110px;
+  overflow: visible;
 }
 
-.trimp-bar-slot {
+.history-bar-slot {
   flex: 1;
   height: 100%;
   display: flex;
   align-items: flex-end;
   min-width: 0;
   cursor: default;
+  position: relative;
 
-  &:hover .trimp-bar:not(.trimp-bar--empty) {
-    filter: brightness(1.2);
+  &:hover .history-bar:not(.history-bar--empty) {
+    filter: brightness(1.15);
   }
 }
 
-.trimp-bar {
+.history-bar {
   width: 100%;
   border-radius: 3px 3px 0 0;
   transition: height 0.5s ease, filter 0.15s ease;
@@ -332,13 +336,73 @@
   }
 }
 
-.trimp-chart-labels {
+.bar-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1f2e;
+  border: 1px solid var(--border, rgba(255,255,255,0.1));
+  border-radius: 7px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+
+  // Arrow pointing down
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--border, rgba(255,255,255,0.1));
+  }
+  &::before {
+    content: '';
+    position: absolute;
+    top: calc(100% - 1px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a1f2e;
+    z-index: 1;
+  }
+}
+
+.bar-tooltip-day {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary, #fff);
+  letter-spacing: 0.04em;
+}
+
+.bar-tooltip-date {
+  font-size: 10px;
+  color: var(--text-secondary, rgba(255,255,255,0.5));
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.bar-tooltip-value {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.history-chart-labels {
   display: flex;
   gap: 3px;
   margin-top: 6px;
 }
 
-.trimp-label-slot {
+.history-label-slot {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -352,7 +416,7 @@
   }
 }
 
-.trimp-legend {
+.history-legend {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
@@ -361,7 +425,7 @@
   border-top: 1px solid var(--border);
 }
 
-.trimp-legend-item {
+.history-legend-item {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -369,7 +433,7 @@
   color: var(--text-secondary);
 }
 
-.trimp-legend-dot {
+.history-legend-dot {
   width: 8px;
   height: 8px;
   border-radius: 2px;
@@ -396,16 +460,16 @@
     grid-template-columns: 1fr;
   }
 
-  .trimp-chart-header {
+  .history-chart-header {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .trimp-chart-stats {
+  .history-chart-stats {
     gap: 16px;
   }
 
-  .trimp-legend {
+  .history-legend {
     gap: 10px;
   }
 }

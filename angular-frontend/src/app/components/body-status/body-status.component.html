@@ -23,7 +23,33 @@
   <!-- Metrics grid -->
   <div class="status-grid" *ngIf="!loading && (metrics.length > 0 || todayStrain != null)">
 
-    <!-- Strain Card -->
+    <!-- VO2Max cards first (row 1) -->
+    <article class="metric-card" *ngFor="let metric of metrics">
+      <div class="metric-card__header">
+        <div class="metric-icon"
+             [style.background]="getMetricIconColor(metric.metricType)"
+             [style.color]="getMetricIconFgColor(metric.metricType)">
+          <mat-icon>{{ getMetricIcon(metric.metricType) }}</mat-icon>
+        </div>
+        <div>
+          <h2>{{ metric.label }}</h2>
+          <p *ngIf="metric.recordedAt">{{ formatDate(metric.recordedAt) }}</p>
+        </div>
+      </div>
+
+      <div class="metric-card__content">
+        <div class="metric-value" [style.color]="getMetricColor(metric)">
+          {{ metric.value | number:'1.1-1' }}
+          <span class="metric-unit">{{ metric.unit }}</span>
+        </div>
+        <div class="metric-category" [style.color]="getMetricColor(metric)"
+             *ngIf="getMetricCategory(metric)">
+          {{ getMetricCategory(metric) }}
+        </div>
+      </div>
+    </article>
+
+    <!-- Strain Card (row 2, full width) -->
     <article class="metric-card strain-card" *ngIf="todayStrain != null">
       <div class="metric-card__header">
         <div class="metric-icon" style="background: rgba(255,112,67,0.12); color: #ff7043;">
@@ -51,37 +77,86 @@
       </div>
     </article>
 
-    <article class="metric-card" *ngFor="let metric of metrics">
-      <div class="metric-card__header">
-        <div class="metric-icon"
-             [style.background]="getMetricIconColor(metric.metricType)"
-             [style.color]="getMetricIconFgColor(metric.metricType)">
-          <mat-icon>{{ getMetricIcon(metric.metricType) }}</mat-icon>
+  </div>
+
+  <!-- Strain History Chart -->
+  <div class="history-chart-card" *ngIf="!loading && strainChartHasData">
+    <div class="history-chart-header">
+      <div class="history-chart-title-group">
+        <div class="history-chart-icon" style="background: rgba(255,112,67,0.12); color: #ff7043;">
+          <mat-icon>whatshot</mat-icon>
         </div>
         <div>
-          <h2>{{ metric.label }}</h2>
-          <p *ngIf="metric.recordedAt">{{ formatDate(metric.recordedAt) }}</p>
+          <h2>Tagesbelastung Verlauf</h2>
+          <p>Letzte 30 Tage</p>
         </div>
       </div>
+      <div class="history-chart-stats">
+        <div class="history-stat">
+          <span class="history-stat-value">{{ strainChartStats.avg | number:'1.1-1' }}</span>
+          <span class="history-stat-label">Ø Strain</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value">{{ strainChartStats.max | number:'1.1-1' }}</span>
+          <span class="history-stat-label">Max</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value">{{ strainChartStats.sessions }}</span>
+          <span class="history-stat-label">Einheiten</span>
+        </div>
+      </div>
+    </div>
 
-      <div class="metric-card__content">
-        <div class="metric-value" [style.color]="getMetricColor(metric)">
-          {{ metric.value | number:'1.1-1' }}
-          <span class="metric-unit">{{ metric.unit }}</span>
-        </div>
-        <div class="metric-category" [style.color]="getMetricColor(metric)"
-             *ngIf="getMetricCategory(metric)">
-          {{ getMetricCategory(metric) }}
+    <div class="history-chart-area">
+      <div class="history-chart-bars">
+        <div class="history-bar-slot"
+             *ngFor="let p of strainChart; let i = index"
+             (mouseenter)="strainHoveredIndex = i"
+             (mouseleave)="strainHoveredIndex = null">
+          <div class="bar-tooltip" *ngIf="strainHoveredIndex === i && p.value != null">
+            <span class="bar-tooltip-day">{{ p.dayLabel }}</span>
+            <span class="bar-tooltip-date">{{ p.label }}</span>
+            <span class="bar-tooltip-value" [style.color]="p.color">{{ p.value | number:'1.1-1' }}</span>
+          </div>
+          <div class="history-bar"
+               [style.height.%]="p.pct"
+               [style.background-color]="p.color"
+               [class.history-bar--empty]="p.value == null">
+          </div>
         </div>
       </div>
-    </article>
+      <div class="history-chart-labels">
+        <div class="history-label-slot" *ngFor="let p of strainChart">
+          <span *ngIf="p.showLabel">{{ p.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-legend">
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#66bb6a"></span>
+        <span>Leicht (&lt;6)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ffca28"></span>
+        <span>Moderat (6–10)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ff7043"></span>
+        <span>Hoch (10–15)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ef5350"></span>
+        <span>Sehr hoch (&gt;15)</span>
+      </div>
+    </div>
   </div>
 
   <!-- TRIMP History Chart -->
-  <div class="trimp-chart-card" *ngIf="!loading && trimpChartHasData">
-    <div class="trimp-chart-header">
-      <div class="trimp-chart-title-group">
-        <div class="trimp-chart-icon">
+  <div class="history-chart-card" *ngIf="!loading && trimpChartHasData">
+    <div class="history-chart-header">
+      <div class="history-chart-title-group">
+        <div class="history-chart-icon" style="background: rgba(255,112,67,0.12); color: #ff7043;">
           <mat-icon>bolt</mat-icon>
         </div>
         <div>
@@ -89,57 +164,62 @@
           <p>Letzte 30 Tage</p>
         </div>
       </div>
-      <div class="trimp-chart-stats">
-        <div class="trimp-stat">
-          <span class="trimp-stat-value">{{ trimpChartStats.avg }}</span>
-          <span class="trimp-stat-label">Ø TRIMP</span>
+      <div class="history-chart-stats">
+        <div class="history-stat">
+          <span class="history-stat-value">{{ trimpChartStats.avg }}</span>
+          <span class="history-stat-label">Ø TRIMP</span>
         </div>
-        <div class="trimp-stat">
-          <span class="trimp-stat-value">{{ trimpChartStats.max }}</span>
-          <span class="trimp-stat-label">Max</span>
+        <div class="history-stat">
+          <span class="history-stat-value">{{ trimpChartStats.max }}</span>
+          <span class="history-stat-label">Max</span>
         </div>
-        <div class="trimp-stat">
-          <span class="trimp-stat-value">{{ trimpChartStats.sessions }}</span>
-          <span class="trimp-stat-label">Einheiten</span>
+        <div class="history-stat">
+          <span class="history-stat-value">{{ trimpChartStats.sessions }}</span>
+          <span class="history-stat-label">Einheiten</span>
         </div>
       </div>
     </div>
 
-    <div class="trimp-chart-area">
-      <div class="trimp-chart-bars">
-        <div class="trimp-bar-slot"
-             *ngFor="let p of trimpChart"
-             [title]="p.tooltip">
-          <div class="trimp-bar"
+    <div class="history-chart-area">
+      <div class="history-chart-bars">
+        <div class="history-bar-slot"
+             *ngFor="let p of trimpChart; let i = index"
+             (mouseenter)="trimpHoveredIndex = i"
+             (mouseleave)="trimpHoveredIndex = null">
+          <div class="bar-tooltip" *ngIf="trimpHoveredIndex === i && p.value != null">
+            <span class="bar-tooltip-day">{{ p.dayLabel }}</span>
+            <span class="bar-tooltip-date">{{ p.label }}</span>
+            <span class="bar-tooltip-value" [style.color]="p.color">{{ p.value | number:'1.0-0' }}</span>
+          </div>
+          <div class="history-bar"
                [style.height.%]="p.pct"
                [style.background-color]="p.color"
-               [class.trimp-bar--empty]="p.trimp == null">
+               [class.history-bar--empty]="p.value == null">
           </div>
         </div>
       </div>
-      <div class="trimp-chart-labels">
-        <div class="trimp-label-slot" *ngFor="let p of trimpChart">
+      <div class="history-chart-labels">
+        <div class="history-label-slot" *ngFor="let p of trimpChart">
           <span *ngIf="p.showLabel">{{ p.label }}</span>
         </div>
       </div>
     </div>
 
-    <!-- Color legend -->
-    <div class="trimp-legend">
-      <div class="trimp-legend-item">
-        <span class="trimp-legend-dot" style="background:#66bb6a"></span>
+    <div class="history-legend">
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#66bb6a"></span>
         <span>Leicht (&lt;50)</span>
       </div>
-      <div class="trimp-legend-item">
-        <span class="trimp-legend-dot" style="background:#ffca28"></span>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ffca28"></span>
         <span>Moderat (50–100)</span>
       </div>
-      <div class="trimp-legend-item">
-        <span class="trimp-legend-dot" style="background:#ff7043"></span>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ff7043"></span>
         <span>Hoch (100–150)</span>
       </div>
-      <div class="trimp-legend-item">
-        <span class="trimp-legend-dot" style="background:#ef5350"></span>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ef5350"></span>
         <span>Sehr hoch (&gt;150)</span>
       </div>
     </div>
