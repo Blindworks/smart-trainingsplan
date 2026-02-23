@@ -1,10 +1,10 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Smart Trainingsplan | Pricing</title>
-  <meta name="description" content="Transparente Preise fuer Smart Trainingsplan: Free, Pro und Team fuer jedes Trainingsziel.">
+  <title>Pacr | Pricing</title>
+  <meta name="description" content="Transparente Preise fuer Pacr: Free, Pro und Team fuer jedes Trainingsziel." data-i18n-content-de="Transparente Preise fuer Pacr: Free, Pro und Team fuer jedes Trainingsziel." data-i18n-content-en="Transparent pricing for Pacr: Free, Pro, and Team for every training goal.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -69,6 +69,37 @@
       height: 34px;
       object-fit: contain;
       filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+    }
+
+    .top-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(11, 15, 26, 0.55);
+      overflow: hidden;
+    }
+
+    .lang-btn {
+      border: 0;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    .lang-btn.active {
+      color: #ffffff;
+      background: rgba(45, 123, 255, 0.55);
     }
 
     .top-links {
@@ -274,75 +305,83 @@
     }
   </style>
 </head>
-<body>
+<body data-title-de="Pacr | Pricing" data-title-en="Pacr | Pricing">
   <main class="page">
     <div class="topbar">
       <a class="brand" href="index.html">
         <img src="pacr_logo.png" alt="PACR Logo">
-        Smart Trainingsplan
+        Pacr
       </a>
-      <div class="top-links">
-        <a class="link-btn" href="index.html">Startseite</a>
-        <a class="link-btn" href="features.html">Features</a>
-        <a class="link-btn" href="contact.html">Contact</a>
+      <div class="top-right">
+        <div class="lang-switch">
+          <button class="lang-btn" data-lang-switch="de" aria-pressed="false">DE</button>
+          <button class="lang-btn" data-lang-switch="en" aria-pressed="false">EN</button>
+        </div>
+        <div class="top-links">
+          <a class="link-btn" href="index.html" data-i18n-de="Startseite" data-i18n-en="Home">Startseite</a>
+          <a class="link-btn" href="features.html" data-i18n-de="Features" data-i18n-en="Features">Features</a>
+          <a class="link-btn" href="contact.html" data-i18n-de="Kontakt" data-i18n-en="Contact">Kontakt</a>
+        </div>
       </div>
     </div>
 
     <section class="hero">
-      <p class="kicker">Pricing</p>
-      <h1>Waehle den Plan, der zu deinem <span class="gradient-text">Trainingslevel</span> passt.</h1>
-      <p class="subtitle">
+      <p class="kicker" data-i18n-de="Pricing" data-i18n-en="Pricing">Pricing</p>
+      <h1 data-i18n-html-de="Waehle den Plan, der zu deinem <span class='gradient-text'>Trainingslevel</span> passt." data-i18n-html-en="Choose the plan that fits your <span class='gradient-text'>training level</span>.">Waehle den Plan, der zu deinem <span class="gradient-text">Trainingslevel</span> passt.</h1>
+      <p class="subtitle" data-i18n-de="Transparente Pakete fuer Einsteiger, ambitionierte Laeufer und Teams." data-i18n-en="Transparent packages for beginners, ambitious runners, and teams.">
         Transparente Pakete fuer Einsteiger, ambitionierte Laeufer und Teams.
       </p>
 
       <section class="plans">
         <article class="plan">
           <h2>Free</h2>
-          <div class="price">0 EUR<small>/Monat</small></div>
-          <p>Der perfekte Start, um Struktur in dein Training zu bringen.</p>
+          <div class="price">0 EUR<small data-i18n-de="/Monat" data-i18n-en="/month">/Monat</small></div>
+          <p data-i18n-de="Der perfekte Start, um Struktur in dein Training zu bringen." data-i18n-en="The perfect start to bring structure to your training.">Der perfekte Start, um Struktur in dein Training zu bringen.</p>
           <ul>
-            <li>1 aktiver Trainingsplan</li>
-            <li>Wochenuebersicht & Basis-Tracking</li>
-            <li>Grundlegende Fortschrittsanalyse</li>
+            <li data-i18n-de="1 aktiver Trainingsplan" data-i18n-en="1 active training plan">1 aktiver Trainingsplan</li>
+            <li data-i18n-de="Wochenuebersicht und Basis-Tracking" data-i18n-en="Weekly overview and basic tracking">Wochenuebersicht und Basis-Tracking</li>
+            <li data-i18n-de="Grundlegende Fortschrittsanalyse" data-i18n-en="Basic progress analysis">Grundlegende Fortschrittsanalyse</li>
           </ul>
-          <a class="cta" href="#">Kostenlos starten</a>
+          <a class="cta" href="#" data-i18n-de="Kostenlos starten" data-i18n-en="Start free">Kostenlos starten</a>
         </article>
 
         <article class="plan featured">
-          <span class="badge">Most Popular</span>
+          <span class="badge" data-i18n-de="Beliebt" data-i18n-en="Most Popular">Beliebt</span>
           <h2>Pro</h2>
-          <div class="price">9,90 EUR<small>/Monat</small></div>
-          <p>Mehr Kontrolle, mehr Insights und flexible Plan-Anpassung.</p>
+          <div class="price">9,90 EUR<small data-i18n-de="/Monat" data-i18n-en="/month">/Monat</small></div>
+          <p data-i18n-de="Mehr Kontrolle, mehr Insights und flexible Plan-Anpassung." data-i18n-en="More control, deeper insights, and flexible plan adjustments.">Mehr Kontrolle, mehr Insights und flexible Plan-Anpassung.</p>
           <ul>
-            <li>Unbegrenzte Trainingsplaene</li>
-            <li>Dynamische Wochenanpassungen</li>
-            <li>Erweiterte Fortschritts- und Formanalyse</li>
-            <li>Priorisierte Feature-Updates</li>
+            <li data-i18n-de="Unbegrenzte Trainingsplaene" data-i18n-en="Unlimited training plans">Unbegrenzte Trainingsplaene</li>
+            <li data-i18n-de="Dynamische Wochenanpassungen" data-i18n-en="Dynamic weekly adjustments">Dynamische Wochenanpassungen</li>
+            <li data-i18n-de="Erweiterte Fortschritts- und Formanalyse" data-i18n-en="Advanced progress and performance analysis">Erweiterte Fortschritts- und Formanalyse</li>
+            <li data-i18n-de="Priorisierte Feature-Updates" data-i18n-en="Prioritized feature updates">Priorisierte Feature-Updates</li>
           </ul>
-          <a class="cta" href="#">Pro testen</a>
+          <a class="cta" href="#" data-i18n-de="Pro testen" data-i18n-en="Try Pro">Pro testen</a>
         </article>
 
         <article class="plan">
           <h2>Team</h2>
-          <div class="price">24,90 EUR<small>/Monat</small></div>
-          <p>Fuer Laufgruppen, Trainer und gemeinsame Zielvorbereitung.</p>
+          <div class="price">24,90 EUR<small data-i18n-de="/Monat" data-i18n-en="/month">/Monat</small></div>
+          <p data-i18n-de="Fuer Laufgruppen, Trainer und gemeinsame Zielvorbereitung." data-i18n-en="For running groups, coaches, and shared race preparation.">Fuer Laufgruppen, Trainer und gemeinsame Zielvorbereitung.</p>
           <ul>
-            <li>Bis zu 8 Team-Mitglieder</li>
-            <li>Gemeinsame Trainingsplanung</li>
-            <li>Team-Fortschritt und Performance-Status</li>
-            <li>Rollenverwaltung und geteilte Vorlagen</li>
+            <li data-i18n-de="Bis zu 8 Team-Mitglieder" data-i18n-en="Up to 8 team members">Bis zu 8 Team-Mitglieder</li>
+            <li data-i18n-de="Gemeinsame Trainingsplanung" data-i18n-en="Collaborative training planning">Gemeinsame Trainingsplanung</li>
+            <li data-i18n-de="Team-Fortschritt und Performance-Status" data-i18n-en="Team progress and performance status">Team-Fortschritt und Performance-Status</li>
+            <li data-i18n-de="Rollenverwaltung und geteilte Vorlagen" data-i18n-en="Role management and shared templates">Rollenverwaltung und geteilte Vorlagen</li>
           </ul>
-          <a class="cta" href="contact.html">Team anfragen</a>
+          <a class="cta" href="contact.html" data-i18n-de="Team anfragen" data-i18n-en="Contact for Team">Team anfragen</a>
         </article>
       </section>
 
-      <p class="note">Alle Preise inkl. regelmaessiger Updates. Kuendigbar zum Monatsende.</p>
+      <p class="note" data-i18n-de="Alle Preise inkl. regelmaessiger Updates. Kuendigbar zum Monatsende." data-i18n-en="All prices include regular updates. Cancel at the end of each month.">Alle Preise inkl. regelmaessiger Updates. Kuendigbar zum Monatsende.</p>
     </section>
 
     <footer class="legal-footer">
-      <a href="impressum.html">Impressum</a>
-      <a href="datenschutz.html">Datenschutz</a>
+      <a href="impressum.html" data-i18n-de="Impressum" data-i18n-en="Legal Notice">Impressum</a>
+      <a href="datenschutz.html" data-i18n-de="Datenschutz" data-i18n-en="Privacy Policy">Datenschutz</a>
     </footer>
   </main>
+  <script src="i18n.js"></script>
 </body>
 </html>
+

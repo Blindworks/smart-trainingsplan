@@ -1,10 +1,10 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Smart Trainingsplan | Features</title>
-  <meta name="description" content="Die wichtigsten Features von Smart Trainingsplan fuer ambitioniertes und strukturiertes Lauftraining.">
+  <title>Pacr | Features</title>
+  <meta name="description" content="Die wichtigsten Features von Pacr fuer ambitioniertes und strukturiertes Lauftraining." data-i18n-content-de="Die wichtigsten Features von Pacr fuer ambitioniertes und strukturiertes Lauftraining." data-i18n-content-en="The key Pacr features for structured and ambitious run training.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -51,6 +51,14 @@
       justify-content: space-between;
       align-items: center;
       padding: 12px 0 20px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .bar-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
     }
 
     .brand {
@@ -70,6 +78,30 @@
       height: 34px;
       object-fit: contain;
       filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(11, 15, 26, 0.55);
+      overflow: hidden;
+    }
+
+    .lang-btn {
+      border: 0;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    .lang-btn.active {
+      color: #ffffff;
+      background: rgba(45, 123, 255, 0.55);
     }
 
     .cta {
@@ -143,6 +175,7 @@
       border-radius: 14px;
       padding: 20px;
       background: linear-gradient(165deg, rgba(22, 29, 46, 0.9) 0%, rgba(15, 21, 34, 0.95) 100%);
+      text-align: left;
     }
 
     .card h2 {
@@ -219,64 +252,72 @@
     }
   </style>
 </head>
-<body>
+<body data-title-de="Pacr | Features" data-title-en="Pacr | Features">
   <main class="page">
     <div class="topbar">
       <a class="brand" href="index.html">
         <img src="pacr_logo.png" alt="PACR Logo">
-        Smart Trainingsplan
+        Pacr
       </a>
-      <a class="cta" href="contact.html">Kontakt</a>
+      <div class="bar-right">
+        <div class="lang-switch">
+          <button class="lang-btn" data-lang-switch="de" aria-pressed="false">DE</button>
+          <button class="lang-btn" data-lang-switch="en" aria-pressed="false">EN</button>
+        </div>
+        <a class="cta" href="contact.html" data-i18n-de="Kontakt" data-i18n-en="Contact">Kontakt</a>
+      </div>
     </div>
 
     <section class="hero">
-      <p class="kicker">Features</p>
-      <h1>Alles, was du fuer <span class="gradient-text">konstante Fortschritte</span> brauchst.</h1>
-      <p class="subtitle">
-        Von der Zielsetzung bis zur abgeschlossenen Einheit bildet Smart Trainingsplan deinen kompletten Trainingsprozess ab.
+      <p class="kicker" data-i18n-de="Features" data-i18n-en="Features">Features</p>
+      <h1 data-i18n-html-de="Alles, was du fuer <span class='gradient-text'>konstante Fortschritte</span> brauchst." data-i18n-html-en="Everything you need for <span class='gradient-text'>consistent progress</span>.">Alles, was du fuer <span class="gradient-text">konstante Fortschritte</span> brauchst.</h1>
+      <p class="subtitle" data-i18n-de="Von der Zielsetzung bis zur abgeschlossenen Einheit bildet Pacr deinen kompletten Trainingsprozess ab." data-i18n-en="From goal definition to completed sessions, Pacr supports your full training process.">
+        Von der Zielsetzung bis zur abgeschlossenen Einheit bildet Pacr deinen kompletten Trainingsprozess ab.
       </p>
 
       <section class="grid">
         <article class="card">
-          <h2>Wettkampf-Fokus</h2>
-          <p>Plane gezielt auf 10K, Halbmarathon oder Marathon und arbeite mit klaren Meilensteinen.</p>
+          <h2 data-i18n-de="Wettkampf-Fokus" data-i18n-en="Race-focused planning">Wettkampf-Fokus</h2>
+          <p data-i18n-de="Plane gezielt auf 10K, Halbmarathon oder Marathon und arbeite mit klaren Meilensteinen." data-i18n-en="Train specifically for 10K, half marathon, or marathon with clear milestones.">Plane gezielt auf 10K, Halbmarathon oder Marathon und arbeite mit klaren Meilensteinen.</p>
         </article>
         <article class="card">
-          <h2>Dynamische Wochenplanung</h2>
-          <p>Deine Wochenstruktur passt sich an verfuegbare Zeit, Form und Trainingsverlauf an.</p>
+          <h2 data-i18n-de="Dynamische Wochenplanung" data-i18n-en="Dynamic weekly planning">Dynamische Wochenplanung</h2>
+          <p data-i18n-de="Deine Wochenstruktur passt sich an verfuegbare Zeit, Form und Trainingsverlauf an." data-i18n-en="Your weekly structure adapts to available time, condition, and training progress.">Deine Wochenstruktur passt sich an verfuegbare Zeit, Form und Trainingsverlauf an.</p>
         </article>
         <article class="card">
-          <h2>Uebersichtlicher Fortschritt</h2>
-          <p>Sieh sofort, was erledigt ist, wo Kontinuitaet fehlt und wie nah du deinem Ziel bist.</p>
+          <h2 data-i18n-de="Uebersichtlicher Fortschritt" data-i18n-en="Clear progress tracking">Uebersichtlicher Fortschritt</h2>
+          <p data-i18n-de="Sieh sofort, was erledigt ist, wo Kontinuitaet fehlt und wie nah du deinem Ziel bist." data-i18n-en="Instantly see what is done, where consistency is missing, and how close you are to your goal.">Sieh sofort, was erledigt ist, wo Kontinuitaet fehlt und wie nah du deinem Ziel bist.</p>
         </article>
         <article class="card">
-          <h2>Plan-Import</h2>
-          <p>Importiere bestehende Trainingsplaene und ueberfuehre sie in deinen persoenlichen Workflow.</p>
+          <h2 data-i18n-de="Plan-Import" data-i18n-en="Plan import">Plan-Import</h2>
+          <p data-i18n-de="Importiere bestehende Trainingsplaene und ueberfuehre sie in deinen persoenlichen Workflow." data-i18n-en="Import existing training plans and bring them into your personal workflow.">Importiere bestehende Trainingsplaene und ueberfuehre sie in deinen persoenlichen Workflow.</p>
         </article>
         <article class="card">
-          <h2>Wochen- und Tagesansicht</h2>
-          <p>Nutze unterschiedliche Ansichten fuer schnelle Entscheidungen und langfristige Planung.</p>
+          <h2 data-i18n-de="Wochen- und Tagesansicht" data-i18n-en="Weekly and daily views">Wochen- und Tagesansicht</h2>
+          <p data-i18n-de="Nutze unterschiedliche Ansichten fuer schnelle Entscheidungen und langfristige Planung." data-i18n-en="Use different views for quick decisions and long-term planning.">Nutze unterschiedliche Ansichten fuer schnelle Entscheidungen und langfristige Planung.</p>
         </article>
         <article class="card">
-          <h2>Motivierende Klarheit</h2>
-          <p>Weniger Chaos, mehr Fokus: jede Einheit hat ihren Platz in deinem Gesamtbild.</p>
+          <h2 data-i18n-de="Motivierende Klarheit" data-i18n-en="Motivating clarity">Motivierende Klarheit</h2>
+          <p data-i18n-de="Weniger Chaos, mehr Fokus: jede Einheit hat ihren Platz in deinem Gesamtbild." data-i18n-en="Less chaos, more focus: every session has its place in your overall plan.">Weniger Chaos, mehr Fokus: jede Einheit hat ihren Platz in deinem Gesamtbild.</p>
         </article>
       </section>
 
-      <p class="highlight">
+      <p class="highlight" data-i18n-html-de="<strong>Ergebnis:</strong> ein Trainingssystem, das ambitioniert ist, aber im Alltag realistisch bleibt." data-i18n-html-en="<strong>Result:</strong> a training system that is ambitious yet realistic for everyday life.">
         <strong>Ergebnis:</strong> ein Trainingssystem, das ambitioniert ist, aber im Alltag realistisch bleibt.
       </p>
 
       <div class="actions">
-        <a class="cta btn-primary" href="pricing.html">Pricing ansehen</a>
-        <a class="cta" href="index.html">Zurueck zur Startseite</a>
+        <a class="cta btn-primary" href="pricing.html" data-i18n-de="Pricing ansehen" data-i18n-en="See pricing">Pricing ansehen</a>
+        <a class="cta" href="index.html" data-i18n-de="Zurueck zur Startseite" data-i18n-en="Back to home">Zurueck zur Startseite</a>
       </div>
     </section>
 
     <footer class="legal-footer">
-      <a href="impressum.html">Impressum</a>
-      <a href="datenschutz.html">Datenschutz</a>
+      <a href="impressum.html" data-i18n-de="Impressum" data-i18n-en="Legal Notice">Impressum</a>
+      <a href="datenschutz.html" data-i18n-de="Datenschutz" data-i18n-en="Privacy Policy">Datenschutz</a>
     </footer>
   </main>
+  <script src="i18n.js"></script>
 </body>
 </html>
+

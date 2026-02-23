@@ -1,10 +1,10 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Smart Trainingsplan | Performance Training Reimagined</title>
-  <meta name="description" content="Smart Trainingsplan bringt Wettkampfziel, Wochenplan und Fortschritt in eine klare, moderne Plattform.">
+  <title>Pacr | Performance Training Reimagined</title>
+  <meta name="description" content="Pacr bringt Wettkampfziel, Wochenplan und Fortschritt in eine klare, moderne Plattform." data-i18n-content-de="Pacr bringt Wettkampfziel, Wochenplan und Fortschritt in eine klare, moderne Plattform." data-i18n-content-en="Pacr combines race goals, weekly planning, and progress tracking in one clear, modern platform.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -41,6 +41,33 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 56px 24px 80px;
+    }
+
+    .lang-switch {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(11, 15, 26, 0.55);
+      overflow: hidden;
+    }
+
+    .lang-btn {
+      border: 0;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    .lang-btn.active {
+      color: #ffffff;
+      background: rgba(45, 123, 255, 0.55);
     }
 
     .hero {
@@ -232,42 +259,48 @@
     }
   </style>
 </head>
-<body>
+<body data-title-de="Pacr | Performance Training Reimagined" data-title-en="Pacr | Performance Training Reimagined">
   <main class="page">
     <section class="hero">
+      <div class="lang-switch">
+        <button class="lang-btn" data-lang-switch="de" aria-pressed="false">DE</button>
+        <button class="lang-btn" data-lang-switch="en" aria-pressed="false">EN</button>
+      </div>
       <div class="hero-glow hero-glow-left"></div>
       <div class="hero-glow hero-glow-right"></div>
       <img class="hero-logo" src="pacr_logo.png" alt="PACR Logo">
-      <p class="hero-kicker">Performance Training Reimagined</p>
-      <h1><span class="gradient-text">Smart Trainingsplan</span> fuer deinen naechsten Wettkampf.</h1>
-      <p class="hero-subtitle">
+      <p class="hero-kicker" data-i18n-de="Performance Training Reimagined" data-i18n-en="Performance Training Reimagined">Performance Training Reimagined</p>
+      <h1 data-i18n-html-de="<span class='gradient-text'>Pacr</span> fuer deinen naechsten Wettkampf." data-i18n-html-en="<span class='gradient-text'>Pacr</span> for your next race."><span class="gradient-text">Pacr</span> fuer deinen naechsten Wettkampf.</h1>
+      <p class="hero-subtitle" data-i18n-de="Plane strukturiert, trainiere konsistent und behalte deinen Fortschritt in jeder Trainingswoche im Blick." data-i18n-en="Plan with structure, train consistently, and track your progress every week.">
         Plane strukturiert, trainiere konsistent und behalte deinen Fortschritt in jeder Trainingswoche im Blick.
       </p>
       <div class="hero-actions">
-        <a class="cta cta-primary" href="features.html">Jetzt starten</a>
-        <a class="cta cta-secondary" href="contact.html">Kontakt</a>
+        <a class="cta cta-primary" href="features.html" data-i18n-de="Jetzt starten" data-i18n-en="Get started">Jetzt starten</a>
+        <a class="cta cta-secondary" href="contact.html" data-i18n-de="Kontakt" data-i18n-en="Contact">Kontakt</a>
       </div>
     </section>
 
     <section class="features">
       <article class="feature-card">
-        <h2>Plan by race date</h2>
-        <p>Erstelle dein Wettkampfziel und erhalte einen klaren Fahrplan bis zum Renntag.</p>
+        <h2 data-i18n-de="Plan by race date" data-i18n-en="Plan by race date">Plan by race date</h2>
+        <p data-i18n-de="Erstelle dein Wettkampfziel und erhalte einen klaren Fahrplan bis zum Renntag." data-i18n-en="Set your race goal and get a clear roadmap to race day.">Erstelle dein Wettkampfziel und erhalte einen klaren Fahrplan bis zum Renntag.</p>
       </article>
       <article class="feature-card">
-        <h2>Track completion</h2>
-        <p>Verfolge deine absolvierten Einheiten und erkenne Formtrends auf einen Blick.</p>
+        <h2 data-i18n-de="Track completion" data-i18n-en="Track completion">Track completion</h2>
+        <p data-i18n-de="Verfolge deine absolvierten Einheiten und erkenne Formtrends auf einen Blick." data-i18n-en="Track completed sessions and spot performance trends at a glance.">Verfolge deine absolvierten Einheiten und erkenne Formtrends auf einen Blick.</p>
       </article>
       <article class="feature-card">
-        <h2>Everything in one place</h2>
-        <p>Training, Wochenuebersicht und Profilmanagement in einer einzigen App.</p>
+        <h2 data-i18n-de="Everything in one place" data-i18n-en="Everything in one place">Everything in one place</h2>
+        <p data-i18n-de="Training, Wochenuebersicht und Profilmanagement in einer einzigen App." data-i18n-en="Training, weekly overview, and profile management in one app.">Training, Wochenuebersicht und Profilmanagement in einer einzigen App.</p>
       </article>
     </section>
 
     <footer class="legal-footer">
-      <a href="impressum.html">Impressum</a>
-      <a href="datenschutz.html">Datenschutz</a>
+      <a href="impressum.html" data-i18n-de="Impressum" data-i18n-en="Legal Notice">Impressum</a>
+      <a href="datenschutz.html" data-i18n-de="Datenschutz" data-i18n-en="Privacy Policy">Datenschutz</a>
     </footer>
   </main>
+  <script src="i18n.js"></script>
 </body>
 </html>
+
