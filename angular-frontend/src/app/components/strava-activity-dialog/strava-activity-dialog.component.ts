@@ -8,7 +8,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
 import { ActivityMetrics, CompletedTraining } from '../../models/competition.model';
 import { ApiService } from '../../services/api.service';
 import { catchError, of } from 'rxjs';
@@ -29,7 +28,7 @@ export interface CompletedTrainingDialogData {
     MatCardModule,
     MatDividerModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
   ],
   templateUrl: './strava-activity-dialog.component.html',
   styleUrl: './strava-activity-dialog.component.scss'

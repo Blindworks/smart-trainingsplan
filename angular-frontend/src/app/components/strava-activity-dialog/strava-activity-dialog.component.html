@@ -202,48 +202,20 @@
       </mat-card-content>
     </mat-card>
 
-    <!-- Herzfrequenz-Zonen: kein Eintrag (altes Training) -->
-    <mat-card class="info-section info-section--zones" appearance="outlined"
-              *ngIf="activityMetrics === null && completed.averageHeartRate">
-      <mat-card-header>
-        <mat-icon mat-card-avatar class="zones-avatar-icon">bar_chart</mat-icon>
-        <mat-card-title>Herzfrequenz-Zonen</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <ng-container *ngIf="isStrava(); else fitHint">
-          <p class="zones-hint" *ngIf="!metricsComputing && !metricsComputeError">
-            Zonendaten noch nicht berechnet.
-          </p>
-          <p class="zones-hint zones-hint--error" *ngIf="metricsComputeError">{{ metricsComputeError }}</p>
-          <button mat-stroked-button class="compute-btn"
-                  (click)="computeStravaMetrics()"
-                  [disabled]="metricsComputing">
-            <mat-spinner *ngIf="metricsComputing" diameter="16"></mat-spinner>
-            <mat-icon *ngIf="!metricsComputing">bar_chart</mat-icon>
-            {{ metricsComputing ? 'Wird berechnet…' : 'Zonen jetzt berechnen' }}
-          </button>
-        </ng-container>
-        <ng-template #fitHint>
-          <p class="zones-hint">
-            Keine Zonendaten verfügbar. FIT-Datei erneut hochladen, um die Zonenanalyse zu berechnen.
-          </p>
-        </ng-template>
-      </mat-card-content>
-    </mat-card>
-
     <!-- Herzfrequenz-Zonen -->
     <mat-card class="info-section info-section--zones" appearance="outlined"
-              *ngIf="activityMetrics && !activityMetrics.zonesUnknown">
+              *ngIf="completed.averageHeartRate">
       <mat-card-header>
         <mat-icon mat-card-avatar class="zones-avatar-icon">bar_chart</mat-icon>
         <mat-card-title>Herzfrequenz-Zonen</mat-card-title>
-        <mat-card-subtitle *ngIf="activityMetrics.hrDataCoverage !== undefined">
+        <mat-card-subtitle *ngIf="activityMetrics && activityMetrics.hrDataCoverage != null">
           HR-Datenabdeckung: {{ (activityMetrics.hrDataCoverage * 100) | number:'1.0-0' }}%
         </mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <div class="zone-bars">
 
+        <!-- Zone bars when data is available -->
+        <div class="zone-bars" *ngIf="activityMetrics && !activityMetrics.zonesUnknown">
           <div class="zone-row">
             <span class="zone-label">Z1</span>
             <div class="zone-bar-track">
@@ -252,7 +224,6 @@
             </div>
             <span class="zone-time">{{ formatZoneMin(activityMetrics.z1Min) }}</span>
           </div>
-
           <div class="zone-row">
             <span class="zone-label">Z2</span>
             <div class="zone-bar-track">
@@ -261,7 +232,6 @@
             </div>
             <span class="zone-time">{{ formatZoneMin(activityMetrics.z2Min) }}</span>
           </div>
-
           <div class="zone-row">
             <span class="zone-label">Z3</span>
             <div class="zone-bar-track">
@@ -270,7 +240,6 @@
             </div>
             <span class="zone-time">{{ formatZoneMin(activityMetrics.z3Min) }}</span>
           </div>
-
           <div class="zone-row">
             <span class="zone-label">Z4</span>
             <div class="zone-bar-track">
@@ -279,7 +248,6 @@
             </div>
             <span class="zone-time">{{ formatZoneMin(activityMetrics.z4Min) }}</span>
           </div>
-
           <div class="zone-row">
             <span class="zone-label">Z5</span>
             <div class="zone-bar-track">
@@ -288,8 +256,32 @@
             </div>
             <span class="zone-time">{{ formatZoneMin(activityMetrics.z5Min) }}</span>
           </div>
-
         </div>
+
+        <!-- Strava: button always visible -->
+        <ng-container *ngIf="isStrava()">
+          <div class="zones-recompute"
+               [class.zones-recompute--separator]="activityMetrics && !activityMetrics.zonesUnknown">
+            <p class="zones-hint" *ngIf="!activityMetrics && !metricsComputing && !metricsComputeError">
+              Zonendaten noch nicht berechnet.
+            </p>
+            <p class="zones-hint zones-hint--error" *ngIf="metricsComputeError">{{ metricsComputeError }}</p>
+            <button mat-stroked-button class="compute-btn"
+                    (click)="computeStravaMetrics()"
+                    [disabled]="metricsComputing">
+              <mat-icon [class.spinning]="metricsComputing">
+                {{ metricsComputing ? 'sync' : (activityMetrics ? 'refresh' : 'bar_chart') }}
+              </mat-icon>
+              {{ metricsComputing ? 'Wird berechnet…' : 'Zonen jetzt berechnen' }}
+            </button>
+          </div>
+        </ng-container>
+
+        <!-- FIT: hint only when no data -->
+        <p class="zones-hint" *ngIf="!isStrava() && !activityMetrics">
+          Keine Zonendaten verfügbar. FIT-Datei erneut hochladen, um die Zonenanalyse zu berechnen.
+        </p>
+
       </mat-card-content>
     </mat-card>
 
