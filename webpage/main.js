@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const cards = document.querySelectorAll(".features-section .feature-card");
+  const cards = document.querySelectorAll(
+    ".features-section .feature-card, .coming-soon-section .coming-card"
+  );
 
   if (!cards.length) {
     return;

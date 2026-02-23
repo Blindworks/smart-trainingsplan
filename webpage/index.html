@@ -304,6 +304,119 @@
       line-height: 1.3;
     }
 
+    .coming-soon-section {
+      margin-top: 24px;
+    }
+
+    .coming-container {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 30px 20px;
+      background:
+        radial-gradient(circle at 78% 8%, rgba(45, 123, 255, 0.08), transparent 36%),
+        linear-gradient(165deg, rgba(16, 22, 36, 0.9) 0%, rgba(12, 18, 30, 0.94) 100%);
+      backdrop-filter: blur(2px);
+    }
+
+    .coming-header h2 {
+      margin: 0;
+      font-size: clamp(1.45rem, 2.9vw, 2rem);
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      text-align: center;
+    }
+
+    .coming-header p {
+      margin: 12px auto 0;
+      max-width: 760px;
+      text-align: center;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .coming-grid {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .coming-card {
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 18px;
+      background: rgba(21, 28, 44, 0.74);
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .coming-card.is-hidden {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    .coming-card.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.42s ease-out, transform 0.42s ease-out;
+    }
+
+    .coming-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(45, 123, 255, 0.45);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+    }
+
+    .coming-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(45, 123, 255, 0.55);
+      background: rgba(45, 123, 255, 0.11);
+      color: var(--text-primary);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .coming-card h3 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      line-height: 1.35;
+      padding-right: 90px;
+    }
+
+    .coming-description {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
+    .coming-value {
+      margin: 10px 0 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .coming-mini-cta {
+      margin-top: 22px;
+      text-align: center;
+    }
+
+    .coming-mini-cta h3 {
+      margin: 0 0 12px;
+      font-size: 1.2rem;
+      line-height: 1.3;
+    }
+
     .features {
       margin-top: 28px;
       display: grid;
@@ -382,11 +495,23 @@
       .features-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      .coming-container {
+        padding: 34px 24px;
+      }
+
+      .coming-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     @media (min-width: 1080px) {
       .features-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .coming-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
   </style>
@@ -490,6 +615,59 @@
         <div class="section-cta">
           <h3 data-i18n-de="Bereit, deinen echten Strain zu sehen?" data-i18n-en="Ready to see your real Strain?">Bereit, deinen echten Strain zu sehen?</h3>
           <a class="cta cta-primary" href="contact.html" data-i18n-de="Verbinde dein Strava" data-i18n-en="Connect your Strava">Verbinde dein Strava</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="coming-soon-section" id="coming-soon" aria-labelledby="coming-soon-title">
+      <div class="coming-container">
+        <div class="coming-header">
+          <h2 id="coming-soon-title">What&apos;s next for PACR</h2>
+          <p>We&apos;re building the most intelligent performance system for runners - and this is just the beginning.</p>
+        </div>
+
+        <div class="coming-grid">
+          <div class="coming-card">
+            <span class="coming-badge">Coming Soon</span>
+            <h3>Critical Pace &amp; Performance Modeling</h3>
+            <p class="coming-description">Automatically calculate your critical pace and anaerobic capacity from real race efforts and hard sessions.</p>
+            <p class="coming-value"><strong>Value:</strong> Race prediction and pacing strategy built on real data.</p>
+          </div>
+          <div class="coming-card">
+            <span class="coming-badge">Coming Soon</span>
+            <h3>Real Recovery (HRV + Sleep Integration)</h3>
+            <p class="coming-description">Connect Garmin, Apple Health, or WHOOP to unlock full recovery scoring based on HRV and sleep quality.</p>
+            <p class="coming-value"><strong>Value:</strong> True readiness instead of load-only estimation.</p>
+          </div>
+          <div class="coming-card">
+            <span class="coming-badge">Coming Soon</span>
+            <h3>Race Predictor Engine</h3>
+            <p class="coming-description">Dynamic 5K, 10K, Half, and Marathon predictions updated weekly based on your fitness trend.</p>
+            <p class="coming-value"><strong>Value:</strong> See exactly where your training is taking you.</p>
+          </div>
+          <div class="coming-card">
+            <span class="coming-badge">Coming Soon</span>
+            <h3>Fatigue Pattern Detection</h3>
+            <p class="coming-description">Machine learning identifies recurring overload patterns before performance drops.</p>
+            <p class="coming-value"><strong>Value:</strong> Prevent stagnation and overtraining cycles.</p>
+          </div>
+          <div class="coming-card">
+            <span class="coming-badge">Coming Soon</span>
+            <h3>Heat &amp; Elevation Adjustment Model</h3>
+            <p class="coming-description">Automatically normalize performance for temperature, humidity, and elevation gain.</p>
+            <p class="coming-value"><strong>Value:</strong> Compare efforts fairly across conditions.</p>
+          </div>
+          <div class="coming-card">
+            <span class="coming-badge">Coming Soon</span>
+            <h3>AI Training Recommendations</h3>
+            <p class="coming-description">Personalized weekly suggestions based on load, trend, and performance signals.</p>
+            <p class="coming-value"><strong>Value:</strong> Train smarter without hiring a coach.</p>
+          </div>
+        </div>
+
+        <div class="coming-mini-cta">
+          <h3>Be first when these go live.</h3>
+          <a class="cta cta-secondary" href="contact.html">Join the early access list</a>
         </div>
       </div>
     </section>
