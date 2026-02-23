@@ -320,15 +320,38 @@
         <span class="strain-rawload-value">{{ activityMetrics.rawLoad! | number:'1.0-1' }}</span>
       </div>
 
-      <div class="strain-trimp" *ngIf="activityMetrics.trimp != null">
-        <span class="info-label">TRIMP (Bannister)</span>
-        <div class="strain-trimp-value-row">
-          <span class="strain-trimp-value">{{ activityMetrics.trimp | number:'1.0-1' }}</span>
+      <!-- TRIMP graphical display -->
+      <div class="trimp-section" *ngIf="activityMetrics.trimp != null">
+        <mat-divider class="trimp-divider"></mat-divider>
+
+        <div class="trimp-score-row">
+          <span class="trimp-score-label">TRIMP</span>
+          <span class="trimp-score-value" [style.color]="getTRIMPColor(activityMetrics.trimp!)">
+            {{ activityMetrics.trimp! | number:'1.0-0' }}
+          </span>
+          <span class="trimp-category" [style.color]="getTRIMPColor(activityMetrics.trimp!)">
+            {{ getTRIMPCategory(activityMetrics.trimp!) }}
+          </span>
           <span *ngIf="activityMetrics.trimpQuality === 'LOW'"
                 class="trimp-quality-badge"
                 matTooltip="HR-Datenabdeckung unter 60 % – TRIMP möglicherweise ungenau">
-            Niedrige Abdeckung
+            <mat-icon class="trimp-warn-icon">warning_amber</mat-icon>
           </span>
+        </div>
+
+        <div class="trimp-gauge-track">
+          <div class="trimp-gauge-fill"
+               [style.width.%]="getTRIMPGaugeWidth(activityMetrics.trimp!)"
+               [style.background-color]="getTRIMPColor(activityMetrics.trimp!)">
+          </div>
+        </div>
+
+        <div class="trimp-scale">
+          <span>0</span>
+          <span>50</span>
+          <span>100</span>
+          <span>150</span>
+          <span>200+</span>
         </div>
       </div>
 

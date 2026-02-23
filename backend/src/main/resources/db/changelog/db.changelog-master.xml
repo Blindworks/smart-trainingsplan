@@ -19,5 +19,6 @@
     <include file="db/changelog/changes/013-add-daily-metrics.xml"/>
     <include file="db/changelog/changes/014-add-trimp-to-activity-metrics.xml"/>
     <include file="db/changelog/changes/015-add-user-hr-rest-gender.xml"/>
+    <include file="db/changelog/changes/016-add-daily-trimp.xml"/>
 
 </databaseChangeLog>

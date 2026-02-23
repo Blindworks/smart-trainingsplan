@@ -77,6 +77,74 @@
     </article>
   </div>
 
+  <!-- TRIMP History Chart -->
+  <div class="trimp-chart-card" *ngIf="!loading && trimpChartHasData">
+    <div class="trimp-chart-header">
+      <div class="trimp-chart-title-group">
+        <div class="trimp-chart-icon">
+          <mat-icon>bolt</mat-icon>
+        </div>
+        <div>
+          <h2>TRIMP Verlauf</h2>
+          <p>Letzte 30 Tage</p>
+        </div>
+      </div>
+      <div class="trimp-chart-stats">
+        <div class="trimp-stat">
+          <span class="trimp-stat-value">{{ trimpChartStats.avg }}</span>
+          <span class="trimp-stat-label">Ø TRIMP</span>
+        </div>
+        <div class="trimp-stat">
+          <span class="trimp-stat-value">{{ trimpChartStats.max }}</span>
+          <span class="trimp-stat-label">Max</span>
+        </div>
+        <div class="trimp-stat">
+          <span class="trimp-stat-value">{{ trimpChartStats.sessions }}</span>
+          <span class="trimp-stat-label">Einheiten</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="trimp-chart-area">
+      <div class="trimp-chart-bars">
+        <div class="trimp-bar-slot"
+             *ngFor="let p of trimpChart"
+             [title]="p.tooltip">
+          <div class="trimp-bar"
+               [style.height.%]="p.pct"
+               [style.background-color]="p.color"
+               [class.trimp-bar--empty]="p.trimp == null">
+          </div>
+        </div>
+      </div>
+      <div class="trimp-chart-labels">
+        <div class="trimp-label-slot" *ngFor="let p of trimpChart">
+          <span *ngIf="p.showLabel">{{ p.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color legend -->
+    <div class="trimp-legend">
+      <div class="trimp-legend-item">
+        <span class="trimp-legend-dot" style="background:#66bb6a"></span>
+        <span>Leicht (&lt;50)</span>
+      </div>
+      <div class="trimp-legend-item">
+        <span class="trimp-legend-dot" style="background:#ffca28"></span>
+        <span>Moderat (50–100)</span>
+      </div>
+      <div class="trimp-legend-item">
+        <span class="trimp-legend-dot" style="background:#ff7043"></span>
+        <span>Hoch (100–150)</span>
+      </div>
+      <div class="trimp-legend-item">
+        <span class="trimp-legend-dot" style="background:#ef5350"></span>
+        <span>Sehr hoch (&gt;150)</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Empty state -->
   <div class="empty-state" *ngIf="!loading && metrics.length === 0 && todayStrain == null">
     <div class="empty-icon">

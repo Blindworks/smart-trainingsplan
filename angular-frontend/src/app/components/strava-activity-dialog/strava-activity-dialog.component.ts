@@ -201,4 +201,22 @@ export class StravaActivityDialogComponent implements OnInit {
   getStrainGaugeWidth(strain21: number): number {
     return Math.min((strain21 / 21) * 100, 100);
   }
+
+  getTRIMPColor(trimp: number): string {
+    if (trimp >= 150) return '#ef5350'; // rot — sehr hoch
+    if (trimp >= 100) return '#ff7043'; // orange — hoch
+    if (trimp >= 50)  return '#ffca28'; // gelb — moderat
+    return '#66bb6a';                   // grün — leicht
+  }
+
+  getTRIMPCategory(trimp: number): string {
+    if (trimp >= 150) return 'Sehr hoch';
+    if (trimp >= 100) return 'Hoch';
+    if (trimp >= 50)  return 'Moderat';
+    return 'Leicht';
+  }
+
+  getTRIMPGaugeWidth(trimp: number): number {
+    return Math.min((trimp / 200) * 100, 100);
+  }
 }

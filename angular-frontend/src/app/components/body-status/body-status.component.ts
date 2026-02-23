@@ -7,6 +7,16 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiService } from '../../services/api.service';
 import { BodyMetric, DailyMetrics } from '../../models/competition.model';
 
+interface TrIMPChartPoint {
+  date: string;
+  label: string;
+  showLabel: boolean;
+  trimp: number | null;
+  pct: number;
+  color: string;
+  tooltip: string;
+}
+
 @Component({
   selector: 'app-body-status',
   standalone: true,
@@ -27,6 +37,9 @@ export class BodyStatusComponent implements OnInit {
   todayStrain: number | null = null;
   todayStrainDate: string | null = null;
 
+  trimpChart: TrIMPChartPoint[] = [];
+  trimpChartStats = { avg: 0, max: 0, sessions: 0 };
+
   constructor(
     private apiService: ApiService,
     private snackBar: MatSnackBar
@@ -34,7 +47,7 @@ export class BodyStatusComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMetrics();
-    this.loadTodayStrain();
+    this.loadDailyHistory();
   }
 
   loadMetrics(): void {
@@ -51,21 +64,20 @@ export class BodyStatusComponent implements OnInit {
     });
   }
 
-  private todayString(): string {
-    const d = new Date();
+  private formatDateLocal(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
-  loadTodayStrain(): void {
-    // Look back up to 7 days to find the most recent day with strain data
+  loadDailyHistory(): void {
     const today = new Date();
     const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 6);
-    const start = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
-    const end = this.todayString();
+    startDate.setDate(today.getDate() - 29); // 30-day window
+    const start = this.formatDateLocal(startDate);
+    const end = this.formatDateLocal(today);
 
     this.apiService.getDailyMetrics(start, end).subscribe({
       next: (metrics: DailyMetrics[]) => {
+        // Most recent day with strain data
         const sorted = metrics
           .filter(m => m.dailyStrain21 != null)
           .sort((a, b) => b.date.localeCompare(a.date));
@@ -73,9 +85,66 @@ export class BodyStatusComponent implements OnInit {
           this.todayStrain = sorted[0].dailyStrain21!;
           this.todayStrainDate = sorted[0].date;
         }
+        // Build TRIMP chart
+        this.buildTrIMPChart(metrics, startDate, today);
       },
       error: () => {}
     });
+  }
+
+  private buildTrIMPChart(metrics: DailyMetrics[], from: Date, to: Date): void {
+    const map = new Map<string, number>();
+    let max = 0;
+    let sum = 0;
+    let count = 0;
+
+    for (const m of metrics) {
+      if (m.dailyTrimp != null && m.dailyTrimp > 0) {
+        map.set(m.date, m.dailyTrimp);
+        if (m.dailyTrimp > max) max = m.dailyTrimp;
+        sum += m.dailyTrimp;
+        count++;
+      }
+    }
+
+    const yMax = Math.max(200, max);
+    const points: TrIMPChartPoint[] = [];
+
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(from);
+      d.setDate(from.getDate() + i);
+      const dateStr = this.formatDateLocal(d);
+      const trimp = map.get(dateStr) ?? null;
+      const label = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+      points.push({
+        date: dateStr,
+        label,
+        showLabel: i % 7 === 0 || i === 29,
+        trimp,
+        pct: trimp != null ? Math.max((trimp / yMax) * 100, 1) : 0,
+        color: trimp != null ? this.getTRIMPBarColor(trimp) : 'transparent',
+        tooltip: trimp != null ? `${label}: TRIMP ${trimp.toFixed(0)}` : `${label}: kein Training`
+      });
+    }
+
+    this.trimpChart = points;
+    this.trimpChartStats = {
+      avg: count > 0 ? Math.round(sum / count) : 0,
+      max: Math.round(max),
+      sessions: count
+    };
+  }
+
+  get trimpChartHasData(): boolean {
+    return this.trimpChartStats.sessions > 0;
+  }
+
+  getTRIMPBarColor(trimp: number): string {
+    if (trimp >= 150) return '#ef5350';
+    if (trimp >= 100) return '#ff7043';
+    if (trimp >= 50)  return '#ffca28';
+    return '#66bb6a';
   }
 
   getStrainColor(strain: number): string {
@@ -103,6 +172,7 @@ export class BodyStatusComponent implements OnInit {
           { duration: 4000 }
         );
         this.loadMetrics();
+        this.loadDailyHistory();
       },
       error: () => {
         this.recalculating = false;

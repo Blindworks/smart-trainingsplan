@@ -32,6 +32,10 @@ public class DailyMetrics {
     @Column(name = "daily_strain21")
     private Double dailyStrain21;
 
+    /** Sum of TRIMP values for all activities on this day. */
+    @Column(name = "daily_trimp")
+    private Double dailyTrimp;
+
     public DailyMetrics() {}
 
     public Long getId() { return id; }
@@ -44,4 +48,7 @@ public class DailyMetrics {
 
     public Double getDailyStrain21() { return dailyStrain21; }
     public void setDailyStrain21(Double dailyStrain21) { this.dailyStrain21 = dailyStrain21; }
+
+    public Double getDailyTrimp() { return dailyTrimp; }
+    public void setDailyTrimp(Double dailyTrimp) { this.dailyTrimp = dailyTrimp; }
 }

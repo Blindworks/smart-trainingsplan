@@ -24,13 +24,15 @@ public class DailyMetricsService {
     private DailyMetricsRepository dailyMetricsRepository;
 
     /**
-     * Recomputes and upserts the daily strain21 aggregate for {@code user} on {@code date}.
+     * Recomputes and upserts the daily strain21 and TRIMP aggregates for {@code user} on {@code date}.
      */
     public void updateDailyStrain(User user, LocalDate date) {
-        Double total = activityMetricsRepository.sumStrain21ByUserIdAndDate(user.getId(), date);
-        if (total == null) {
-            total = 0.0;
+        Double totalStrain = activityMetricsRepository.sumStrain21ByUserIdAndDate(user.getId(), date);
+        if (totalStrain == null) {
+            totalStrain = 0.0;
         }
+
+        Double totalTrimp = activityMetricsRepository.sumTrimpByUserIdAndDate(user.getId(), date);
 
         DailyMetrics daily = dailyMetricsRepository
                 .findByUserIdAndDate(user.getId(), date)
@@ -38,7 +40,8 @@ public class DailyMetricsService {
 
         daily.setUser(user);
         daily.setDate(date);
-        daily.setDailyStrain21(total);
+        daily.setDailyStrain21(totalStrain);
+        daily.setDailyTrimp(totalTrimp);
         dailyMetricsRepository.save(daily);
     }
 }

@@ -16,4 +16,9 @@ public interface ActivityMetricsRepository extends JpaRepository<ActivityMetrics
            "JOIN am.completedTraining ct " +
            "WHERE ct.user.id = :userId AND ct.trainingDate = :date AND am.strain21 IS NOT NULL")
     Double sumStrain21ByUserIdAndDate(@Param("userId") Long userId, @Param("date") LocalDate date);
+
+    @Query("SELECT SUM(am.trimp) FROM ActivityMetrics am " +
+           "JOIN am.completedTraining ct " +
+           "WHERE ct.user.id = :userId AND ct.trainingDate = :date AND am.trimp IS NOT NULL")
+    Double sumTrimpByUserIdAndDate(@Param("userId") Long userId, @Param("date") LocalDate date);
 }

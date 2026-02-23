@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="016-add-daily-trimp" author="trainingsplan">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="daily_metrics" columnName="daily_trimp"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="daily_metrics">
+            <column name="daily_trimp" type="DOUBLE">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

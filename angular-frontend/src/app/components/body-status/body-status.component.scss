@@ -220,6 +220,162 @@
   min-width: 2px;
 }
 
+// ─── TRIMP History Chart ───────────────────────────────────────────────────────
+
+.trimp-chart-card {
+  margin-top: 24px;
+  background: var(--gradient-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 24px;
+}
+
+.trimp-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.trimp-chart-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .trimp-chart-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 112, 67, 0.12);
+    color: #ff7043;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 2px 0 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+}
+
+.trimp-chart-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.trimp-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.trimp-stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.trimp-stat-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.trimp-chart-area {
+  overflow: hidden;
+}
+
+.trimp-chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 110px;
+}
+
+.trimp-bar-slot {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+  cursor: default;
+
+  &:hover .trimp-bar:not(.trimp-bar--empty) {
+    filter: brightness(1.2);
+  }
+}
+
+.trimp-bar {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  transition: height 0.5s ease, filter 0.15s ease;
+
+  &--empty {
+    height: 2px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 1px;
+  }
+}
+
+.trimp-chart-labels {
+  display: flex;
+  gap: 3px;
+  margin-top: 6px;
+}
+
+.trimp-label-slot {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+
+  span {
+    font-size: 9px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
+
+.trimp-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.trimp-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.trimp-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
 // ─── Responsive ────────────────────────────────────────────────────────────────
 
 @media (max-width: 600px) {
@@ -240,4 +396,16 @@
     grid-template-columns: 1fr;
   }
 
+  .trimp-chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .trimp-chart-stats {
+    gap: 16px;
+  }
+
+  .trimp-legend {
+    gap: 10px;
+  }
 }
