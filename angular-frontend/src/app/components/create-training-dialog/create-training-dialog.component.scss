@@ -1,0 +1,137 @@
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border-radius: 14px;
+  overflow: hidden;
+  width: 100%;
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────────
+
+.dialog-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    padding-right: 36px;
+
+    mat-icon {
+      background: var(--gradient-btn);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+  }
+
+  .header-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding-left: 32px;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 14px;
+    right: 12px;
+    color: var(--text-muted) !important;
+    width: 32px;
+    height: 32px;
+
+    &:hover {
+      color: var(--text-primary) !important;
+      background-color: rgba(255, 255, 255, 0.06) !important;
+    }
+
+    mat-icon {
+      font-size: 18px;
+    }
+  }
+}
+
+// ─── Form ─────────────────────────────────────────────────────────────────────
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 20px 8px;
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px 20px;
+  border-top: 1px solid var(--border-subtle);
+
+  button[mat-button] {
+    color: var(--text-secondary) !important;
+    font-size: 13px;
+    font-weight: 500;
+
+    &:hover {
+      color: var(--text-primary) !important;
+      background-color: rgba(255, 255, 255, 0.06) !important;
+    }
+  }
+
+  button[mat-flat-button] {
+    background: var(--gradient-btn) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 12px rgba(45, 123, 255, 0.3) !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 20px rgba(45, 123, 255, 0.5) !important;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+    }
+  }
+}

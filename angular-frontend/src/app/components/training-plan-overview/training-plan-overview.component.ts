@@ -18,6 +18,7 @@ import { ApiService } from '../../services/api.service';
 import { Competition, Training, CompletedTraining } from '../../models/competition.model';
 import { TrainingDetailsDialogComponent } from '../training-details-dialog/training-details-dialog.component';
 import { StravaActivityDialogComponent, CompletedTrainingDialogData } from '../strava-activity-dialog/strava-activity-dialog.component';
+import { CreateTrainingDialogComponent } from '../create-training-dialog/create-training-dialog.component';
 import { Subject, takeUntil, catchError, of, switchMap } from 'rxjs';
 
 interface DayTraining {
@@ -423,6 +424,23 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       // Handle any actions after dialog closes if needed
       // For example, refresh data if training was modified
+    });
+  }
+
+  openCreateTrainingDialog(date: string): void {
+    const dialogRef = this.dialog.open(CreateTrainingDialogComponent, {
+      width: '480px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'create-training-dialog',
+      data: { date }
+    });
+
+    dialogRef.afterClosed().subscribe(created => {
+      if (created) {
+        this.snackBar.open('Training erstellt', 'Schließen', { duration: 2000 });
+        this.loadWeekData();
+      }
     });
   }
 

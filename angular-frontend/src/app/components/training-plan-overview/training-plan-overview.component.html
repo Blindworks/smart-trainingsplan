@@ -134,6 +134,14 @@
         <div class="empty-day" *ngIf="day.isEmpty">
           <mat-icon>fitness_center</mat-icon>
           <p>Kein Training geplant</p>
+          <button
+            mat-stroked-button
+            class="add-training-btn"
+            (click)="openCreateTrainingDialog(day.date)"
+            matTooltip="Training für diesen Tag erstellen">
+            <mat-icon>add</mat-icon>
+            Training eintragen
+          </button>
         </div>
       </div>
     </div>
