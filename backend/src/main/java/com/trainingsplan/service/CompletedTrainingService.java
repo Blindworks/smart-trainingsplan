@@ -15,6 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +32,9 @@ public class CompletedTrainingService {
     private BodyMetricService bodyMetricService;
 
     @Autowired
+    private ActivityMetricsService activityMetricsService;
+
+    @Autowired
     private SecurityUtils securityUtils;
 
     public CompletedTraining uploadAndParseFitFile(MultipartFile file, LocalDate trainingDate) throws IOException {
@@ -43,9 +47,9 @@ public class CompletedTrainingService {
         training.setOriginalFilename(file.getOriginalFilename());
         training.setUploadDate(LocalDateTime.now());
 
+        FitDataCollector collector;
         try {
-            // Echtes FIT-File Parsing
-            parseFitFileReal(file.getBytes(), training);
+            collector = parseFitFileReal(file.getBytes(), training);
         } catch (Exception e) {
             throw new IOException("Fehler beim Parsen der FIT-Datei: " + e.getMessage(), e);
         }
@@ -54,8 +58,15 @@ public class CompletedTrainingService {
         training.setUser(currentUser);
         CompletedTraining savedTraining = completedTrainingRepository.save(training);
 
-        // Calculate and persist body metrics (VO2Max etc.) from this activity
+        // Calculate and persist body metrics (VO2Max etc.)
         bodyMetricService.calculateAndStore(savedTraining, currentUser);
+
+        // Calculate and persist HR zone metrics from the collected stream
+        activityMetricsService.calculateAndPersist(
+                savedTraining,
+                collector.getTimeSeconds(),
+                collector.getHeartRates(),
+                currentUser);
 
         // If trainingId is provided, mark the planned training as completed
         if (trainingId != null) {
@@ -64,19 +75,19 @@ public class CompletedTrainingService {
                 trainingService.updateTrainingFeedback(trainingId, true, "completed");
             }
         }
-        
+
         return savedTraining;
     }
 
-    private void parseFitFileReal(byte[] fitData, CompletedTraining training) {
+    private FitDataCollector parseFitFileReal(byte[] fitData, CompletedTraining training) {
         Decode decode = new Decode();
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
-        
+
         FitDataCollector collector = new FitDataCollector(training);
         mesgBroadcaster.addListener(collector);
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(fitData);
-        
+
         if (!decode.checkFileIntegrity(inputStream)) {
             throw new RuntimeException("FIT-Datei ist beschädigt oder ungültig");
         }
@@ -88,10 +99,20 @@ public class CompletedTrainingService {
         } catch (Exception e) {
             throw new RuntimeException("Fehler beim Lesen der FIT-Datei: " + e.getMessage(), e);
         }
+
+        return collector;
     }
-    
+
     private static class FitDataCollector implements MesgListener {
         private final CompletedTraining training;
+
+        // HR stream: raw FIT timestamps (seconds since Garmin epoch) and bpm values
+        private final List<Long> rawTimestamps = new ArrayList<>();
+        private final List<Integer> rawHeartRates = new ArrayList<>();
+
+        // Computed after finalizeData()
+        private List<Integer> timeSeconds = new ArrayList<>();
+        private List<Integer> heartRates = new ArrayList<>();
 
         public FitDataCollector(CompletedTraining training) {
             this.training = training;
@@ -99,110 +120,125 @@ public class CompletedTrainingService {
 
         @Override
         public void onMesg(Mesg mesg) {
-            String mesgName = mesg.getName();
-            
-            switch (mesgName) {
-                case "activity":
-                    handleActivity(mesg);
-                    break;
-                case "session":
-                    handleSession(mesg);
-                    break;
-                case "device_info":
-                    handleDeviceInfo(mesg);
-                    break;
+            switch (mesg.getName()) {
+                case "activity":    handleActivity(mesg);   break;
+                case "session":     handleSession(mesg);    break;
+                case "device_info": handleDeviceInfo(mesg); break;
+                case "record":      handleRecord(mesg);     break;
             }
         }
-        
-        private void handleActivity(Mesg mesg) {
-            // Nur die direkten Werte aus der FIT-Datei nehmen
-            setFieldValue(mesg, "total_distance", val -> training.setDistanceKm(val / 1000.0));
-            setFieldValue(mesg, "total_timer_time", val -> training.setDurationSeconds(val.intValue()));
-            setFieldValue(mesg, "total_moving_time", val -> training.setMovingTimeSeconds(val.intValue()));
-            setFieldValue(mesg, "total_calories", val -> training.setCalories(val.intValue()));
-            setFieldValue(mesg, "total_ascent", val -> training.setElevationGainM(val.intValue()));
-            setFieldValue(mesg, "total_descent", val -> training.setElevationLossM(val.intValue()));
+
+        private void handleRecord(Mesg mesg) {
+            // Timestamp: raw seconds since Garmin FIT epoch (Dec 31, 1989)
+            Field tsField = mesg.getField("timestamp");
+            if (tsField == null || tsField.getValue() == null) return;
+
+            Long ts = tsField.getLongValue();
+            if (ts == null) return;
+
+            // Heart rate may be absent in some record messages (GPS-only ticks)
+            Field hrField = mesg.getField("heart_rate");
+            Integer hr = null;
+            if (hrField != null && hrField.getValue() != null) {
+                Double hrVal = hrField.getDoubleValue();
+                if (hrVal != null) hr = hrVal.intValue();
+            }
+
+            rawTimestamps.add(ts);
+            rawHeartRates.add(hr); // may be null
         }
-        
+
+        private void handleActivity(Mesg mesg) {
+            setFieldValue(mesg, "total_distance",    val -> training.setDistanceKm(val / 1000.0));
+            setFieldValue(mesg, "total_timer_time",  val -> training.setDurationSeconds(val.intValue()));
+            setFieldValue(mesg, "total_moving_time", val -> training.setMovingTimeSeconds(val.intValue()));
+            setFieldValue(mesg, "total_calories",    val -> training.setCalories(val.intValue()));
+            setFieldValue(mesg, "total_ascent",      val -> training.setElevationGainM(val.intValue()));
+            setFieldValue(mesg, "total_descent",     val -> training.setElevationLossM(val.intValue()));
+        }
+
         private void handleSession(Mesg mesg) {
-            // Sport
-            setFieldString(mesg, "sport", val -> training.setSport(val.toLowerCase()));
+            setFieldString(mesg, "sport",     val -> training.setSport(val.toLowerCase()));
             setFieldString(mesg, "sub_sport", val -> training.setSubSport(val.toLowerCase()));
-            
-            // Direkte Werte aus Session - KEINE Berechnungen
-            setFieldValue(mesg, "avg_speed", val -> training.setAverageSpeedKmh(val * 3.6));
-            setFieldValue(mesg, "max_speed", val -> training.setMaxSpeedKmh(val * 3.6));
-            setFieldValue(mesg, "avg_heart_rate", val -> training.setAverageHeartRate(val.intValue()));
-            setFieldValue(mesg, "max_heart_rate", val -> training.setMaxHeartRate(val.intValue()));
-            setFieldValue(mesg, "min_heart_rate", val -> training.setMinHeartRate(val.intValue()));
-            setFieldValue(mesg, "avg_power", val -> training.setAveragePowerWatts(val.intValue()));
-            setFieldValue(mesg, "max_power", val -> training.setMaxPowerWatts(val.intValue()));
+
+            setFieldValue(mesg, "avg_speed",        val -> training.setAverageSpeedKmh(val * 3.6));
+            setFieldValue(mesg, "max_speed",        val -> training.setMaxSpeedKmh(val * 3.6));
+            setFieldValue(mesg, "avg_heart_rate",   val -> training.setAverageHeartRate(val.intValue()));
+            setFieldValue(mesg, "max_heart_rate",   val -> training.setMaxHeartRate(val.intValue()));
+            setFieldValue(mesg, "min_heart_rate",   val -> training.setMinHeartRate(val.intValue()));
+            setFieldValue(mesg, "avg_power",        val -> training.setAveragePowerWatts(val.intValue()));
+            setFieldValue(mesg, "max_power",        val -> training.setMaxPowerWatts(val.intValue()));
             setFieldValue(mesg, "normalized_power", val -> training.setNormalizedPowerWatts(val.intValue()));
-            setFieldValue(mesg, "avg_cadence", val -> training.setAverageCadence(val.intValue()));
-            setFieldValue(mesg, "max_cadence", val -> training.setMaxCadence(val.intValue()));
-            setFieldValue(mesg, "avg_temperature", val -> training.setTemperatureCelsius(val));
-            
-            // Pace direkt aus FIT (falls vorhanden)
+            setFieldValue(mesg, "avg_cadence",      val -> training.setAverageCadence(val.intValue()));
+            setFieldValue(mesg, "max_cadence",      val -> training.setMaxCadence(val.intValue()));
+            setFieldValue(mesg, "avg_temperature",  val -> training.setTemperatureCelsius(val));
             setFieldValue(mesg, "avg_running_cadence", val -> training.setAverageCadence(val.intValue()));
             setFieldValue(mesg, "max_running_cadence", val -> training.setMaxCadence(val.intValue()));
-            
-            // Fallbacks für fehlende Activity-Daten
-            if (training.getDistanceKm() == null) {
-                setFieldValue(mesg, "total_distance", val -> training.setDistanceKm(val / 1000.0));
-            }
-            if (training.getDurationSeconds() == null) {
-                setFieldValue(mesg, "total_timer_time", val -> training.setDurationSeconds(val.intValue()));
-            }
-            if (training.getMovingTimeSeconds() == null) {
+
+            // Fallbacks
+            if (training.getDistanceKm() == null)
+                setFieldValue(mesg, "total_distance",    val -> training.setDistanceKm(val / 1000.0));
+            if (training.getDurationSeconds() == null)
+                setFieldValue(mesg, "total_timer_time",  val -> training.setDurationSeconds(val.intValue()));
+            if (training.getMovingTimeSeconds() == null)
                 setFieldValue(mesg, "total_moving_time", val -> training.setMovingTimeSeconds(val.intValue()));
-            }
-            if (training.getCalories() == null) {
-                setFieldValue(mesg, "total_calories", val -> training.setCalories(val.intValue()));
-            }
-            if (training.getElevationGainM() == null) {
-                setFieldValue(mesg, "total_ascent", val -> training.setElevationGainM(val.intValue()));
-            }
-            if (training.getElevationLossM() == null) {
-                setFieldValue(mesg, "total_descent", val -> training.setElevationLossM(val.intValue()));
-            }
+            if (training.getCalories() == null)
+                setFieldValue(mesg, "total_calories",    val -> training.setCalories(val.intValue()));
+            if (training.getElevationGainM() == null)
+                setFieldValue(mesg, "total_ascent",      val -> training.setElevationGainM(val.intValue()));
+            if (training.getElevationLossM() == null)
+                setFieldValue(mesg, "total_descent",     val -> training.setElevationLossM(val.intValue()));
         }
-        
+
         private void handleDeviceInfo(Mesg mesg) {
-            setFieldString(mesg, "manufacturer", val -> training.setDeviceManufacturer(val));
-            setFieldString(mesg, "product", val -> training.setDeviceProduct(val));
-            setFieldString(mesg, "serial_number", val -> training.setDeviceSerialNumber(val));
+            setFieldString(mesg, "manufacturer",     val -> training.setDeviceManufacturer(val));
+            setFieldString(mesg, "product",          val -> training.setDeviceProduct(val));
+            setFieldString(mesg, "serial_number",    val -> training.setDeviceSerialNumber(val));
             setFieldString(mesg, "software_version", val -> training.setSoftwareVersion(val));
         }
-        
+
         private void setFieldValue(Mesg mesg, String fieldName, java.util.function.Consumer<Double> setter) {
             Field field = mesg.getField(fieldName);
             if (field != null && field.getValue() != null) {
                 Double value = field.getDoubleValue();
-                if (value != null) {
-                    setter.accept(value);
-                }
+                if (value != null) setter.accept(value);
             }
         }
-        
+
         private void setFieldString(Mesg mesg, String fieldName, java.util.function.Consumer<String> setter) {
             Field field = mesg.getField(fieldName);
             if (field != null && field.getValue() != null) {
                 String value = field.getValue().toString();
-                if (value != null && !value.isEmpty()) {
-                    setter.accept(value);
-                }
+                if (!value.isEmpty()) setter.accept(value);
             }
         }
-        
+
         public void finalizeData() {
-            // NUR Pace berechnen falls nicht direkt vorhanden UND beide Werte existieren
-            if (training.getAveragePaceSecondsPerKm() == null &&
-                training.getDistanceKm() != null && training.getDurationSeconds() != null &&
-                training.getDurationSeconds() > 0 && training.getDistanceKm() > 0) {
+            // Compute pace if not yet set
+            if (training.getAveragePaceSecondsPerKm() == null
+                    && training.getDistanceKm() != null && training.getDurationSeconds() != null
+                    && training.getDurationSeconds() > 0 && training.getDistanceKm() > 0) {
                 double paceSecondsPerKm = training.getDurationSeconds() / training.getDistanceKm();
                 training.setAveragePaceSecondsPerKm((int) paceSecondsPerKm);
             }
+
+            // Convert absolute timestamps to relative seconds since first record
+            if (!rawTimestamps.isEmpty()) {
+                long t0 = rawTimestamps.get(0);
+                timeSeconds = new ArrayList<>(rawTimestamps.size());
+                heartRates  = new ArrayList<>(rawHeartRates.size());
+                for (int i = 0; i < rawTimestamps.size(); i++) {
+                    timeSeconds.add((int)(rawTimestamps.get(i) - t0));
+                    heartRates.add(rawHeartRates.get(i)); // may be null
+                }
+            }
         }
+
+        /** Relative seconds since activity start (same indices as {@link #getHeartRates()}). */
+        public List<Integer> getTimeSeconds() { return timeSeconds; }
+
+        /** HR in bpm per sample; entries may be null for GPS-only ticks. */
+        public List<Integer> getHeartRates()  { return heartRates; }
     }
 
     public List<CompletedTraining> getCompletedTrainingsByDate(LocalDate date) {
@@ -215,9 +251,7 @@ public class CompletedTrainingService {
 
     public Optional<CompletedTraining> getLatestRunningTrainingForCurrentUser() {
         Long userId = securityUtils.getCurrentUserId();
-        if (userId == null) {
-            return Optional.empty();
-        }
+        if (userId == null) return Optional.empty();
         return completedTrainingRepository
                 .findTopByUserIdAndSportContainingIgnoreCaseOrderByTrainingDateDescUploadDateDesc(userId, "run");
     }

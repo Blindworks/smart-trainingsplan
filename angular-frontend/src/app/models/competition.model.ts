@@ -154,6 +154,17 @@ export interface User {
   maxHeartRate?: number;
 }
 
+export interface ActivityMetrics {
+  id?: number;
+  zonesUnknown: boolean;
+  z1Min?: number;
+  z2Min?: number;
+  z3Min?: number;
+  z4Min?: number;
+  z5Min?: number;
+  hrDataCoverage?: number;
+}
+
 export interface BodyStatusVo2Max {
   vo2max: number | null;
   trainingDate?: string;

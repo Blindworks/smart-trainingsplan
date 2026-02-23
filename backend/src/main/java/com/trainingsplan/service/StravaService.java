@@ -5,10 +5,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trainingsplan.dto.StravaActivityDto;
 import com.trainingsplan.dto.StravaStatusDto;
+import com.trainingsplan.entity.ActivityMetrics;
 import com.trainingsplan.entity.CompletedTraining;
 import com.trainingsplan.entity.StravaToken;
+import com.trainingsplan.entity.User;
+import com.trainingsplan.repository.ActivityMetricsRepository;
 import com.trainingsplan.repository.CompletedTrainingRepository;
 import com.trainingsplan.repository.StravaTokenRepository;
+import com.trainingsplan.security.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +24,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,13 +48,22 @@ public class StravaService {
     private final StravaTokenRepository tokenRepository;
     private final ObjectMapper objectMapper;
     private final CompletedTrainingRepository completedTrainingRepository;
+    private final ActivityMetricsService activityMetricsService;
+    private final ActivityMetricsRepository activityMetricsRepository;
+    private final SecurityUtils securityUtils;
     private final RestClient restClient;
 
     public StravaService(StravaTokenRepository tokenRepository, ObjectMapper objectMapper,
-                         CompletedTrainingRepository completedTrainingRepository) {
+                         CompletedTrainingRepository completedTrainingRepository,
+                         ActivityMetricsService activityMetricsService,
+                         ActivityMetricsRepository activityMetricsRepository,
+                         SecurityUtils securityUtils) {
         this.tokenRepository = tokenRepository;
         this.objectMapper = objectMapper;
         this.completedTrainingRepository = completedTrainingRepository;
+        this.activityMetricsService = activityMetricsService;
+        this.activityMetricsRepository = activityMetricsRepository;
+        this.securityUtils = securityUtils;
         this.restClient = RestClient.create();
     }
 
@@ -154,24 +168,85 @@ public class StravaService {
                     .body(String.class);
 
             List<StravaActivityDto> activities = objectMapper.readValue(responseBody, new TypeReference<List<StravaActivityDto>>() {});
-            syncActivitiesToDb(activities);
+            User currentUser = securityUtils.getCurrentUser();
+            syncActivitiesToDb(activities, token.getAccessToken(), currentUser);
             return activities;
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch Strava activities", e);
         }
     }
 
-    private void syncActivitiesToDb(List<StravaActivityDto> activities) {
+    private void syncActivitiesToDb(List<StravaActivityDto> activities, String accessToken, User user) {
         for (StravaActivityDto dto : activities) {
             if (dto.getId() != null && !completedTrainingRepository.existsByStravaActivityId(dto.getId())) {
                 try {
                     CompletedTraining ct = convertStravaActivityToCompletedTraining(dto);
-                    completedTrainingRepository.save(ct);
+                    CompletedTraining saved = completedTrainingRepository.save(ct);
+                    fetchStreamsAndPersistMetrics(dto.getId(), saved, accessToken, user);
                 } catch (Exception e) {
                     log.warn("Failed to persist Strava activity id={}: {}", dto.getId(), e.getMessage());
                 }
             }
         }
+    }
+
+    /**
+     * Fetches time + heartrate streams from Strava for one activity and persists zone metrics.
+     * Silently skips on any error (stream may not exist for activities without HR sensor).
+     */
+    private void fetchStreamsAndPersistMetrics(Long stravaActivityId, CompletedTraining ct,
+                                               String accessToken, User user) {
+        try {
+            String url = "https://www.strava.com/api/v3/activities/" + stravaActivityId
+                    + "/streams?keys=time,heartrate&key_by_type=true";
+            String body = restClient.get()
+                    .uri(url)
+                    .header("Authorization", "Bearer " + accessToken)
+                    .retrieve()
+                    .body(String.class);
+
+            JsonNode root = objectMapper.readTree(body);
+            JsonNode timeData = root.path("time").path("data");
+            JsonNode hrData   = root.path("heartrate").path("data");
+
+            if (timeData.isMissingNode() || !timeData.isArray() || timeData.isEmpty()) return;
+
+            List<Integer> timeSeconds = new ArrayList<>(timeData.size());
+            for (JsonNode t : timeData) timeSeconds.add(t.intValue());
+
+            List<Integer> heartRates = new ArrayList<>(timeSeconds.size());
+            if (!hrData.isMissingNode() && hrData.isArray() && hrData.size() == timeSeconds.size()) {
+                for (JsonNode hr : hrData) heartRates.add(hr.isNull() ? null : hr.intValue());
+            } else {
+                for (int i = 0; i < timeSeconds.size(); i++) heartRates.add(null);
+            }
+
+            activityMetricsService.calculateAndPersist(ct, timeSeconds, heartRates, user);
+        } catch (Exception e) {
+            log.warn("Could not fetch/compute streams for Strava activity {}: {}", stravaActivityId, e.getMessage());
+        }
+    }
+
+    /**
+     * Retroactively computes zone metrics for a CompletedTraining that was synced from Strava.
+     * Called on demand (e.g. from the activity dialog) for activities synced before this feature existed.
+     */
+    public ActivityMetrics computeMetricsForCompletedTraining(Long completedTrainingId) {
+        CompletedTraining ct = completedTrainingRepository.findById(completedTrainingId)
+                .orElseThrow(() -> new RuntimeException("CompletedTraining not found: " + completedTrainingId));
+
+        if (ct.getStravaActivityId() == null) {
+            throw new RuntimeException("Activity " + completedTrainingId + " is not a Strava activity");
+        }
+
+        StravaToken token = tokenRepository.findFirstByOrderByIdAsc()
+                .orElseThrow(() -> new RuntimeException("No Strava token found"));
+        token = refreshTokenIfExpired(token);
+
+        User user = securityUtils.getCurrentUser();
+        fetchStreamsAndPersistMetrics(ct.getStravaActivityId(), ct, token.getAccessToken(), user);
+
+        return activityMetricsRepository.findByCompletedTrainingId(completedTrainingId).orElse(null);
     }
 
     private CompletedTraining convertStravaActivityToCompletedTraining(StravaActivityDto dto) {

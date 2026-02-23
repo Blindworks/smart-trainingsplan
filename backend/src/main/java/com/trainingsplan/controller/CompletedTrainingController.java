@@ -1,7 +1,10 @@
 package com.trainingsplan.controller;
 
+import com.trainingsplan.entity.ActivityMetrics;
 import com.trainingsplan.entity.CompletedTraining;
+import com.trainingsplan.repository.ActivityMetricsRepository;
 import com.trainingsplan.service.CompletedTrainingService;
+import com.trainingsplan.service.StravaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -20,6 +23,12 @@ public class CompletedTrainingController {
 
     @Autowired
     private CompletedTrainingService completedTrainingService;
+
+    @Autowired
+    private ActivityMetricsRepository activityMetricsRepository;
+
+    @Autowired
+    private StravaService stravaService;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFitFile(
@@ -63,6 +72,28 @@ public class CompletedTrainingController {
         
         List<CompletedTraining> trainings = completedTrainingService.getCompletedTrainingsBetweenDates(startDate, endDate);
         return ResponseEntity.ok(trainings);
+    }
+
+    @GetMapping("/{id}/metrics")
+    public ResponseEntity<ActivityMetrics> getActivityMetrics(@PathVariable Long id) {
+        return activityMetricsRepository.findByCompletedTrainingId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/compute-strava-metrics")
+    public ResponseEntity<?> computeStravaMetrics(@PathVariable Long id) {
+        try {
+            ActivityMetrics metrics = stravaService.computeMetricsForCompletedTraining(id);
+            if (metrics == null) {
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                        .body("Streams konnten nicht abgerufen werden (kein HR-Sensor?)");
+            }
+            return ResponseEntity.ok(metrics);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Fehler beim Berechnen der Metriken: " + e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")

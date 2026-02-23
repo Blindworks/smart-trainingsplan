@@ -391,6 +391,116 @@ $vo2max-green: #2e7d32;
   }
 }
 
+// ─── HR Zones ─────────────────────────────────────────────────────────────────
+
+$zone-colors: (
+  z1: #78909c,
+  z2: #42a5f5,
+  z3: #ffca28,
+  z4: #ff7043,
+  z5: #ef5350,
+);
+
+.info-section--zones .mat-mdc-card-avatar {
+  background-color: rgba(233, 30, 99, 0.1) !important;
+  color: $heartrate-red !important;
+}
+
+.zones-avatar-icon {
+  color: $heartrate-red !important;
+}
+
+.info-section--zones:hover {
+  border-color: rgba(233, 30, 99, 0.3) !important;
+}
+
+.info-section--zones .mat-mdc-card-subtitle {
+  font-size: 11px !important;
+  color: var(--text-muted) !important;
+}
+
+.zone-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.zone-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.zone-label {
+  width: 22px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.zone-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--bg-base);
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.zone-bar {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.4s ease;
+  min-width: 2px;
+
+  &--z1 { background-color: map-get($zone-colors, z1); }
+  &--z2 { background-color: map-get($zone-colors, z2); }
+  &--z3 { background-color: map-get($zone-colors, z3); }
+  &--z4 { background-color: map-get($zone-colors, z4); }
+  &--z5 { background-color: map-get($zone-colors, z5); }
+}
+
+.zones-hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0 0 10px;
+  font-style: italic;
+
+  &--error {
+    color: #ef5350;
+    font-style: normal;
+  }
+}
+
+.compute-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-color: $heartrate-red !important;
+  color: $heartrate-red !important;
+  border-radius: 7px !important;
+  font-size: 13px !important;
+
+  mat-spinner { flex-shrink: 0; }
+  .mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+  &:hover:not([disabled]) {
+    background-color: rgba(233, 30, 99, 0.08) !important;
+  }
+}
+
+.zone-time {
+  width: 52px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
 // ─── Responsive ───────────────────────────────────────────────────────────────
 
 @media (max-width: 600px) {

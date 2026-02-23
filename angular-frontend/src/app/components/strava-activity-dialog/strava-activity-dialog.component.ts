@@ -9,7 +9,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { CompletedTraining } from '../../models/competition.model';
+import { ActivityMetrics, CompletedTraining } from '../../models/competition.model';
 import { ApiService } from '../../services/api.service';
 import { catchError, of } from 'rxjs';
 
@@ -38,6 +38,9 @@ export class StravaActivityDialogComponent implements OnInit {
   completed: CompletedTraining;
   vo2Max: number | null = null;
   vo2MaxLoading = false;
+  activityMetrics: ActivityMetrics | null = null;
+  metricsComputing = false;
+  metricsComputeError: string | null = null;
 
   constructor(
     private dialogRef: MatDialogRef<StravaActivityDialogComponent>,
@@ -61,6 +64,52 @@ export class StravaActivityDialogComponent implements OnInit {
         this.vo2MaxLoading = false;
       });
     }
+
+    if (this.completed.id) {
+      this.apiService.getActivityMetrics(this.completed.id).pipe(
+        catchError(() => of(null))
+      ).subscribe(metrics => {
+        this.activityMetrics = metrics;
+      });
+    }
+  }
+
+  /** Returns the total zone minutes for calculating bar widths. */
+  getTotalZoneMin(): number {
+    if (!this.activityMetrics) return 0;
+    const m = this.activityMetrics;
+    return (m.z1Min ?? 0) + (m.z2Min ?? 0) + (m.z3Min ?? 0) + (m.z4Min ?? 0) + (m.z5Min ?? 0);
+  }
+
+  /** Width percentage for a given zone's bar (0–100). */
+  getZoneBarWidth(zoneMin: number | undefined): number {
+    const total = this.getTotalZoneMin();
+    if (!total || !zoneMin) return 0;
+    return (zoneMin / total) * 100;
+  }
+
+  computeStravaMetrics(): void {
+    if (!this.completed.id) return;
+    this.metricsComputing = true;
+    this.metricsComputeError = null;
+    this.apiService.computeStravaMetrics(this.completed.id).pipe(
+      catchError(err => {
+        this.metricsComputeError = 'Berechnung fehlgeschlagen. Kein HR-Stream verfügbar?';
+        this.metricsComputing = false;
+        return of(null);
+      })
+    ).subscribe(metrics => {
+      this.activityMetrics = metrics;
+      this.metricsComputing = false;
+    });
+  }
+
+  formatZoneMin(minutes: number | undefined): string {
+    if (!minutes || minutes < 0.01) return '0 min';
+    if (minutes < 1) return `${Math.round(minutes * 60)} s`;
+    const h = Math.floor(minutes / 60);
+    const m = Math.round(minutes % 60);
+    return h > 0 ? `${h}h ${m}min` : `${m} min`;
   }
 
   onClose(): void {

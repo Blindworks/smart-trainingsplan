@@ -202,6 +202,97 @@
       </mat-card-content>
     </mat-card>
 
+    <!-- Herzfrequenz-Zonen: kein Eintrag (altes Training) -->
+    <mat-card class="info-section info-section--zones" appearance="outlined"
+              *ngIf="activityMetrics === null && completed.averageHeartRate">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="zones-avatar-icon">bar_chart</mat-icon>
+        <mat-card-title>Herzfrequenz-Zonen</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <ng-container *ngIf="isStrava(); else fitHint">
+          <p class="zones-hint" *ngIf="!metricsComputing && !metricsComputeError">
+            Zonendaten noch nicht berechnet.
+          </p>
+          <p class="zones-hint zones-hint--error" *ngIf="metricsComputeError">{{ metricsComputeError }}</p>
+          <button mat-stroked-button class="compute-btn"
+                  (click)="computeStravaMetrics()"
+                  [disabled]="metricsComputing">
+            <mat-spinner *ngIf="metricsComputing" diameter="16"></mat-spinner>
+            <mat-icon *ngIf="!metricsComputing">bar_chart</mat-icon>
+            {{ metricsComputing ? 'Wird berechnet…' : 'Zonen jetzt berechnen' }}
+          </button>
+        </ng-container>
+        <ng-template #fitHint>
+          <p class="zones-hint">
+            Keine Zonendaten verfügbar. FIT-Datei erneut hochladen, um die Zonenanalyse zu berechnen.
+          </p>
+        </ng-template>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Herzfrequenz-Zonen -->
+    <mat-card class="info-section info-section--zones" appearance="outlined"
+              *ngIf="activityMetrics && !activityMetrics.zonesUnknown">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="zones-avatar-icon">bar_chart</mat-icon>
+        <mat-card-title>Herzfrequenz-Zonen</mat-card-title>
+        <mat-card-subtitle *ngIf="activityMetrics.hrDataCoverage !== undefined">
+          HR-Datenabdeckung: {{ (activityMetrics.hrDataCoverage * 100) | number:'1.0-0' }}%
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="zone-bars">
+
+          <div class="zone-row">
+            <span class="zone-label">Z1</span>
+            <div class="zone-bar-track">
+              <div class="zone-bar zone-bar--z1"
+                   [style.width.%]="getZoneBarWidth(activityMetrics.z1Min)"></div>
+            </div>
+            <span class="zone-time">{{ formatZoneMin(activityMetrics.z1Min) }}</span>
+          </div>
+
+          <div class="zone-row">
+            <span class="zone-label">Z2</span>
+            <div class="zone-bar-track">
+              <div class="zone-bar zone-bar--z2"
+                   [style.width.%]="getZoneBarWidth(activityMetrics.z2Min)"></div>
+            </div>
+            <span class="zone-time">{{ formatZoneMin(activityMetrics.z2Min) }}</span>
+          </div>
+
+          <div class="zone-row">
+            <span class="zone-label">Z3</span>
+            <div class="zone-bar-track">
+              <div class="zone-bar zone-bar--z3"
+                   [style.width.%]="getZoneBarWidth(activityMetrics.z3Min)"></div>
+            </div>
+            <span class="zone-time">{{ formatZoneMin(activityMetrics.z3Min) }}</span>
+          </div>
+
+          <div class="zone-row">
+            <span class="zone-label">Z4</span>
+            <div class="zone-bar-track">
+              <div class="zone-bar zone-bar--z4"
+                   [style.width.%]="getZoneBarWidth(activityMetrics.z4Min)"></div>
+            </div>
+            <span class="zone-time">{{ formatZoneMin(activityMetrics.z4Min) }}</span>
+          </div>
+
+          <div class="zone-row">
+            <span class="zone-label">Z5</span>
+            <div class="zone-bar-track">
+              <div class="zone-bar zone-bar--z5"
+                   [style.width.%]="getZoneBarWidth(activityMetrics.z5Min)"></div>
+            </div>
+            <span class="zone-time">{{ formatZoneMin(activityMetrics.z5Min) }}</span>
+          </div>
+
+        </div>
+      </mat-card-content>
+    </mat-card>
+
     <!-- Leistung (Watt) -->
     <mat-card class="info-section info-section--power" appearance="outlined"
               *ngIf="completed.averagePowerWatts || completed.maxPowerWatts">
