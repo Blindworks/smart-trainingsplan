@@ -28,6 +28,12 @@
         <div class="day-date" [class.today]="isToday(day.date)">
           {{ formatDate(day.date) }}
         </div>
+        <div class="day-strain-pill"
+             *ngIf="getDailyStrain(day.date) != null"
+             [style.background-color]="getStrainColor(getDailyStrain(day.date)!)"
+             matTooltip="Täglicher Strain: {{ getDailyStrain(day.date)! | number:'1.1-1' }} / 21">
+          {{ getDailyStrain(day.date)! | number:'1.0-0' }}
+        </div>
       </div>
 
       <!-- Day Content -->

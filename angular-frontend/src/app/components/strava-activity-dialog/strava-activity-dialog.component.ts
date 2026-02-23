@@ -191,4 +191,15 @@ export class StravaActivityDialogComponent implements OnInit {
     if (vo2max >= 36) return '#ff5722';
     return '#f44336';
   }
+
+  getStrainColor(strain21: number): string {
+    if (strain21 >= 15) return '#ef5350'; // red
+    if (strain21 >= 10) return '#ff7043'; // orange
+    if (strain21 >= 6)  return '#ffca28'; // yellow
+    return '#66bb6a';                      // green
+  }
+
+  getStrainGaugeWidth(strain21: number): number {
+    return Math.min((strain21 / 21) * 100, 100);
+  }
 }

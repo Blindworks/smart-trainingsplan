@@ -169,6 +169,18 @@
         background-clip: text;
       }
     }
+
+    .day-strain-pill {
+      display: inline-block;
+      margin-top: 5px;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.04em;
+      opacity: 0.92;
+    }
   }
 
   .day-content {

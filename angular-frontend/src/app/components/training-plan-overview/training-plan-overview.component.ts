@@ -15,7 +15,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { ApiService } from '../../services/api.service';
-import { Competition, Training, CompletedTraining } from '../../models/competition.model';
+import { Competition, Training, CompletedTraining, DailyMetrics } from '../../models/competition.model';
 import { TrainingDetailsDialogComponent } from '../training-details-dialog/training-details-dialog.component';
 import { StravaActivityDialogComponent, CompletedTrainingDialogData } from '../strava-activity-dialog/strava-activity-dialog.component';
 import { CreateTrainingDialogComponent } from '../create-training-dialog/create-training-dialog.component';
@@ -65,6 +65,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
   weekData: WeekData | null = null;
   loading = false;
   showEmptyDays = true;
+  dailyStrainMap: Map<string, number> = new Map();
 
   // FIT File Upload
   showFitUploadModal = false;
@@ -461,6 +462,18 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     return this.weekData.days.reduce((total, day) => total + day.completedTrainings.length, 0);
   }
 
+  getDailyStrain(date: string): number | null {
+    const v = this.dailyStrainMap.get(date);
+    return v != null ? v : null;
+  }
+
+  getStrainColor(strain: number): string {
+    if (strain >= 15) return '#ef5350';
+    if (strain >= 10) return '#ff7043';
+    if (strain >= 6)  return '#ffca28';
+    return '#66bb6a';
+  }
+
   private syncStravaAndLoadCompleted(weekData: WeekData): void {
     const startDate = weekData.days[0].date;
     const endDate = weekData.days[6].date;
@@ -485,6 +498,17 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
       });
 
       this.weekData = { ...weekData };
+
+      // Load daily strain for the week
+      this.apiService.getDailyMetrics(startDate, endDate).pipe(
+        catchError(() => of([]))
+      ).subscribe((metrics: DailyMetrics[]) => {
+        this.dailyStrainMap = new Map(
+          metrics
+            .filter(m => m.dailyStrain21 != null)
+            .map(m => [m.date, m.dailyStrain21!])
+        );
+      });
     });
   }
 

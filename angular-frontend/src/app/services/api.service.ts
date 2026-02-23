@@ -15,7 +15,8 @@ import {
   BodyStatusVo2Max,
   BodyMetric,
   BodyMeasurement,
-  ActivityMetrics
+  ActivityMetrics,
+  DailyMetrics
 } from '../models/competition.model';
 import { StravaStatus, StravaActivity } from '../models/strava.model';
 
@@ -162,6 +163,12 @@ export class ApiService {
 
   computeStravaMetrics(completedTrainingId: number): Observable<ActivityMetrics> {
     return this.http.post<ActivityMetrics>(`${this.baseUrl}/completed-trainings/${completedTrainingId}/compute-strava-metrics`, {});
+  }
+
+  getDailyMetrics(startDate: string, endDate: string): Observable<DailyMetrics[]> {
+    return this.http.get<DailyMetrics[]>(`${this.baseUrl}/daily-metrics`, {
+      params: { startDate, endDate }
+    });
   }
 
   // Strava API

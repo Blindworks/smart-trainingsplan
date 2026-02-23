@@ -293,6 +293,37 @@
       </mat-card-content>
     </mat-card>
 
+    <!-- Trainingsbelastung (Strain) -->
+<mat-card class="info-section info-section--strain" appearance="outlined"
+          *ngIf="activityMetrics && !activityMetrics.zonesUnknown && activityMetrics.strain21 != null">
+  <mat-card-header>
+    <mat-icon mat-card-avatar class="strain-avatar-icon">whatshot</mat-icon>
+    <mat-card-title>Trainingsbelastung</mat-card-title>
+    <mat-card-subtitle>Strain-Score (0–21)</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="strain-display">
+      <div class="strain-score-row">
+        <span class="strain-score-label">Strain</span>
+        <span class="strain-score-value" [style.color]="getStrainColor(activityMetrics.strain21!)">
+          {{ activityMetrics.strain21! | number:'1.1-1' }}
+        </span>
+        <span class="strain-score-max">/21</span>
+      </div>
+      <div class="strain-gauge-track">
+        <div class="strain-gauge-fill"
+             [style.width.%]="getStrainGaugeWidth(activityMetrics.strain21!)"
+             [style.background-color]="getStrainColor(activityMetrics.strain21!)">
+        </div>
+      </div>
+      <div class="strain-rawload" *ngIf="activityMetrics.rawLoad != null">
+        <span class="info-label">Rohbelastung (rawLoad)</span>
+        <span class="strain-rawload-value">{{ activityMetrics.rawLoad! | number:'1.0-1' }}</span>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
     <!-- Leistung (Watt) -->
     <mat-card class="info-section info-section--power" appearance="outlined"
               *ngIf="completed.averagePowerWatts || completed.maxPowerWatts">

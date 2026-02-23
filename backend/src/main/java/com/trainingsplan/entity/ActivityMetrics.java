@@ -49,6 +49,14 @@ public class ActivityMetrics {
     @Column(name = "hr_data_coverage")
     private Double hrDataCoverage;
 
+    /** Weighted zone load: Z1*1 + Z2*2 + Z3*3 + Z4*5 + Z5*8. NULL when zones_unknown = true. */
+    @Column(name = "raw_load")
+    private Double rawLoad;
+
+    /** Exponentially compressed load on [0, 21) scale. NULL when zones_unknown = true. */
+    @Column(name = "strain21")
+    private Double strain21;
+
     public ActivityMetrics() {}
 
     // Getters and setters
@@ -80,4 +88,10 @@ public class ActivityMetrics {
 
     public Double getHrDataCoverage() { return hrDataCoverage; }
     public void setHrDataCoverage(Double hrDataCoverage) { this.hrDataCoverage = hrDataCoverage; }
+
+    public Double getRawLoad() { return rawLoad; }
+    public void setRawLoad(Double rawLoad) { this.rawLoad = rawLoad; }
+
+    public Double getStrain21() { return strain21; }
+    public void setStrain21(Double strain21) { this.strain21 = strain21; }
 }

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="013-add-daily-metrics" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="daily_metrics"/></not>
+        </preConditions>
+
+        <createTable tableName="daily_metrics">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_daily_metrics_user"
+                             references="users(id)"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="daily_strain21" type="DOUBLE"
+                    remarks="Sum of strain21 for all activities on this day"/>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="daily_metrics"
+            columnNames="user_id, date"
+            constraintName="uq_daily_metrics_user_date"/>
+    </changeSet>
+
+</databaseChangeLog>

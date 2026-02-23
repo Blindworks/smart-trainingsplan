@@ -163,6 +163,14 @@ export interface ActivityMetrics {
   z4Min?: number;
   z5Min?: number;
   hrDataCoverage?: number;
+  rawLoad?: number;
+  strain21?: number;
+}
+
+export interface DailyMetrics {
+  id?: number;
+  date: string;
+  dailyStrain21?: number;
 }
 
 export interface BodyStatusVo2Max {

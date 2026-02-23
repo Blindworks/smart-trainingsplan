@@ -22,6 +22,12 @@ public class ActivityMetricsService {
     private ZoneTimeCalculator zoneTimeCalculator;
 
     @Autowired
+    private StrainCalculator strainCalculator;
+
+    @Autowired
+    private DailyMetricsService dailyMetricsService;
+
+    @Autowired
     private ActivityMetricsRepository activityMetricsRepository;
 
     /**
@@ -44,7 +50,7 @@ public class ActivityMetricsService {
         metrics.setCompletedTraining(completedTraining);
 
         if (user.getMaxHeartRate() == null || user.getMaxHeartRate() <= 0) {
-            // No hrMax configured → cannot compute zones
+            // No hrMax configured → cannot compute zones or strain
             metrics.setZonesUnknown(true);
             activityMetricsRepository.save(metrics);
             return;
@@ -63,8 +69,15 @@ public class ActivityMetricsService {
             metrics.setZ4Min(result.getZ4Min());
             metrics.setZ5Min(result.getZ5Min());
             metrics.setHrDataCoverage(result.getHrDataCoverage());
+
+            double rawLoad = strainCalculator.rawLoad(
+                    result.getZ1Min(), result.getZ2Min(), result.getZ3Min(),
+                    result.getZ4Min(), result.getZ5Min());
+            metrics.setRawLoad(rawLoad);
+            metrics.setStrain21(strainCalculator.strain21(rawLoad));
         }
 
         activityMetricsRepository.save(metrics);
+        dailyMetricsService.updateDailyStrain(user, completedTraining.getTrainingDate());
     }
 }
