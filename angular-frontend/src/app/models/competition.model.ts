@@ -169,6 +169,9 @@ export interface ActivityMetrics {
   strain21?: number;
   trimp?: number;
   trimpQuality?: 'LOW' | 'OK';
+  decouplingPct?: number;
+  decouplingEligible?: boolean;
+  decouplingReason?: string;
 }
 
 export interface DailyMetrics {

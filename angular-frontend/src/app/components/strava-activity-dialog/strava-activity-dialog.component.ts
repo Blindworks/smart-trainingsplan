@@ -219,4 +219,47 @@ export class StravaActivityDialogComponent implements OnInit {
   getTRIMPGaugeWidth(trimp: number): number {
     return Math.min((trimp / 200) * 100, 100);
   }
+
+  /** Color for aerobic decoupling value. */
+  getDecouplingColor(pct: number): string {
+    if (pct > 8)  return '#ef5350'; // red   — starker Drift
+    if (pct > 5)  return '#ff7043'; // orange — mäßiger Drift
+    if (pct > 3)  return '#ffca28'; // yellow — leichter Drift
+    if (pct < 0)  return '#42a5f5'; // blue  — negativ (gut)
+    return '#66bb6a';               // green  — effizient (0–3 %)
+  }
+
+  /** Category label for aerobic decoupling value. */
+  getDecouplingCategory(pct: number): string {
+    if (pct > 8)  return 'Starker Drift';
+    if (pct > 5)  return 'Mäßiger Drift';
+    if (pct > 3)  return 'Leichter Drift';
+    if (pct < 0)  return 'Negativ (gut)';
+    return 'Effizient';
+  }
+
+  /**
+   * Left anchor (%) for the centered gauge fill.
+   * Track spans −10 % … +10 %; centre mark is at 50 %.
+   * Positive values extend right from centre; negative values extend left.
+   */
+  getDecouplingGaugeLeft(pct: number): number {
+    const clamped = Math.max(-10, Math.min(10, pct));
+    return clamped >= 0 ? 50 : 50 + (clamped / 10) * 50;
+  }
+
+  /** Width (%) of the gauge fill — one side of centre = max 50 %. */
+  getDecouplingGaugeWidth(pct: number): number {
+    return Math.abs(Math.max(-10, Math.min(10, pct)) / 10) * 50;
+  }
+
+  /** Human-readable explanation for an ineligible decoupling result. */
+  getDecouplingIneligibleText(reason: string | undefined): string {
+    switch (reason) {
+      case 'TOO_SHORT':           return 'Aktivität zu kurz – mindestens 20 Min. erforderlich.';
+      case 'HR_COVERAGE_TOO_LOW': return 'Zu wenig HR-Daten – mindestens 70 % erforderlich.';
+      case 'SPEED_DATA_MISSING':  return 'Kein Geschwindigkeits-Stream verfügbar.';
+      default:                    return 'Decoupling konnte nicht berechnet werden.';
+    }
+  }
 }

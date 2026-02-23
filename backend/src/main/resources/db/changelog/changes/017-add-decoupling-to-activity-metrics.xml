@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="017-add-decoupling-to-activity-metrics" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="activity_metrics" columnName="decoupling_pct"/></not>
+        </preConditions>
+        <addColumn tableName="activity_metrics">
+            <column name="decoupling_pct" type="DOUBLE"
+                    remarks="Aerobic decoupling %; positive = second half less efficient (HR drifted up). NULL when ineligible."/>
+            <column name="decoupling_eligible" type="BOOLEAN"
+                    remarks="True when decoupling was successfully computed. NULL for FIT-file activities."/>
+            <column name="decoupling_reason" type="VARCHAR(30)"
+                    remarks="OK when computed; else: TOO_SHORT, HR_COVERAGE_TOO_LOW, SPEED_DATA_MISSING, INSUFFICIENT_DATA, CALCULATION_ERROR."/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

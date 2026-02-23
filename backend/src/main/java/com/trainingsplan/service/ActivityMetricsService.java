@@ -4,6 +4,7 @@ import com.trainingsplan.entity.ActivityMetrics;
 import com.trainingsplan.entity.CompletedTraining;
 import com.trainingsplan.entity.User;
 import com.trainingsplan.repository.ActivityMetricsRepository;
+import com.trainingsplan.service.decoupling.DecouplingResult;
 import com.trainingsplan.service.hrzone.HeartRateZoneConfig;
 import com.trainingsplan.service.hrzone.ZoneTimeResult;
 import com.trainingsplan.service.trimp.TRIMPResult;
@@ -13,8 +14,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * Orchestrates HR zone calculation and persists results in {@code activity_metrics}.
- * Called once per FIT file upload (after the CompletedTraining has been saved).
+ * Orchestrates HR zone, strain, TRIMP, and aerobic decoupling calculations
+ * and persists results in {@code activity_metrics}.
+ * Called once per FIT file upload or Strava stream fetch.
  */
 @Service
 public class ActivityMetricsService {
@@ -29,23 +31,45 @@ public class ActivityMetricsService {
     private TRIMPCalculator trimpCalculator;
 
     @Autowired
+    private AerobicDecouplingCalculator aerobicDecouplingCalculator;
+
+    @Autowired
     private DailyMetricsService dailyMetricsService;
 
     @Autowired
     private ActivityMetricsRepository activityMetricsRepository;
 
     /**
-     * Computes HR zone times from the collected stream data and persists the result.
-     * Upserts: if a record for the same activity already exists it is overwritten.
-     *
-     * @param completedTraining the already-persisted activity
-     * @param timeSeconds       relative time stream (seconds since activity start)
-     * @param heartRates        HR stream in bpm (parallel to timeSeconds; may contain nulls)
-     * @param user              the athlete (supplies hrMax for zone boundaries)
+     * Convenience overload for FIT file uploads (no velocity/distance streams available).
+     * Aerobic decoupling is skipped; all other metrics are computed as usual.
      */
     public void calculateAndPersist(CompletedTraining completedTraining,
                                     List<Integer> timeSeconds,
                                     List<Integer> heartRates,
+                                    User user) {
+        calculateAndPersist(completedTraining, timeSeconds, heartRates, null, null, user);
+    }
+
+    /**
+     * Full calculation including aerobic decoupling. Called for Strava activities
+     * where {@code velocity_smooth} and {@code distance} streams are available.
+     *
+     * <p>Upserts: if a record for the same activity already exists it is overwritten.
+     *
+     * @param completedTraining the already-persisted activity
+     * @param timeSeconds       elapsed seconds from activity start
+     * @param heartRates        HR in bpm, parallel to timeSeconds; nulls = missing data
+     * @param velocities        speed in m/s (Strava {@code velocity_smooth}), parallel to timeSeconds;
+     *                          pass {@code null} to skip decoupling
+     * @param distances         cumulative metres (Strava {@code distance}), parallel to timeSeconds;
+     *                          pass {@code null} to use time-based half-split in decoupling
+     * @param user              the athlete (supplies hrMax, hrRest, gender for zone/TRIMP boundaries)
+     */
+    public void calculateAndPersist(CompletedTraining completedTraining,
+                                    List<Integer> timeSeconds,
+                                    List<Integer> heartRates,
+                                    List<Double>  velocities,
+                                    List<Double>  distances,
                                     User user) {
         ActivityMetrics metrics = activityMetricsRepository
                 .findByCompletedTrainingId(completedTraining.getId())
@@ -53,35 +77,33 @@ public class ActivityMetricsService {
 
         metrics.setCompletedTraining(completedTraining);
 
-        if (user.getMaxHeartRate() == null || user.getMaxHeartRate() <= 0) {
-            // No hrMax configured → cannot compute zones or strain
-            metrics.setZonesUnknown(true);
-            activityMetricsRepository.save(metrics);
-            return;
-        }
+        // ── HR zones + strain ──────────────────────────────────────────────────
+        if (user.getMaxHeartRate() != null && user.getMaxHeartRate() > 0) {
+            HeartRateZoneConfig config = HeartRateZoneConfig.fromHrMax(user.getMaxHeartRate());
+            ZoneTimeResult result = zoneTimeCalculator.calculate(timeSeconds, heartRates, config);
 
-        HeartRateZoneConfig config = HeartRateZoneConfig.fromHrMax(user.getMaxHeartRate());
-        ZoneTimeResult result = zoneTimeCalculator.calculate(timeSeconds, heartRates, config);
+            if (result.isUnknown()) {
+                metrics.setZonesUnknown(true);
+            } else {
+                metrics.setZonesUnknown(false);
+                metrics.setZ1Min(result.getZ1Min());
+                metrics.setZ2Min(result.getZ2Min());
+                metrics.setZ3Min(result.getZ3Min());
+                metrics.setZ4Min(result.getZ4Min());
+                metrics.setZ5Min(result.getZ5Min());
+                metrics.setHrDataCoverage(result.getHrDataCoverage());
 
-        if (result.isUnknown()) {
-            metrics.setZonesUnknown(true);
+                double rawLoad = strainCalculator.rawLoad(
+                        result.getZ1Min(), result.getZ2Min(), result.getZ3Min(),
+                        result.getZ4Min(), result.getZ5Min());
+                metrics.setRawLoad(rawLoad);
+                metrics.setStrain21(strainCalculator.strain21(rawLoad));
+            }
         } else {
-            metrics.setZonesUnknown(false);
-            metrics.setZ1Min(result.getZ1Min());
-            metrics.setZ2Min(result.getZ2Min());
-            metrics.setZ3Min(result.getZ3Min());
-            metrics.setZ4Min(result.getZ4Min());
-            metrics.setZ5Min(result.getZ5Min());
-            metrics.setHrDataCoverage(result.getHrDataCoverage());
-
-            double rawLoad = strainCalculator.rawLoad(
-                    result.getZ1Min(), result.getZ2Min(), result.getZ3Min(),
-                    result.getZ4Min(), result.getZ5Min());
-            metrics.setRawLoad(rawLoad);
-            metrics.setStrain21(strainCalculator.strain21(rawLoad));
+            metrics.setZonesUnknown(true);
         }
 
-        // TRIMP calculation — requires both hrMax and hrRest
+        // ── TRIMP ─────────────────────────────────────────────────────────────
         if (user.getMaxHeartRate() != null && user.getMaxHeartRate() > 0
                 && user.getHrRest() != null && user.getHrRest() > 0) {
             double k = TRIMPCalculator.kForGender(user.getGender());
@@ -91,6 +113,15 @@ public class ActivityMetricsService {
                 metrics.setTrimp(trimpResult.trimp());
                 metrics.setTrimpQuality(trimpResult.quality().name());
             }
+        }
+
+        // ── Aerobic decoupling ────────────────────────────────────────────────
+        if (velocities != null) {
+            DecouplingResult dr = aerobicDecouplingCalculator.calculate(
+                    timeSeconds, heartRates, velocities, distances);
+            metrics.setDecouplingEligible(dr.eligible());
+            metrics.setDecouplingPct(dr.decouplingPct());
+            metrics.setDecouplingReason(dr.reason());
         }
 
         activityMetricsRepository.save(metrics);

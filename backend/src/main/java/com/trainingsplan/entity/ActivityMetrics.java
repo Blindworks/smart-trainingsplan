@@ -68,6 +68,29 @@ public class ActivityMetrics {
     @Column(name = "trimp_quality", length = 10)
     private String trimpQuality;
 
+    /**
+     * Aerobic decoupling percentage (HR drift across the activity).
+     * Positive = second half less efficient (HR drifted up relative to running speed).
+     * NULL when {@code decouplingEligible} is false or not yet computed.
+     *
+     * <p>Formula: E = avgHR / avgSpeed per half; Decoupling% = (E₂ − E₁) / E₁ × 100.
+     */
+    @Column(name = "decoupling_pct")
+    private Double decouplingPct;
+
+    /** True when decoupling was successfully computed. NULL for FIT-file activities. */
+    @Column(name = "decoupling_eligible")
+    private Boolean decouplingEligible;
+
+    /**
+     * {@code "OK"} when decoupling was computed; otherwise the reason it was skipped:
+     * {@code TOO_SHORT}, {@code HR_COVERAGE_TOO_LOW}, {@code SPEED_DATA_MISSING},
+     * {@code INSUFFICIENT_DATA}, or {@code CALCULATION_ERROR}.
+     * NULL for FIT-file activities.
+     */
+    @Column(name = "decoupling_reason", length = 30)
+    private String decouplingReason;
+
     public ActivityMetrics() {}
 
     // Getters and setters
@@ -111,4 +134,13 @@ public class ActivityMetrics {
 
     public String getTrimpQuality() { return trimpQuality; }
     public void setTrimpQuality(String trimpQuality) { this.trimpQuality = trimpQuality; }
+
+    public Double getDecouplingPct() { return decouplingPct; }
+    public void setDecouplingPct(Double decouplingPct) { this.decouplingPct = decouplingPct; }
+
+    public Boolean getDecouplingEligible() { return decouplingEligible; }
+    public void setDecouplingEligible(Boolean decouplingEligible) { this.decouplingEligible = decouplingEligible; }
+
+    public String getDecouplingReason() { return decouplingReason; }
+    public void setDecouplingReason(String decouplingReason) { this.decouplingReason = decouplingReason; }
 }

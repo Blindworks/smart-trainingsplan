@@ -191,23 +191,26 @@ public class StravaService {
     }
 
     /**
-     * Fetches time + heartrate streams from Strava for one activity and persists zone metrics.
+     * Fetches time, heartrate, velocity_smooth, and distance streams from Strava for one activity
+     * and persists zone metrics + aerobic decoupling.
      * Silently skips on any error (stream may not exist for activities without HR sensor).
      */
     private void fetchStreamsAndPersistMetrics(Long stravaActivityId, CompletedTraining ct,
                                                String accessToken, User user) {
         try {
             String url = "https://www.strava.com/api/v3/activities/" + stravaActivityId
-                    + "/streams?keys=time,heartrate&key_by_type=true";
+                    + "/streams?keys=time,heartrate,velocity_smooth,distance&key_by_type=true";
             String body = restClient.get()
                     .uri(url)
                     .header("Authorization", "Bearer " + accessToken)
                     .retrieve()
                     .body(String.class);
 
-            JsonNode root = objectMapper.readTree(body);
+            JsonNode root     = objectMapper.readTree(body);
             JsonNode timeData = root.path("time").path("data");
             JsonNode hrData   = root.path("heartrate").path("data");
+            JsonNode velData  = root.path("velocity_smooth").path("data");
+            JsonNode distData = root.path("distance").path("data");
 
             if (timeData.isMissingNode() || !timeData.isArray() || timeData.isEmpty()) return;
 
@@ -221,7 +224,20 @@ public class StravaService {
                 for (int i = 0; i < timeSeconds.size(); i++) heartRates.add(null);
             }
 
-            activityMetricsService.calculateAndPersist(ct, timeSeconds, heartRates, user);
+            List<Double> velocities = new ArrayList<>(timeSeconds.size());
+            if (!velData.isMissingNode() && velData.isArray() && velData.size() == timeSeconds.size()) {
+                for (JsonNode v : velData) velocities.add(v.isNull() ? null : v.doubleValue());
+            } else {
+                for (int i = 0; i < timeSeconds.size(); i++) velocities.add(null);
+            }
+
+            List<Double> distances = null;
+            if (!distData.isMissingNode() && distData.isArray() && distData.size() == timeSeconds.size()) {
+                distances = new ArrayList<>(timeSeconds.size());
+                for (JsonNode d : distData) distances.add(d.isNull() ? null : d.doubleValue());
+            }
+
+            activityMetricsService.calculateAndPersist(ct, timeSeconds, heartRates, velocities, distances, user);
         } catch (Exception e) {
             log.warn("Could not fetch/compute streams for Strava activity {}: {}", stravaActivityId, e.getMessage());
         }

@@ -362,6 +362,62 @@
   </mat-card-content>
 </mat-card>
 
+    <!-- Aerobic Decoupling (Strava, sobald berechnet) -->
+    <mat-card class="info-section info-section--decoupling" appearance="outlined"
+              *ngIf="activityMetrics && isStrava() && activityMetrics.decouplingEligible != null">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="decoupling-avatar-icon">compare_arrows</mat-icon>
+        <mat-card-title>Aerobic Decoupling</mat-card-title>
+        <mat-card-subtitle>HR-Drift: 2. Hälfte vs. 1. Hälfte</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+
+        <!-- Computed and eligible -->
+        <div class="decoupling-display" *ngIf="activityMetrics.decouplingEligible; else decouplingIneligible">
+          <div class="decoupling-score-row">
+            <span class="decoupling-score-label">Drift</span>
+            <span class="decoupling-score-value"
+                  [style.color]="getDecouplingColor(activityMetrics.decouplingPct!)">
+              {{ activityMetrics.decouplingPct! >= 0 ? '+' : '' }}{{ activityMetrics.decouplingPct! | number:'1.1-1' }}%
+            </span>
+            <span class="decoupling-category"
+                  [style.color]="getDecouplingColor(activityMetrics.decouplingPct!)">
+              {{ getDecouplingCategory(activityMetrics.decouplingPct!) }}
+            </span>
+          </div>
+
+          <!-- Centered gauge: negative (good) left of center, positive (drift) right -->
+          <div class="decoupling-gauge-track">
+            <div class="decoupling-gauge-center"></div>
+            <div class="decoupling-gauge-fill"
+                 [style.left.%]="getDecouplingGaugeLeft(activityMetrics.decouplingPct!)"
+                 [style.width.%]="getDecouplingGaugeWidth(activityMetrics.decouplingPct!)"
+                 [style.background-color]="getDecouplingColor(activityMetrics.decouplingPct!)">
+            </div>
+          </div>
+          <div class="decoupling-scale">
+            <span>−10%</span>
+            <span>0</span>
+            <span>+10%</span>
+          </div>
+        </div>
+
+        <!-- Ineligible reason -->
+        <ng-template #decouplingIneligible>
+          <p class="decoupling-hint">
+            <mat-icon class="hint-icon">info_outline</mat-icon>
+            {{ getDecouplingIneligibleText(activityMetrics!.decouplingReason) }}
+          </p>
+        </ng-template>
+
+        <p class="decoupling-method">
+          E&nbsp;=&nbsp;Ø-HR&nbsp;/&nbsp;Ø-Tempo je Hälfte. Positiv&nbsp;=&nbsp;2. Hälfte
+          effizienzärmer (HR-Anstieg oder Tempo-Einbruch). &lt;&nbsp;5&nbsp;% gilt als gut trainiert.
+        </p>
+
+      </mat-card-content>
+    </mat-card>
+
     <!-- Leistung (Watt) -->
     <mat-card class="info-section info-section--power" appearance="outlined"
               *ngIf="completed.averagePowerWatts || completed.maxPowerWatts">
