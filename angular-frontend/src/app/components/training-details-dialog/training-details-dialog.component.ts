@@ -68,6 +68,10 @@ export class TrainingDetailsDialogComponent {
     this.dialogRef.close();
   }
 
+  onEdit(): void {
+    this.dialogRef.close({ action: 'edit' });
+  }
+
   getTrainingTypeColor(type: string | undefined): string {
     return type ? this.trainingTypeColors[type] || '#9e9e9e' : '#9e9e9e';
   }

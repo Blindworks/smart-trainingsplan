@@ -422,23 +422,25 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      // Handle any actions after dialog closes if needed
-      // For example, refresh data if training was modified
+      if (result?.action === 'edit') {
+        this.openCreateTrainingDialog(training.trainingDate || training.date!, training);
+      }
     });
   }
 
-  openCreateTrainingDialog(date: string): void {
+  openCreateTrainingDialog(date: string, training?: Training): void {
     const dialogRef = this.dialog.open(CreateTrainingDialogComponent, {
       width: '480px',
       maxWidth: '95vw',
       maxHeight: '90vh',
       panelClass: 'create-training-dialog',
-      data: { date }
+      data: { date, training }
     });
 
-    dialogRef.afterClosed().subscribe(created => {
-      if (created) {
-        this.snackBar.open('Training erstellt', 'Schließen', { duration: 2000 });
+    dialogRef.afterClosed().subscribe(saved => {
+      if (saved) {
+        const msg = training ? 'Training aktualisiert' : 'Training erstellt';
+        this.snackBar.open(msg, 'Schließen', { duration: 2000 });
         this.loadWeekData();
       }
     });

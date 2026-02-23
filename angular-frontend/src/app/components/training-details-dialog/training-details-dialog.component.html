@@ -194,9 +194,9 @@
   <button mat-button (click)="onClose()" class="cancel-button">
     Schließen
   </button>
-  <button mat-raised-button 
-          color="primary" 
-          (click)="onClose()" 
+  <button mat-raised-button
+          color="primary"
+          (click)="onEdit()"
           class="primary-button"
           *ngIf="!(training.isCompleted || training.completed)">
     <mat-icon>edit</mat-icon>

@@ -1,8 +1,8 @@
 <div class="dialog-container">
   <div class="dialog-header">
     <div class="header-title">
-      <mat-icon>add_circle</mat-icon>
-      <span>Training erstellen</span>
+      <mat-icon>{{ isEditMode ? 'edit' : 'add_circle' }}</mat-icon>
+      <span>{{ isEditMode ? 'Training bearbeiten' : 'Training erstellen' }}</span>
     </div>
     <div class="header-date">{{ formatDate(data.date) }}</div>
     <button mat-icon-button class="close-btn" (click)="onCancel()">

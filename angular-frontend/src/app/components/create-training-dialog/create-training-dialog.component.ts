@@ -13,7 +13,8 @@ import { ApiService } from '../../services/api.service';
 import { Training, TrainingDescription } from '../../models/competition.model';
 
 export interface CreateTrainingDialogData {
-  date: string; // YYYY-MM-DD
+  date: string;       // YYYY-MM-DD
+  training?: Training; // wenn gesetzt → Edit-Modus
 }
 
 @Component({
@@ -35,6 +36,7 @@ export interface CreateTrainingDialogData {
 export class CreateTrainingDialogComponent {
   form: FormGroup;
   saving = false;
+  isEditMode: boolean;
 
   trainingTypes = [
     { value: 'endurance', label: 'Ausdauer' },
@@ -63,19 +65,23 @@ export class CreateTrainingDialogComponent {
     private apiService: ApiService,
     @Inject(MAT_DIALOG_DATA) public data: CreateTrainingDialogData
   ) {
+    this.isEditMode = !!data.training;
+    const t = data.training;
+    const desc = t?.trainingDescription;
+
     this.form = this.fb.group({
-      name: ['', Validators.required],
-      trainingType: ['endurance', Validators.required],
-      intensityLevel: ['medium', Validators.required],
-      durationMinutes: [null, [Validators.min(1), Validators.max(999)]],
+      name:                 [t?.name ?? '',                              Validators.required],
+      trainingType:         [t?.trainingType ?? 'endurance',            Validators.required],
+      intensityLevel:       [t?.intensityLevel ?? 'medium',             Validators.required],
+      durationMinutes:      [t?.durationMinutes ?? null,                [Validators.min(1), Validators.max(999)]],
       // TrainingDescription fields
-      descName: [''],
-      detailedInstructions: [''],
-      warmupInstructions: [''],
-      cooldownInstructions: [''],
-      equipment: [''],
-      tips: [''],
-      difficultyLevel: ['']
+      descName:             [desc?.name ?? ''],
+      detailedInstructions: [desc?.detailedInstructions ?? ''],
+      warmupInstructions:   [desc?.warmupInstructions ?? ''],
+      cooldownInstructions: [desc?.cooldownInstructions ?? ''],
+      equipment:            [desc?.equipment ?? ''],
+      tips:                 [desc?.tips ?? ''],
+      difficultyLevel:      [desc?.difficultyLevel ?? '']
     });
   }
 
@@ -102,16 +108,15 @@ export class CreateTrainingDialogComponent {
 
     this.saving = true;
     const v = this.form.value;
-
     const trim = (s: string) => s?.trim() || undefined;
 
-    const descName = trim(v.descName);
+    const descName             = trim(v.descName);
     const detailedInstructions = trim(v.detailedInstructions);
-    const warmupInstructions = trim(v.warmupInstructions);
+    const warmupInstructions   = trim(v.warmupInstructions);
     const cooldownInstructions = trim(v.cooldownInstructions);
-    const equipment = trim(v.equipment);
-    const tips = trim(v.tips);
-    const difficultyLevel = trim(v.difficultyLevel);
+    const equipment            = trim(v.equipment);
+    const tips                 = trim(v.tips);
+    const difficultyLevel      = trim(v.difficultyLevel);
 
     const hasDesc = descName || detailedInstructions || warmupInstructions ||
                     cooldownInstructions || equipment || tips || difficultyLevel;
@@ -122,22 +127,22 @@ export class CreateTrainingDialogComponent {
       : undefined;
 
     const training: Training = {
-      name: v.name.trim(),
-      trainingDate: this.data.date,
-      trainingType: v.trainingType,
-      intensityLevel: v.intensityLevel,
-      durationMinutes: v.durationMinutes || undefined,
-      isCompleted: false,
+      name:             v.name.trim(),
+      trainingDate:     this.data.date,
+      trainingType:     v.trainingType,
+      intensityLevel:   v.intensityLevel,
+      durationMinutes:  v.durationMinutes || undefined,
+      isCompleted:      this.data.training?.isCompleted ?? false,
       trainingDescription
     };
 
-    this.apiService.createTraining(training).subscribe({
-      next: (created) => {
-        this.dialogRef.close(created);
-      },
-      error: () => {
-        this.saving = false;
-      }
+    const request$ = this.isEditMode
+      ? this.apiService.updateTraining(this.data.training!.id!, training)
+      : this.apiService.createTraining(training);
+
+    request$.subscribe({
+      next: (result) => this.dialogRef.close(result),
+      error: () => { this.saving = false; }
     });
   }
 
