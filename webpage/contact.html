@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Smart Trainingsplan | Contact</title>
-  <meta name="description" content="Kontaktseite von Smart Trainingsplan fuer Fragen, Partnerschaften und Support.">
+  <title>Pacr | Contact</title>
+  <meta name="description" content="Kontaktseite von Pacr fuer Fragen, Partnerschaften und Support." data-i18n-content-de="Kontaktseite von Pacr fuer Fragen, Partnerschaften und Support." data-i18n-content-en="Pacr contact page for questions, partnerships, and support.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -68,6 +68,37 @@
       height: 34px;
       object-fit: contain;
       filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(11, 15, 26, 0.55);
+      overflow: hidden;
+    }
+
+    .lang-btn {
+      border: 0;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    .lang-btn.active {
+      color: #ffffff;
+      background: rgba(45, 123, 255, 0.55);
     }
 
     .top-links {
@@ -262,64 +293,72 @@
     }
   </style>
 </head>
-<body>
+<body data-title-de="Pacr | Kontakt" data-title-en="Pacr | Contact">
   <main class="page">
     <div class="topbar">
       <a class="brand" href="index.html">
         <img src="pacr_logo.png" alt="PACR Logo">
-        Smart Trainingsplan
+        Pacr
       </a>
-      <div class="top-links">
-        <a class="link-btn" href="index.html">Startseite</a>
-        <a class="link-btn" href="features.html">Features</a>
-        <a class="link-btn" href="pricing.html">Pricing</a>
+      <div class="top-right">
+        <div class="lang-switch">
+          <button class="lang-btn" data-lang-switch="de" aria-pressed="false">DE</button>
+          <button class="lang-btn" data-lang-switch="en" aria-pressed="false">EN</button>
+        </div>
+        <div class="top-links">
+          <a class="link-btn" href="index.html" data-i18n-de="Startseite" data-i18n-en="Home">Startseite</a>
+          <a class="link-btn" href="features.html" data-i18n-de="Features" data-i18n-en="Features">Features</a>
+          <a class="link-btn" href="pricing.html" data-i18n-de="Pricing" data-i18n-en="Pricing">Pricing</a>
+        </div>
       </div>
     </div>
 
     <section class="hero">
-      <p class="kicker">Contact</p>
-      <h1>Sprich mit uns ueber dein <span class="gradient-text">Training</span>.</h1>
-      <p class="subtitle">Fragen zu Features, Preisen oder Partnerschaften? Wir melden uns zeitnah bei dir.</p>
+      <p class="kicker" data-i18n-de="Kontakt" data-i18n-en="Contact">Kontakt</p>
+      <h1 data-i18n-html-de="Sprich mit uns ueber dein <span class='gradient-text'>Training</span>." data-i18n-html-en="Talk to us about your <span class='gradient-text'>training</span>.">Sprich mit uns ueber dein <span class="gradient-text">Training</span>.</h1>
+      <p class="subtitle" data-i18n-de="Fragen zu Features, Preisen oder Partnerschaften? Wir melden uns zeitnah bei dir." data-i18n-en="Questions about features, pricing, or partnerships? We will get back to you quickly.">Fragen zu Features, Preisen oder Partnerschaften? Wir melden uns zeitnah bei dir.</p>
 
       <section class="content">
         <article class="card">
-          <h2>Nachricht senden</h2>
+          <h2 data-i18n-de="Nachricht senden" data-i18n-en="Send a message">Nachricht senden</h2>
           <form class="form-grid">
-            <label>
+            <label data-i18n-de="Name" data-i18n-en="Name">
               Name
-              <input type="text" name="name" placeholder="Max Mustermann">
+              <input type="text" name="name" placeholder="Max Mustermann" data-i18n-placeholder-de="Max Mustermann" data-i18n-placeholder-en="John Runner">
             </label>
-            <label>
+            <label data-i18n-de="E-Mail" data-i18n-en="Email">
               E-Mail
-              <input type="email" name="email" placeholder="max@email.de">
+              <input type="email" name="email" placeholder="max@email.de" data-i18n-placeholder-de="max@email.de" data-i18n-placeholder-en="john@email.com">
             </label>
-            <label>
+            <label data-i18n-de="Nachricht" data-i18n-en="Message">
               Nachricht
-              <textarea name="message" placeholder="Wie koennen wir dir helfen?"></textarea>
+              <textarea name="message" placeholder="Wie koennen wir dir helfen?" data-i18n-placeholder-de="Wie koennen wir dir helfen?" data-i18n-placeholder-en="How can we help you?"></textarea>
             </label>
-            <button class="btn" type="button">Anfrage senden</button>
+            <button class="btn" type="button" data-i18n-de="Anfrage senden" data-i18n-en="Send request">Anfrage senden</button>
           </form>
         </article>
 
         <article class="card info">
-          <h2>Direkter Kontakt</h2>
+          <h2 data-i18n-de="Direkter Kontakt" data-i18n-en="Direct contact">Direkter Kontakt</h2>
           <p>Support: support@smart-trainingsplan.app</p>
           <p>Partnerships: partner@smart-trainingsplan.app</p>
-          <p>Antwortzeit: in der Regel innerhalb von 24 Stunden an Werktagen.</p>
+          <p data-i18n-de="Antwortzeit: in der Regel innerhalb von 24 Stunden an Werktagen." data-i18n-en="Response time: usually within 24 hours on business days.">Antwortzeit: in der Regel innerhalb von 24 Stunden an Werktagen.</p>
 
           <div class="quick-links">
-            <a href="index.html">Zur Startseite</a>
-            <a href="features.html">Features ansehen</a>
-            <a href="pricing.html">Zu den Preisen</a>
+            <a href="index.html" data-i18n-de="Zur Startseite" data-i18n-en="Back to home">Zur Startseite</a>
+            <a href="features.html" data-i18n-de="Features ansehen" data-i18n-en="View features">Features ansehen</a>
+            <a href="pricing.html" data-i18n-de="Zu den Preisen" data-i18n-en="Go to pricing">Zu den Preisen</a>
           </div>
         </article>
       </section>
     </section>
 
     <footer class="legal-footer">
-      <a href="impressum.html">Impressum</a>
-      <a href="datenschutz.html">Datenschutz</a>
+      <a href="impressum.html" data-i18n-de="Impressum" data-i18n-en="Legal Notice">Impressum</a>
+      <a href="datenschutz.html" data-i18n-de="Datenschutz" data-i18n-en="Privacy Policy">Datenschutz</a>
     </footer>
   </main>
+  <script src="i18n.js"></script>
 </body>
 </html>
+

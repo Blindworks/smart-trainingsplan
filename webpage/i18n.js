@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   const STORAGE_KEY = "webpage-lang";
   const supported = ["de", "en"];
 
