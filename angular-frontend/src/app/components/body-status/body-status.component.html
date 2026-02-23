@@ -21,7 +21,36 @@
   </div>
 
   <!-- Metrics grid -->
-  <div class="status-grid" *ngIf="!loading && metrics.length > 0">
+  <div class="status-grid" *ngIf="!loading && (metrics.length > 0 || todayStrain != null)">
+
+    <!-- Strain Card -->
+    <article class="metric-card strain-card" *ngIf="todayStrain != null">
+      <div class="metric-card__header">
+        <div class="metric-icon" style="background: rgba(255,112,67,0.12); color: #ff7043;">
+          <mat-icon>whatshot</mat-icon>
+        </div>
+        <div>
+          <h2>Tagesbelastung</h2>
+          <p *ngIf="todayStrainDate">{{ formatDate(todayStrainDate) }}</p>
+        </div>
+      </div>
+      <div class="metric-card__content">
+        <div class="metric-value" [style.color]="getStrainColor(todayStrain)">
+          {{ todayStrain | number:'1.1-1' }}
+          <span class="metric-unit">/ 21</span>
+        </div>
+        <div class="metric-category" [style.color]="getStrainColor(todayStrain)">
+          {{ getStrainCategory(todayStrain) }}
+        </div>
+        <div class="strain-gauge-track">
+          <div class="strain-gauge-fill"
+               [style.width.%]="(todayStrain / 21) * 100"
+               [style.background-color]="getStrainColor(todayStrain)">
+          </div>
+        </div>
+      </div>
+    </article>
+
     <article class="metric-card" *ngFor="let metric of metrics">
       <div class="metric-card__header">
         <div class="metric-icon"
@@ -49,7 +78,7 @@
   </div>
 
   <!-- Empty state -->
-  <div class="empty-state" *ngIf="!loading && metrics.length === 0">
+  <div class="empty-state" *ngIf="!loading && metrics.length === 0 && todayStrain == null">
     <div class="empty-icon">
       <mat-icon>monitor_heart</mat-icon>
     </div>

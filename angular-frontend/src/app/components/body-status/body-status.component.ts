@@ -5,7 +5,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiService } from '../../services/api.service';
-import { BodyMetric } from '../../models/competition.model';
+import { BodyMetric, DailyMetrics } from '../../models/competition.model';
 
 @Component({
   selector: 'app-body-status',
@@ -24,6 +24,8 @@ export class BodyStatusComponent implements OnInit {
   loading = true;
   recalculating = false;
   metrics: BodyMetric[] = [];
+  todayStrain: number | null = null;
+  todayStrainDate: string | null = null;
 
   constructor(
     private apiService: ApiService,
@@ -32,6 +34,7 @@ export class BodyStatusComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMetrics();
+    this.loadTodayStrain();
   }
 
   loadMetrics(): void {
@@ -46,6 +49,47 @@ export class BodyStatusComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  private todayString(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  loadTodayStrain(): void {
+    // Look back up to 7 days to find the most recent day with strain data
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 6);
+    const start = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+    const end = this.todayString();
+
+    this.apiService.getDailyMetrics(start, end).subscribe({
+      next: (metrics: DailyMetrics[]) => {
+        const sorted = metrics
+          .filter(m => m.dailyStrain21 != null)
+          .sort((a, b) => b.date.localeCompare(a.date));
+        if (sorted.length > 0) {
+          this.todayStrain = sorted[0].dailyStrain21!;
+          this.todayStrainDate = sorted[0].date;
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  getStrainColor(strain: number): string {
+    if (strain >= 15) return '#ef5350';
+    if (strain >= 10) return '#ff7043';
+    if (strain >= 6)  return '#ffca28';
+    return '#66bb6a';
+  }
+
+  getStrainCategory(strain: number): string {
+    if (strain >= 15) return 'Sehr hoch';
+    if (strain >= 10) return 'Hoch';
+    if (strain >= 6)  return 'Moderat';
+    return 'Leicht';
   }
 
   recalculate(): void {
