@@ -86,11 +86,6 @@ export class TrainingDetailsDialogComponent {
     });
   }
 
-  formatTime(timeString: string | undefined): string {
-    if (!timeString) return 'Nicht angegeben';
-    return timeString.substring(0, 5); // Format HH:MM from HH:MM:SS
-  }
-
   formatDuration(minutes: number | undefined): string {
     if (!minutes) return 'Nicht angegeben';
     

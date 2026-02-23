@@ -292,10 +292,6 @@ export class TrainingCompletionComponent implements OnInit, OnDestroy {
     return new Date(dateString).toLocaleDateString('de-DE');
   }
 
-  formatTime(timeString: string): string {
-    return timeString.substring(0, 5); // HH:MM
-  }
-
   getTrainingTypeColor(type: string | undefined): string {
     return type ? this.trainingTypeColors[type] || '#9e9e9e' : '#9e9e9e';
   }

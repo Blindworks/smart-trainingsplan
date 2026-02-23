@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Entity
 @Table(name = "trainings")
@@ -27,9 +26,6 @@ public class Training {
     @NotNull
     @Column(name = "training_date", nullable = false)
     private LocalDate trainingDate;
-
-    @Column(name = "start_time")
-    private LocalTime startTime;
 
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
@@ -97,14 +93,6 @@ public class Training {
 
     public void setTrainingDate(LocalDate trainingDate) {
         this.trainingDate = trainingDate;
-    }
-
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
     }
 
     public Integer getDurationMinutes() {

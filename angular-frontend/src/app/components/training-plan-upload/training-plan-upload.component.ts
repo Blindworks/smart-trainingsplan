@@ -55,7 +55,6 @@ export class TrainingPlanUploadComponent implements OnInit {
         date: '2024-01-15',
         type: 'speed',
         intensity: 'high',
-        startTime: '18:00',
         duration: 90
       },
       {
@@ -64,7 +63,6 @@ export class TrainingPlanUploadComponent implements OnInit {
         date: '2024-01-16',
         type: 'endurance',
         intensity: 'medium',
-        startTime: '07:00',
         duration: 60
       }
     ]

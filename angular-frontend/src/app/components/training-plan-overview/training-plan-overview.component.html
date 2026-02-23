@@ -60,11 +60,7 @@
             </div>
             <span class="training-name">{{ training.description }}</span>
 
-            <div class="training-details" *ngIf="training.startTime || training.duration">
-              <span *ngIf="training.startTime" class="training-time">
-                <mat-icon>schedule</mat-icon>
-                {{ training.startTime }}
-              </span>
+            <div class="training-details" *ngIf="training.duration">
               <span *ngIf="training.duration" class="training-duration">
                 <mat-icon>timer</mat-icon>
                 {{ training.duration }}min

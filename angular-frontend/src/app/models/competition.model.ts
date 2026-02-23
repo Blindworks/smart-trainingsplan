@@ -27,7 +27,6 @@ export interface Training {
   name: string;
   trainingDescription?: TrainingDescription;
   trainingDate: string;
-  startTime?: string;
   durationMinutes?: number;
   intensityLevel: 'high' | 'medium' | 'low' | 'recovery' | 'rest';
   trainingType: 'speed' | 'endurance' | 'strength' | 'race' | 'interval' | 'recovery' | 'swimming' | 'cycling' | 'general' | 'fartlek';

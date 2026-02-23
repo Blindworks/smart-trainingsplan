@@ -89,7 +89,6 @@ public class TrainingService {
                     mixedTraining.setTrainingDate(date);
                     mixedTraining.setTrainingType(selectedTraining.getTrainingType());
                     mixedTraining.setIntensityLevel(selectedTraining.getIntensityLevel());
-                    mixedTraining.setStartTime(selectedTraining.getStartTime());
                     mixedTraining.setDurationMinutes(selectedTraining.getDurationMinutes());
                     
                     mixedTrainings.add(mixedTraining);

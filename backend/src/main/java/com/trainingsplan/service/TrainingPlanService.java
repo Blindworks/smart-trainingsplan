@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -273,9 +272,6 @@ public class TrainingPlanService {
             training.setTrainingType(trainingNode.path("type").asText(""));
             training.setIntensityLevel(trainingNode.path("intensity").asText(""));
 
-            if (trainingNode.has("startTime")) {
-                training.setStartTime(LocalTime.parse(trainingNode.get("startTime").asText()));
-            }
             if (trainingNode.has("duration")) {
                 training.setDurationMinutes(trainingNode.get("duration").asInt());
             }

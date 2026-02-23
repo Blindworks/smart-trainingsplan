@@ -13,7 +13,6 @@ describe('TrainingDetailsDialogComponent', () => {
     id: 1,
     name: 'Test Training',
     trainingDate: '2024-01-15',
-    startTime: '18:00',
     durationMinutes: 90,
     intensityLevel: 'high',
     trainingType: 'endurance',
@@ -62,11 +61,6 @@ describe('TrainingDetailsDialogComponent', () => {
     expect(formattedDate).toContain('15');
     expect(formattedDate).toContain('Januar');
     expect(formattedDate).toContain('2024');
-  });
-
-  it('should format time correctly', () => {
-    expect(component.formatTime('18:00:00')).toBe('18:00');
-    expect(component.formatTime(undefined)).toBe('Nicht angegeben');
   });
 
   it('should format duration correctly', () => {

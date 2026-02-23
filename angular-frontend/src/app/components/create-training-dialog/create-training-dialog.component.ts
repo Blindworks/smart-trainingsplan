@@ -65,7 +65,6 @@ export class CreateTrainingDialogComponent {
       name: ['', Validators.required],
       trainingType: ['endurance', Validators.required],
       intensityLevel: ['medium', Validators.required],
-      startTime: [''],
       durationMinutes: [null, [Validators.min(1), Validators.max(999)]],
       description: ['']
     });
@@ -94,7 +93,6 @@ export class CreateTrainingDialogComponent {
       trainingDate: this.data.date,
       trainingType: value.trainingType,
       intensityLevel: value.intensityLevel,
-      startTime: value.startTime || undefined,
       durationMinutes: value.durationMinutes || undefined,
       isCompleted: false,
       trainingDescription: descriptionText

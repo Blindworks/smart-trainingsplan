@@ -87,10 +87,6 @@
             
             <mat-card-content>
               <div class="training-details">
-                <div class="detail" *ngIf="training.startTime">
-                  <mat-icon>schedule</mat-icon>
-                  <span>{{ formatTime(training.startTime) }} Uhr</span>
-                </div>
                 <div class="detail" *ngIf="training.duration">
                   <mat-icon>timer</mat-icon>
                   <span>{{ training.duration }} min</span>
