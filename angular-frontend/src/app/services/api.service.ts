@@ -228,6 +228,8 @@ export class ApiService {
     heightCm?: number | null;
     weightKg?: number | null;
     maxHeartRate?: number | null;
+    hrRest?: number | null;
+    gender?: string | null;
   }): Observable<User> {
     return this.http.put<User>(`${this.baseUrl}/users/${id}`, data);
   }

@@ -36,7 +36,8 @@ public class UserService {
 
     public User updateUser(Long id, String username, String email,
                            String firstName, String lastName,
-                           LocalDate dateOfBirth, Integer heightCm, Double weightKg, Integer maxHeartRate) {
+                           LocalDate dateOfBirth, Integer heightCm, Double weightKg,
+                           Integer maxHeartRate, Integer hrRest, String gender) {
         User user = findById(id);
         user.setUsername(username);
         user.setEmail(email);
@@ -46,6 +47,8 @@ public class UserService {
         user.setHeightCm(heightCm);
         user.setWeightKg(weightKg);
         user.setMaxHeartRate(maxHeartRate);
+        user.setHrRest(hrRest);
+        user.setGender(gender);
         return userRepository.save(user);
     }
 }

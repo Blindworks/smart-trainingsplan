@@ -204,7 +204,7 @@
 
     <!-- Herzfrequenz-Zonen -->
     <mat-card class="info-section info-section--zones" appearance="outlined"
-              *ngIf="completed.averageHeartRate">
+              *ngIf="completed.averageHeartRate || isStrava()">
       <mat-card-header>
         <mat-icon mat-card-avatar class="zones-avatar-icon">bar_chart</mat-icon>
         <mat-card-title>Herzfrequenz-Zonen</mat-card-title>
@@ -258,12 +258,19 @@
           </div>
         </div>
 
+        <!-- HRmax fehlt → Hinweis (gilt für Strava und FIT) -->
+        <p class="zones-hint zones-hint--warning"
+           *ngIf="activityMetrics && activityMetrics.zonesUnknown">
+          <mat-icon class="hint-icon">warning_amber</mat-icon>
+          Maximale Herzfrequenz nicht konfiguriert – im Profil eintragen, um Zonen, Strain und TRIMP zu berechnen.
+        </p>
+
         <!-- Strava: button always visible -->
         <ng-container *ngIf="isStrava()">
           <div class="zones-recompute"
                [class.zones-recompute--separator]="activityMetrics && !activityMetrics.zonesUnknown">
             <p class="zones-hint" *ngIf="!activityMetrics && !metricsComputing && !metricsComputeError">
-              Zonendaten noch nicht berechnet.
+              Zonen, Strain und TRIMP noch nicht berechnet.
             </p>
             <p class="zones-hint zones-hint--error" *ngIf="metricsComputeError">{{ metricsComputeError }}</p>
             <button mat-stroked-button class="compute-btn"
@@ -312,6 +319,22 @@
         <span class="info-label">Rohbelastung (rawLoad)</span>
         <span class="strain-rawload-value">{{ activityMetrics.rawLoad! | number:'1.0-1' }}</span>
       </div>
+
+      <div class="strain-trimp" *ngIf="activityMetrics.trimp != null">
+        <span class="info-label">TRIMP (Bannister)</span>
+        <div class="strain-trimp-value-row">
+          <span class="strain-trimp-value">{{ activityMetrics.trimp | number:'1.0-1' }}</span>
+          <span *ngIf="activityMetrics.trimpQuality === 'LOW'"
+                class="trimp-quality-badge"
+                matTooltip="HR-Datenabdeckung unter 60 % – TRIMP möglicherweise ungenau">
+            Niedrige Abdeckung
+          </span>
+        </div>
+      </div>
+
+      <p class="strain-trimp-hint" *ngIf="activityMetrics.trimp == null">
+        TRIMP nicht verfügbar – Ruhepuls im Profil konfigurieren.
+      </p>
     </div>
   </mat-card-content>
 </mat-card>

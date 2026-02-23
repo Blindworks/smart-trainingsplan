@@ -57,6 +57,17 @@ public class ActivityMetrics {
     @Column(name = "strain21")
     private Double strain21;
 
+    /** Bannister TRIMP value. NULL when hrRest or hrMax is not configured. */
+    @Column(name = "trimp")
+    private Double trimp;
+
+    /**
+     * Reliability of the TRIMP value: {@code LOW} when HR coverage &lt; 60%, {@code OK} otherwise.
+     * NULL when TRIMP could not be computed.
+     */
+    @Column(name = "trimp_quality", length = 10)
+    private String trimpQuality;
+
     public ActivityMetrics() {}
 
     // Getters and setters
@@ -94,4 +105,10 @@ public class ActivityMetrics {
 
     public Double getStrain21() { return strain21; }
     public void setStrain21(Double strain21) { this.strain21 = strain21; }
+
+    public Double getTrimp() { return trimp; }
+    public void setTrimp(Double trimp) { this.trimp = trimp; }
+
+    public String getTrimpQuality() { return trimpQuality; }
+    public void setTrimpQuality(String trimpQuality) { this.trimpQuality = trimpQuality; }
 }

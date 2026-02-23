@@ -46,6 +46,14 @@ public class User implements UserDetails {
     @Column
     private Integer maxHeartRate;
 
+    /** Resting heart rate in bpm. Required for Bannister TRIMP calculation. */
+    @Column(name = "hr_rest")
+    private Integer hrRest;
+
+    /** Biological sex for Bannister k coefficient: {@code MALE} (k=1.92) or {@code FEMALE} (k=1.67). */
+    @Column(name = "gender", length = 10)
+    private String gender;
+
     @JsonIgnore
     @Column(name = "password_hash")
     private String passwordHash;
@@ -176,6 +184,22 @@ public class User implements UserDetails {
 
     public void setMaxHeartRate(Integer maxHeartRate) {
         this.maxHeartRate = maxHeartRate;
+    }
+
+    public Integer getHrRest() {
+        return hrRest;
+    }
+
+    public void setHrRest(Integer hrRest) {
+        this.hrRest = hrRest;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
     public String getPasswordHash() {

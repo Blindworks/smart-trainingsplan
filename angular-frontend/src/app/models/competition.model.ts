@@ -152,6 +152,8 @@ export interface User {
   heightCm?: number;
   weightKg?: number;
   maxHeartRate?: number;
+  hrRest?: number;
+  gender?: string;
 }
 
 export interface ActivityMetrics {
@@ -165,6 +167,8 @@ export interface ActivityMetrics {
   hrDataCoverage?: number;
   rawLoad?: number;
   strain21?: number;
+  trimp?: number;
+  trimpQuality?: 'LOW' | 'OK';
 }
 
 export interface DailyMetrics {

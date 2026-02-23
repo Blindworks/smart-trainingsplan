@@ -9,6 +9,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -30,6 +31,7 @@ import { StravaStatus, StravaActivity } from '../../models/strava.model';
     MatDividerModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     DatePipe
   ],
   templateUrl: './profile.component.html',
@@ -60,6 +62,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   editHeightCm: number | null = null;
   editWeightKg: number | null = null;
   editMaxHeartRate: number | null = null;
+  editHrRest: number | null = null;
+  editGender: string = '';
 
   constructor(
     private apiService: ApiService,
@@ -200,6 +204,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.editHeightCm = this.user?.heightCm ?? null;
     this.editWeightKg = this.user?.weightKg ?? null;
     this.editMaxHeartRate = this.user?.maxHeartRate ?? null;
+    this.editHrRest = this.user?.hrRest ?? null;
+    this.editGender = this.user?.gender ?? '';
     this.editMode = true;
   }
 
@@ -218,7 +224,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
       dateOfBirth: this.editDateOfBirth || undefined,
       heightCm: this.editHeightCm,
       weightKg: this.editWeightKg,
-      maxHeartRate: this.editMaxHeartRate
+      maxHeartRate: this.editMaxHeartRate,
+      hrRest: this.editHrRest,
+      gender: this.editGender || null
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({

@@ -6,6 +6,7 @@ import com.trainingsplan.entity.User;
 import com.trainingsplan.repository.ActivityMetricsRepository;
 import com.trainingsplan.service.hrzone.HeartRateZoneConfig;
 import com.trainingsplan.service.hrzone.ZoneTimeResult;
+import com.trainingsplan.service.trimp.TRIMPResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,9 @@ public class ActivityMetricsService {
 
     @Autowired
     private StrainCalculator strainCalculator;
+
+    @Autowired
+    private TRIMPCalculator trimpCalculator;
 
     @Autowired
     private DailyMetricsService dailyMetricsService;
@@ -75,6 +79,18 @@ public class ActivityMetricsService {
                     result.getZ4Min(), result.getZ5Min());
             metrics.setRawLoad(rawLoad);
             metrics.setStrain21(strainCalculator.strain21(rawLoad));
+        }
+
+        // TRIMP calculation — requires both hrMax and hrRest
+        if (user.getMaxHeartRate() != null && user.getMaxHeartRate() > 0
+                && user.getHrRest() != null && user.getHrRest() > 0) {
+            double k = TRIMPCalculator.kForGender(user.getGender());
+            TRIMPResult trimpResult = trimpCalculator.calculate(
+                    timeSeconds, heartRates, user.getHrRest(), user.getMaxHeartRate(), k);
+            if (trimpResult != null) {
+                metrics.setTrimp(trimpResult.trimp());
+                metrics.setTrimpQuality(trimpResult.quality().name());
+            }
         }
 
         activityMetricsRepository.save(metrics);

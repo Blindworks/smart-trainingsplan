@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="014-add-trimp-to-activity-metrics" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="activity_metrics" columnName="trimp"/></not>
+        </preConditions>
+
+        <addColumn tableName="activity_metrics">
+            <column name="trimp" type="DOUBLE"
+                    remarks="Bannister TRIMP: sum(dt_min * deltaHR * exp(k * deltaHR))"/>
+            <column name="trimp_quality" type="VARCHAR(10)"
+                    remarks="LOW when HR coverage &lt; 60%, OK otherwise"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

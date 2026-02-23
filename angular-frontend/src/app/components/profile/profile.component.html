@@ -107,6 +107,14 @@
             <span class="field-label">Max. Herzfrequenz</span>
             <span class="field-value">{{ user?.maxHeartRate != null ? user!.maxHeartRate + ' bpm' : '–' }}</span>
           </div>
+          <div class="profile-field">
+            <span class="field-label">Ruhepuls</span>
+            <span class="field-value">{{ user?.hrRest != null ? user!.hrRest + ' bpm' : '–' }}</span>
+          </div>
+          <div class="profile-field">
+            <span class="field-label">Geschlecht</span>
+            <span class="field-value">{{ user?.gender === 'MALE' ? 'Männlich' : user?.gender === 'FEMALE' ? 'Weiblich' : '–' }}</span>
+          </div>
         </div>
         <button mat-stroked-button class="edit-btn" (click)="startEdit()" *ngIf="user">
           <mat-icon>edit</mat-icon>
@@ -150,7 +158,21 @@
         <mat-form-field appearance="outline" class="edit-field">
           <mat-label>Max. Herzfrequenz (bpm)</mat-label>
           <input matInput [(ngModel)]="editMaxHeartRate" type="number" min="100" max="230" placeholder="z.B. 185">
-          <mat-hint>Wird für die HF-korrigierte VO2max-Berechnung benötigt</mat-hint>
+          <mat-hint>Wird für Zonen, Strain und TRIMP benötigt</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Ruhepuls (bpm)</mat-label>
+          <input matInput [(ngModel)]="editHrRest" type="number" min="30" max="100" placeholder="z.B. 55">
+          <mat-hint>Wird für TRIMP (Bannister) benötigt</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Geschlecht</mat-label>
+          <mat-select [(ngModel)]="editGender">
+            <mat-option value="">Nicht angegeben</mat-option>
+            <mat-option value="MALE">Männlich (k = 1.92)</mat-option>
+            <mat-option value="FEMALE">Weiblich (k = 1.67)</mat-option>
+          </mat-select>
+          <mat-hint>Bestimmt den Bannister-Koeffizienten für TRIMP</mat-hint>
         </mat-form-field>
         <div class="edit-actions">
           <button mat-flat-button class="pacr-btn-primary" (click)="saveUser()" [disabled]="saving">
