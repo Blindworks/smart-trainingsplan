@@ -60,18 +60,18 @@ public class Vo2MaxService {
     }
 
     /**
-     * HR-corrected VO2max: instead of the time-based effort fraction (Daniels),
-     * the actual heart-rate fraction is used.
+     * HR-corrected VO2max using the %HRmax → %vVO2max conversion.
      *
-     * Formula: VO2max = vo2AtPace × (maxHR / avgHR)
+     * Formula: VO2max = vo2AtPace / %vVO2max
+     * Conversion: %vVO2max = %HRmax − 5 pp  (common physiological approximation)
      *
      * Rationale: at a given pace the body demands a fixed VO2 per kg per minute
-     * (vo2AtPace). If your heart only reaches avgHR of maxHR, that pace represents
-     * (avgHR/maxHR) × 100 % of your maximum capacity, so your VO2max scales
-     * proportionally.
+     * (vo2AtPace). The fraction of VO2max actually used (%vVO2max) is approximately
+     * 5 percentage points below the observed %HRmax. Dividing by %vVO2max yields
+     * the estimated VO2max.
      *
      * @param distanceMeters    distance in meters
-     * @param movingTimeSeconds moving time in seconds
+     * @param movingTimeSeconds moving time in seconds (actual running time, excluding stops)
      * @param avgHeartRate      average heart rate during the effort (bpm)
      * @param maxHeartRate      athlete's maximum heart rate (bpm)
      */
@@ -92,11 +92,13 @@ public class Vo2MaxService {
         double vo2AtRacePace = vo2AtPace(speedMetersPerMinute);
         double hrFraction = (double) avgHeartRate / maxHeartRate;
 
-        if (hrFraction <= 0.0) {
+        // Convert %HRmax to %vVO2max using the common −5 pp approximation
+        double vVO2maxFraction = hrFraction - 0.05;
+        if (vVO2maxFraction <= 0.0) {
             return Optional.empty();
         }
 
-        double vo2Max = vo2AtRacePace / hrFraction;
+        double vo2Max = vo2AtRacePace / vVO2maxFraction;
         if (!Double.isFinite(vo2Max) || vo2Max <= 0.0) {
             return Optional.empty();
         }

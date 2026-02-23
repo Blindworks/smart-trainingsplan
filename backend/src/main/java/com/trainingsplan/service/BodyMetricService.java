@@ -38,12 +38,17 @@ public class BodyMetricService {
         if (!isRunning(training)) return;
 
         Double distanceMeters = training.getDistanceKm() != null ? training.getDistanceKm() * 1000 : null;
+        // Daniels: total duration (designed for continuous/race effort)
+        Integer durationTime = training.getDurationSeconds() != null
+                ? training.getDurationSeconds()
+                : training.getMovingTimeSeconds();
+        // HR-corrected: actual running pace → use moving time (excludes stops)
         Integer movingTime = training.getMovingTimeSeconds() != null
                 ? training.getMovingTimeSeconds()
                 : training.getDurationSeconds();
 
         // Standard VO2Max (Daniels/VDOT)
-        vo2MaxService.calculate(distanceMeters, movingTime)
+        vo2MaxService.calculate(distanceMeters, durationTime)
                 .ifPresent(v -> upsert(user, "VO2MAX", v, "ml/kg/min",
                         training.getTrainingDate(), training.getId()));
 

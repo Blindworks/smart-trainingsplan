@@ -74,12 +74,17 @@ public class Vo2MaxController {
         }
 
         CompletedTraining training = trainingOptional.get();
+        // Daniels formula is designed for race/continuous effort → use total duration
+        Integer durationSeconds = training.getDurationSeconds() != null
+                ? training.getDurationSeconds()
+                : training.getMovingTimeSeconds();
+        // HR-corrected uses actual running pace → use moving time (excludes stops)
         Integer movingTimeSeconds = training.getMovingTimeSeconds() != null
                 ? training.getMovingTimeSeconds()
                 : training.getDurationSeconds();
         Double distanceMeters = training.getDistanceKm() != null ? training.getDistanceKm() * 1000 : null;
 
-        Optional<Double> vo2Max = vo2MaxService.calculate(distanceMeters, movingTimeSeconds);
+        Optional<Double> vo2Max = vo2MaxService.calculate(distanceMeters, durationSeconds);
         if (vo2Max.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
             response.put("vo2max", null);
@@ -96,11 +101,20 @@ public class Vo2MaxController {
                         training.getAverageHeartRate(), userMaxHR)
                 : Optional.empty();
 
+        // Compute %HRmax and derived %vVO2max for display
+        Integer avgHR = training.getAverageHeartRate();
+        Double percentHRmax = (avgHR != null && userMaxHR != null && userMaxHR > 0)
+                ? Math.round((double) avgHR / userMaxHR * 1000) / 10.0
+                : null;
+        Double percentVVO2max = (percentHRmax != null) ? Math.round((percentHRmax - 5) * 10) / 10.0 : null;
+
         Map<String, Object> response = new HashMap<>();
         response.put("vo2max", vo2Max.get());
         response.put("vo2maxHRCorrected", vo2MaxHR.orElse(null));
-        response.put("avgHeartRate", training.getAverageHeartRate());
+        response.put("avgHeartRate", avgHR);
         response.put("maxHeartRate", training.getMaxHeartRate());
+        response.put("percentHRmax", percentHRmax);
+        response.put("percentVVO2max", percentVVO2max);
         response.put("trainingDate", training.getTrainingDate());
         response.put("activityName", training.getActivityName());
         return ResponseEntity.ok(response);
