@@ -7,9 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 import { ApiService } from '../../services/api.service';
-import { Training } from '../../models/competition.model';
+import { Training, TrainingDescription } from '../../models/competition.model';
 
 export interface CreateTrainingDialogData {
   date: string; // YYYY-MM-DD
@@ -25,7 +26,8 @@ export interface CreateTrainingDialogData {
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatExpansionModule
   ],
   templateUrl: './create-training-dialog.component.html',
   styleUrl: './create-training-dialog.component.scss'
@@ -66,7 +68,14 @@ export class CreateTrainingDialogComponent {
       trainingType: ['endurance', Validators.required],
       intensityLevel: ['medium', Validators.required],
       durationMinutes: [null, [Validators.min(1), Validators.max(999)]],
-      description: ['']
+      // TrainingDescription fields
+      descName: [''],
+      detailedInstructions: [''],
+      warmupInstructions: [''],
+      cooldownInstructions: [''],
+      equipment: [''],
+      tips: [''],
+      difficultyLevel: ['']
     });
   }
 
@@ -81,23 +90,45 @@ export class CreateTrainingDialogComponent {
     });
   }
 
+  hasDescriptionDetails(): boolean {
+    const v = this.form.value;
+    return !!(v.detailedInstructions?.trim() || v.warmupInstructions?.trim() ||
+              v.cooldownInstructions?.trim() || v.equipment?.trim() ||
+              v.tips?.trim() || v.difficultyLevel?.trim());
+  }
+
   onSave(): void {
     if (this.form.invalid || this.saving) return;
 
     this.saving = true;
-    const value = this.form.value;
+    const v = this.form.value;
 
-    const descriptionText = value.description?.trim();
+    const trim = (s: string) => s?.trim() || undefined;
+
+    const descName = trim(v.descName);
+    const detailedInstructions = trim(v.detailedInstructions);
+    const warmupInstructions = trim(v.warmupInstructions);
+    const cooldownInstructions = trim(v.cooldownInstructions);
+    const equipment = trim(v.equipment);
+    const tips = trim(v.tips);
+    const difficultyLevel = trim(v.difficultyLevel);
+
+    const hasDesc = descName || detailedInstructions || warmupInstructions ||
+                    cooldownInstructions || equipment || tips || difficultyLevel;
+
+    const trainingDescription: TrainingDescription | undefined = hasDesc
+      ? { name: descName ?? '', detailedInstructions, warmupInstructions,
+          cooldownInstructions, equipment, tips, difficultyLevel }
+      : undefined;
+
     const training: Training = {
-      name: value.name.trim(),
+      name: v.name.trim(),
       trainingDate: this.data.date,
-      trainingType: value.trainingType,
-      intensityLevel: value.intensityLevel,
-      durationMinutes: value.durationMinutes || undefined,
+      trainingType: v.trainingType,
+      intensityLevel: v.intensityLevel,
+      durationMinutes: v.durationMinutes || undefined,
       isCompleted: false,
-      trainingDescription: descriptionText
-        ? { name: descriptionText }
-        : undefined
+      trainingDescription
     };
 
     this.apiService.createTraining(training).subscribe({

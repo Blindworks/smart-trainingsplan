@@ -88,6 +88,67 @@
   gap: 12px;
 }
 
+// ─── Expansion Panel ──────────────────────────────────────────────────────────
+
+.details-panel {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  margin-top: 4px;
+
+  // Header
+  .mat-expansion-panel-header {
+    padding: 0 14px !important;
+    height: 44px !important;
+    background: transparent !important;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.04) !important;
+    }
+  }
+
+  mat-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+
+    mat-icon {
+      font-size: 15px;
+      width: 15px;
+      height: 15px;
+      color: var(--accent-blue);
+    }
+  }
+
+  mat-panel-description {
+    font-size: 10px !important;
+    color: var(--volt-green) !important;
+    font-weight: 500;
+    justify-content: flex-end;
+  }
+
+  .mat-expansion-panel-body {
+    padding: 0 0 4px !important;
+  }
+
+  .expansion-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px 8px;
+
+    mat-form-field {
+      width: 100%;
+    }
+  }
+}
+
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
 .dialog-actions {
