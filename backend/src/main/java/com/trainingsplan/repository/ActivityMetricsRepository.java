@@ -21,6 +21,16 @@ public interface ActivityMetricsRepository extends JpaRepository<ActivityMetrics
            "ORDER BY ct.trainingDate DESC, ct.id DESC")
     List<ActivityMetrics> findEligibleDecouplingByUserId(@Param("userId") Long userId, Pageable pageable);
 
+    @Query("SELECT am FROM ActivityMetrics am " +
+           "JOIN FETCH am.completedTraining ct " +
+           "WHERE ct.user.id = :userId AND am.decouplingEligible = true " +
+           "AND ct.trainingDate >= :startDate AND ct.trainingDate <= :endDate " +
+           "ORDER BY ct.trainingDate ASC, ct.id ASC")
+    List<ActivityMetrics> findEligibleDecouplingByUserIdAndDateRange(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
+
     @Query("SELECT SUM(am.strain21) FROM ActivityMetrics am " +
            "JOIN am.completedTraining ct " +
            "WHERE ct.user.id = :userId AND ct.trainingDate = :date AND am.strain21 IS NOT NULL")

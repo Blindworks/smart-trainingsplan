@@ -172,10 +172,10 @@ export class ApiService {
     });
   }
 
-  getDecouplingHistory(limit: number = 20): Observable<DecouplingHistoryPoint[]> {
+  getDecouplingHistory(startDate: string, endDate: string): Observable<DecouplingHistoryPoint[]> {
     return this.http.get<DecouplingHistoryPoint[]>(
       `${this.baseUrl}/completed-trainings/decoupling-history`,
-      { params: { limit: limit.toString() } }
+      { params: { startDate, endDate } }
     );
   }
 

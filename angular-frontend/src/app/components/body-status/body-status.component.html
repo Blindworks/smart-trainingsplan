@@ -234,7 +234,7 @@
         </div>
         <div>
           <h2>Aerobic Decoupling</h2>
-          <p>Letzte {{ decouplingChart.length }} Läufe</p>
+          <p>Letzte 30 Tage</p>
         </div>
       </div>
       <div class="history-chart-stats">
@@ -259,27 +259,27 @@
       </div>
     </div>
 
-    <div class="history-chart-area decoupling-chart-area">
+    <div class="history-chart-area">
       <div class="history-chart-bars">
-        <div class="history-bar-slot decoupling-bar-slot"
+        <div class="history-bar-slot"
              *ngFor="let p of decouplingChart; let i = index"
              (mouseenter)="decouplingHoveredIndex = i"
              (mouseleave)="decouplingHoveredIndex = null">
-          <div class="bar-tooltip" *ngIf="decouplingHoveredIndex === i">
-            <span class="bar-tooltip-day">{{ p.dateLabel }}</span>
-            <span class="bar-tooltip-date decoupling-tooltip-name">{{ p.activityName }}</span>
+          <div class="bar-tooltip" *ngIf="decouplingHoveredIndex === i && p.value != null">
+            <span class="bar-tooltip-day">{{ p.dayLabel }}</span>
+            <span class="bar-tooltip-date">{{ p.label }}</span>
             <span class="bar-tooltip-value" [style.color]="p.color">{{ p.tooltip }}</span>
           </div>
           <div class="history-bar"
-               [style.height.%]="p.barPct"
-               [style.background-color]="p.color">
+               [style.height.%]="p.pct"
+               [style.background-color]="p.color"
+               [class.history-bar--empty]="p.value == null">
           </div>
         </div>
       </div>
       <div class="history-chart-labels">
-        <div class="history-label-slot decoupling-label-slot"
-             *ngFor="let p of decouplingChart">
-          <span>{{ p.dateLabel }}</span>
+        <div class="history-label-slot" *ngFor="let p of decouplingChart">
+          <span *ngIf="p.showLabel">{{ p.label }}</span>
         </div>
       </div>
     </div>

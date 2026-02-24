@@ -112,26 +112,34 @@ public class CompletedTrainingController {
     }
 
     /**
-     * Returns the last {@code limit} activities (default 20, max 50) with eligible aerobic
-     * decoupling data for the authenticated user, in chronological order.
+     * Returns eligible aerobic decoupling data for the authenticated user.
+     * When {@code startDate}/{@code endDate} are provided the result is filtered to that window
+     * and sorted chronologically (ASC); otherwise the last {@code limit} activities are returned.
      *
-     * <p>As a lazy migration, any Strava activities that were synced before per-user tracking
-     * was added (user_id = NULL) are first claimed for the current user.
+     * <p>As a lazy migration, orphaned Strava activities (user_id = NULL) are first claimed.
      */
     @Transactional
     @GetMapping("/decoupling-history")
     public ResponseEntity<List<Map<String, Object>>> getDecouplingHistory(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(defaultValue = "20") int limit) {
         User user = securityUtils.getCurrentUser();
         if (user == null) {
             return ResponseEntity.ok(List.of());
         }
-        // Claim any orphaned Strava activities (synced before user tracking was added)
         completedTrainingRepository.claimOrphanedStravaActivities(user);
-
         Long userId = user.getId();
-        List<ActivityMetrics> entries = activityMetricsRepository.findEligibleDecouplingByUserId(
-                userId, PageRequest.of(0, Math.min(limit, 50)));
+
+        List<ActivityMetrics> entries;
+        if (startDate != null && endDate != null) {
+            entries = activityMetricsRepository.findEligibleDecouplingByUserIdAndDateRange(
+                    userId, startDate, endDate);
+        } else {
+            entries = activityMetricsRepository.findEligibleDecouplingByUserId(
+                    userId, PageRequest.of(0, Math.min(limit, 50)));
+            Collections.reverse(entries); // DESC → ASC for chart
+        }
 
         List<Map<String, Object>> result = new ArrayList<>(entries.size());
         for (ActivityMetrics am : entries) {
@@ -143,7 +151,6 @@ public class CompletedTrainingController {
             dto.put("decouplingPct", am.getDecouplingPct());
             result.add(dto);
         }
-        Collections.reverse(result); // chronological order for chart
         return ResponseEntity.ok(result);
     }
 

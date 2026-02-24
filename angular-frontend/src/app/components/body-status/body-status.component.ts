@@ -25,15 +25,6 @@ interface ChartStats {
   sessions: number;
 }
 
-interface DecouplingChartPoint {
-  dateLabel: string;
-  activityName: string;
-  decouplingPct: number;
-  barPct: number;   // visual bar height (0–100), based on |decouplingPct| / 15
-  color: string;
-  tooltip: string;
-}
-
 @Component({
   selector: 'app-body-status',
   standalone: true,
@@ -62,7 +53,7 @@ export class BodyStatusComponent implements OnInit {
   trimpChartStats: ChartStats = { avg: 0, max: 0, sessions: 0 };
   trimpHoveredIndex: number | null = null;
 
-  decouplingChart: DecouplingChartPoint[] = [];
+  decouplingChart: BarChartPoint[] = [];
   decouplingChartStats = { avg: 0, best: 0, sessions: 0 };
   decouplingHoveredIndex: number | null = null;
 
@@ -229,44 +220,72 @@ export class BodyStatusComponent implements OnInit {
   }
 
   loadDecouplingHistory(): void {
-    this.apiService.getDecouplingHistory(20).pipe(
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 29);
+    const start = this.formatDateLocal(startDate);
+    const end = this.formatDateLocal(today);
+
+    this.apiService.getDecouplingHistory(start, end).pipe(
       catchError(() => of([]))
     ).subscribe((points: DecouplingHistoryPoint[]) => {
-      this.buildDecouplingChart(points);
+      this.buildDecouplingChart(points, startDate);
     });
   }
 
-  private buildDecouplingChart(points: DecouplingHistoryPoint[]): void {
+  private buildDecouplingChart(points: DecouplingHistoryPoint[], from: Date): void {
     const MAX_PCT = 15;
-    this.decouplingChart = points.map(p => {
-      const pct = p.decouplingPct;
-      const [, month, day] = p.date.split('-');
-      const dateLabel = `${day}.${month}`;
-      return {
-        dateLabel,
-        activityName: p.activityName ?? p.sport ?? 'Aktivität',
-        decouplingPct: pct,
-        barPct: Math.max((Math.abs(pct) / MAX_PCT) * 100, 2),
-        color: this.getDecouplingBarColor(pct),
-        tooltip: `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`
-      };
-    });
+    const DAY_LABELS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 
-    if (points.length === 0) {
-      this.decouplingChartStats = { avg: 0, best: 0, sessions: 0 };
-      return;
+    // Group by date (average if multiple activities on same day)
+    const map = new Map<string, number[]>();
+    for (const p of points) {
+      const existing = map.get(p.date) ?? [];
+      existing.push(p.decouplingPct);
+      map.set(p.date, existing);
     }
-    const sum  = points.reduce((s, p) => s + p.decouplingPct, 0);
-    const best = Math.min(...points.map(p => p.decouplingPct));
+
+    const chartPoints: BarChartPoint[] = [];
+    let sum = 0, count = 0, best = Infinity;
+
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(from);
+      d.setDate(from.getDate() + i);
+      const dateStr = this.formatDateLocal(d);
+      const label = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const dayLabel = DAY_LABELS[d.getDay()];
+
+      const values = map.get(dateStr);
+      const value = values ? values.reduce((a, b) => a + b, 0) / values.length : null;
+
+      if (value !== null) {
+        sum += value;
+        count++;
+        if (value < best) best = value;
+      }
+
+      chartPoints.push({
+        date: dateStr,
+        dayLabel,
+        label,
+        showLabel: i % 7 === 0 || i === 29,
+        value,
+        pct: value !== null ? Math.max((Math.abs(value) / MAX_PCT) * 100, 1) : 0,
+        color: value !== null ? this.getDecouplingBarColor(value) : 'transparent',
+        tooltip: value !== null ? `${value >= 0 ? '+' : ''}${value.toFixed(1)}%` : ''
+      });
+    }
+
+    this.decouplingChart = chartPoints;
     this.decouplingChartStats = {
-      avg:      Math.round(sum / points.length * 10) / 10,
-      best:     Math.round(best * 10) / 10,
-      sessions: points.length
+      avg:      count > 0 ? Math.round(sum / count * 10) / 10 : 0,
+      best:     best !== Infinity ? Math.round(best * 10) / 10 : 0,
+      sessions: count
     };
   }
 
   get decouplingChartHasData(): boolean {
-    return this.decouplingChart.length > 0;
+    return this.decouplingChartStats.sessions > 0;
   }
 
   getDecouplingBarColor(pct: number): string {

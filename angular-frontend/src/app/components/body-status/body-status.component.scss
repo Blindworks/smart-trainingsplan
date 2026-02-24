@@ -440,39 +440,6 @@
   flex-shrink: 0;
 }
 
-// ─── Aerobic Decoupling Chart ──────────────────────────────────────────────────
-
-// Activity-based chart: fewer, wider bars (up to 20 activities)
-.decoupling-chart-area .history-chart-bars {
-  gap: 4px;
-}
-
-.decoupling-bar-slot {
-  min-width: 0;
-  flex: 1;
-  max-width: 48px; // cap width so bars don't grow huge when there are few activities
-}
-
-.decoupling-label-slot {
-  flex: 1;
-  max-width: 48px;
-  text-align: center;
-  font-size: 9px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.decoupling-tooltip-name {
-  font-size: 10px;
-  color: var(--text-muted);
-  max-width: 120px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 // ─── Responsive ────────────────────────────────────────────────────────────────
 
 @media (max-width: 600px) {
