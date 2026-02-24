@@ -93,6 +93,17 @@ public class DailyMetricsService {
     }
 
     /**
+     * Computes and persists today's strain, EF, ACWR and Readiness metrics.
+     * Called when the dashboard is loaded to ensure today's status is always current,
+     * even on rest days without any training activity.
+     */
+    public void computeToday(User user) {
+        LocalDate today = LocalDate.now();
+        updateDailyStrain(user, today);
+        updateDailyEf(user, today);
+    }
+
+    /**
      * Averages the efficiencyFactor of all records in {@code candidates} whose activity date
      * falls within [{@code windowStart}, {@code windowEnd}] (inclusive).
      * Returns {@code null} when no eligible records fall in the window.

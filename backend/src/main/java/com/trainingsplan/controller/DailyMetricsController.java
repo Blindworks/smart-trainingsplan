@@ -79,4 +79,19 @@ public class DailyMetricsController {
         readinessService.recomputeForUser(user);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * Computes today's metrics (strain, ACWR, Readiness) for the authenticated user.
+     * Called by the dashboard on load to ensure today's status is always current,
+     * even on rest days with no training activity.
+     */
+    @PostMapping("/compute-today")
+    public ResponseEntity<Void> computeToday() {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        dailyMetricsService.computeToday(user);
+        return ResponseEntity.ok().build();
+    }
 }

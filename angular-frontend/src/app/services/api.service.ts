@@ -222,6 +222,10 @@ export class ApiService {
     return this.http.post<void>(`${this.baseUrl}/daily-metrics/recompute-readiness`, {});
   }
 
+  computeToday(): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/daily-metrics/compute-today`, {});
+  }
+
   // User API
   getMe(): Observable<User> {
     return this.http.get<User>(`${this.baseUrl}/users/me`);

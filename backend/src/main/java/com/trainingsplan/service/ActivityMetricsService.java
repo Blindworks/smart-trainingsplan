@@ -11,6 +11,7 @@ import com.trainingsplan.service.trimp.TRIMPResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -96,8 +97,15 @@ public class ActivityMetricsService {
         metrics.setEfficiencyFactor(computeEF(completedTraining));
 
         activityMetricsRepository.save(metrics);
-        dailyMetricsService.updateDailyStrain(user, completedTraining.getTrainingDate());
-        dailyMetricsService.updateDailyEf(user, completedTraining.getTrainingDate());
+        LocalDate trainingDate = completedTraining.getTrainingDate();
+        dailyMetricsService.updateDailyStrain(user, trainingDate);
+        dailyMetricsService.updateDailyEf(user, trainingDate);
+        // Also update today's rolling metrics so dashboard always shows current status
+        LocalDate today = LocalDate.now();
+        if (!trainingDate.equals(today)) {
+            dailyMetricsService.updateDailyStrain(user, today);
+            dailyMetricsService.updateDailyEf(user, today);
+        }
     }
 
     /**
@@ -178,8 +186,15 @@ public class ActivityMetricsService {
         metrics.setEfficiencyFactor(computeEF(completedTraining));
 
         activityMetricsRepository.save(metrics);
-        dailyMetricsService.updateDailyStrain(user, completedTraining.getTrainingDate());
-        dailyMetricsService.updateDailyEf(user, completedTraining.getTrainingDate());
+        LocalDate trainingDate = completedTraining.getTrainingDate();
+        dailyMetricsService.updateDailyStrain(user, trainingDate);
+        dailyMetricsService.updateDailyEf(user, trainingDate);
+        // Also update today's rolling metrics so dashboard always shows current status
+        LocalDate today = LocalDate.now();
+        if (!trainingDate.equals(today)) {
+            dailyMetricsService.updateDailyStrain(user, today);
+            dailyMetricsService.updateDailyEf(user, today);
+        }
     }
 
     /**

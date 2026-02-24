@@ -124,56 +124,60 @@ export class BodyStatusComponent implements OnInit {
     const start = this.formatDateLocal(startDate);
     const end = this.formatDateLocal(today);
 
-    this.apiService.getDailyMetrics(start, end).subscribe({
-      next: (metrics: DailyMetrics[]) => {
-        // Most recent day with strain data
-        const sorted = metrics
-          .filter(m => m.dailyStrain21 != null)
-          .sort((a, b) => b.date.localeCompare(a.date));
-        if (sorted.length > 0) {
-          this.todayStrain = sorted[0].dailyStrain21!;
-          this.todayStrainDate = sorted[0].date;
-        }
-        this.buildStrainChart(metrics, startDate);
-        this.buildTrIMPChart(metrics, startDate);
-        this.buildEfChart(metrics, startDate);
-        // Most recent ACWR
-        const sortedAcwr = metrics
-          .filter(m => m.acwr != null)
-          .sort((a, b) => b.date.localeCompare(a.date));
-        if (sortedAcwr.length > 0) {
-          const latest = sortedAcwr[0];
-          this.todayAcwr = latest.acwr ?? null;
-          this.todayAcwrFlag = latest.acwrFlag ?? null;
-          this.todayAcwrDate = latest.date;
-          this.todayAcute7 = latest.acute7 ?? null;
-          this.todayAcwrChronic28 = latest.chronic28 ?? null;
-        }
-        this.buildAcwrChart(metrics, startDate);
-        // Most recent readiness
-        const sortedReadiness = metrics
-          .filter(m => m.readinessScore != null)
-          .sort((a, b) => b.date.localeCompare(a.date));
-        if (sortedReadiness.length > 0) {
-          const latest = sortedReadiness[0];
-          this.todayReadiness = latest.readinessScore ?? null;
-          this.todayRecommendation = latest.recommendation ?? null;
-          this.todayReadinessDate = latest.date;
-          try {
-            this.todayReadinessReasons = latest.reasonsJson ? JSON.parse(latest.reasonsJson) : [];
-          } catch {
-            this.todayReadinessReasons = [];
+    this.apiService.computeToday().pipe(
+      catchError(() => of(null))
+    ).subscribe(() => {
+      this.apiService.getDailyMetrics(start, end).subscribe({
+        next: (metrics: DailyMetrics[]) => {
+          // Most recent day with strain data
+          const sorted = metrics
+            .filter(m => m.dailyStrain21 != null)
+            .sort((a, b) => b.date.localeCompare(a.date));
+          if (sorted.length > 0) {
+            this.todayStrain = sorted[0].dailyStrain21!;
+            this.todayStrainDate = sorted[0].date;
           }
-          this.todayCoachTitle = latest.coachTitle ?? null;
-          try {
-            this.todayCoachBullets = latest.coachBulletsJson ? JSON.parse(latest.coachBulletsJson) : [];
-          } catch {
-            this.todayCoachBullets = [];
+          this.buildStrainChart(metrics, startDate);
+          this.buildTrIMPChart(metrics, startDate);
+          this.buildEfChart(metrics, startDate);
+          // Most recent ACWR
+          const sortedAcwr = metrics
+            .filter(m => m.acwr != null)
+            .sort((a, b) => b.date.localeCompare(a.date));
+          if (sortedAcwr.length > 0) {
+            const latest = sortedAcwr[0];
+            this.todayAcwr = latest.acwr ?? null;
+            this.todayAcwrFlag = latest.acwrFlag ?? null;
+            this.todayAcwrDate = latest.date;
+            this.todayAcute7 = latest.acute7 ?? null;
+            this.todayAcwrChronic28 = latest.chronic28 ?? null;
           }
-        }
-        this.buildReadinessChart(metrics, startDate);
-      },
-      error: () => {}
+          this.buildAcwrChart(metrics, startDate);
+          // Most recent readiness
+          const sortedReadiness = metrics
+            .filter(m => m.readinessScore != null)
+            .sort((a, b) => b.date.localeCompare(a.date));
+          if (sortedReadiness.length > 0) {
+            const latest = sortedReadiness[0];
+            this.todayReadiness = latest.readinessScore ?? null;
+            this.todayRecommendation = latest.recommendation ?? null;
+            this.todayReadinessDate = latest.date;
+            try {
+              this.todayReadinessReasons = latest.reasonsJson ? JSON.parse(latest.reasonsJson) : [];
+            } catch {
+              this.todayReadinessReasons = [];
+            }
+            this.todayCoachTitle = latest.coachTitle ?? null;
+            try {
+              this.todayCoachBullets = latest.coachBulletsJson ? JSON.parse(latest.coachBulletsJson) : [];
+            } catch {
+              this.todayCoachBullets = [];
+            }
+          }
+          this.buildReadinessChart(metrics, startDate);
+        },
+        error: () => {}
+      });
     });
   }
 
