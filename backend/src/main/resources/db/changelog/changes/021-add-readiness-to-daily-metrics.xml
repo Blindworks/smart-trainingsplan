@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="021-add-readiness-to-daily-metrics" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="daily_metrics" columnName="readiness_score"/></not>
+        </preConditions>
+        <addColumn tableName="daily_metrics">
+            <column name="readiness_score" type="INT"
+                    remarks="Readiness score 0-100. Higher = more recovered and ready to train hard."/>
+            <column name="recommendation" type="VARCHAR(10)"
+                    remarks="Training recommendation: EASY, MODERATE, HARD, or REST."/>
+            <column name="reasons_json" type="VARCHAR(500)"
+                    remarks="JSON array of short strings (max 3) explaining the readiness score."/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -51,4 +51,18 @@ public interface ActivityMetricsRepository extends JpaRepository<ActivityMetrics
             @Param("userId") Long userId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+    /**
+     * Sums (z4Min + z5Min) for all activities of a user in a date range.
+     * Returns 0.0 if no activities exist in that range.
+     */
+    @Query("SELECT COALESCE(SUM(COALESCE(am.z4Min, 0.0) + COALESCE(am.z5Min, 0.0)), 0.0) " +
+           "FROM ActivityMetrics am " +
+           "JOIN am.completedTraining ct " +
+           "WHERE ct.user.id = :userId " +
+           "AND ct.trainingDate >= :startDate AND ct.trainingDate <= :endDate")
+    double sumZ4Z5MinByUserIdAndDateRange(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 }

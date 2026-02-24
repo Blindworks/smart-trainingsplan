@@ -80,6 +80,28 @@ public class DailyMetrics {
     @Column(name = "acwr_message", length = 100)
     private String acwrMessage;
 
+    /**
+     * Readiness score 0–100 computed by the v1 heuristic.
+     * Higher = more recovered; NULL until first computation.
+     */
+    @Column(name = "readiness_score")
+    private Integer readinessScore;
+
+    /**
+     * Training recommendation derived from {@code readinessScore}.
+     * NULL until first computation.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recommendation", length = 10)
+    private Recommendation recommendation;
+
+    /**
+     * JSON array (max 3 strings) explaining the readiness score deductions.
+     * Example: ["Hohes ACWR","Hohe gestrige Belastung"]
+     */
+    @Column(name = "reasons_json", length = 500)
+    private String reasonsJson;
+
     public DailyMetrics() {}
 
     public Long getId() { return id; }
@@ -116,4 +138,13 @@ public class DailyMetrics {
 
     public String getAcwrMessage() { return acwrMessage; }
     public void setAcwrMessage(String acwrMessage) { this.acwrMessage = acwrMessage; }
+
+    public Integer getReadinessScore() { return readinessScore; }
+    public void setReadinessScore(Integer readinessScore) { this.readinessScore = readinessScore; }
+
+    public Recommendation getRecommendation() { return recommendation; }
+    public void setRecommendation(Recommendation recommendation) { this.recommendation = recommendation; }
+
+    public String getReasonsJson() { return reasonsJson; }
+    public void setReasonsJson(String reasonsJson) { this.reasonsJson = reasonsJson; }
 }

@@ -5,6 +5,7 @@ import com.trainingsplan.entity.User;
 import com.trainingsplan.repository.DailyMetricsRepository;
 import com.trainingsplan.security.SecurityUtils;
 import com.trainingsplan.service.DailyMetricsService;
+import com.trainingsplan.service.ReadinessService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -26,13 +27,16 @@ public class DailyMetricsController {
     private final DailyMetricsRepository dailyMetricsRepository;
     private final DailyMetricsService dailyMetricsService;
     private final SecurityUtils securityUtils;
+    private final ReadinessService readinessService;
 
     public DailyMetricsController(DailyMetricsRepository dailyMetricsRepository,
                                    DailyMetricsService dailyMetricsService,
-                                   SecurityUtils securityUtils) {
+                                   SecurityUtils securityUtils,
+                                   ReadinessService readinessService) {
         this.dailyMetricsRepository = dailyMetricsRepository;
         this.dailyMetricsService = dailyMetricsService;
         this.securityUtils = securityUtils;
+        this.readinessService = readinessService;
     }
 
     @GetMapping
@@ -59,5 +63,20 @@ public class DailyMetricsController {
                 "message", "EF rolling averages recomputed",
                 "daysProcessed", 90
         ));
+    }
+
+    /**
+     * Recomputes the Readiness Proxy score for the last 90 days
+     * for the currently authenticated user.
+     * Requires ACWR data to already be populated for those days.
+     */
+    @PostMapping("/recompute-readiness")
+    public ResponseEntity<Void> recomputeReadiness() {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        readinessService.recomputeForUser(user);
+        return ResponseEntity.ok().build();
     }
 }

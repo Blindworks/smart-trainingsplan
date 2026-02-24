@@ -508,6 +508,45 @@
   }
 }
 
+// ─── Readiness Card ─────────────────────────────────────────────────────────
+
+.readiness-card {
+  grid-column: 1 / -1;
+}
+
+.readiness-badge {
+  margin-left: auto;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.readiness-reasons {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  li {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+
+    &::before {
+      content: '–';
+      flex-shrink: 0;
+      color: var(--text-secondary);
+    }
+  }
+}
+
 // ─── Responsive ────────────────────────────────────────────────────────────────
 
 @media (max-width: 600px) {

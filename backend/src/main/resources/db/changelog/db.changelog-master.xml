@@ -24,5 +24,6 @@
     <include file="db/changelog/changes/018-add-ef-to-activity-metrics.xml"/>
     <include file="db/changelog/changes/019-add-ef-to-daily-metrics.xml"/>
     <include file="db/changelog/changes/020-add-acwr-to-daily-metrics.xml"/>
+    <include file="db/changelog/changes/021-add-readiness-to-daily-metrics.xml"/>
 
 </databaseChangeLog>

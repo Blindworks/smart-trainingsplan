@@ -187,6 +187,9 @@ export interface DailyMetrics {
   acwr?: number;
   acwrFlag?: 'BLUE' | 'GREEN' | 'ORANGE' | 'RED';
   acwrMessage?: string;
+  readinessScore?: number;                              // 0–100
+  recommendation?: 'EASY' | 'MODERATE' | 'HARD' | 'REST';
+  reasonsJson?: string;                                 // JSON string like ["reason1","reason2"]
 }
 
 export interface DecouplingHistoryPoint {

@@ -73,6 +73,17 @@ export class BodyStatusComponent implements OnInit {
   acwrChartStats = { avg: 0, sessions: 0 };
   acwrHoveredIndex: number | null = null;
 
+  // Readiness card state
+  todayReadiness: number | null = null;
+  todayRecommendation: string | null = null;
+  todayReadinessReasons: string[] = [];
+  todayReadinessDate: string | null = null;
+
+  // Readiness chart
+  readinessChart: BarChartPoint[] = [];
+  readinessChartStats = { avg: 0, sessions: 0 };
+  readinessHoveredIndex: number | null = null;
+
   constructor(
     private apiService: ApiService,
     private snackBar: MatSnackBar
@@ -135,6 +146,22 @@ export class BodyStatusComponent implements OnInit {
           this.todayAcwrChronic28 = latest.chronic28 ?? null;
         }
         this.buildAcwrChart(metrics, startDate);
+        // Most recent readiness
+        const sortedReadiness = metrics
+          .filter(m => m.readinessScore != null)
+          .sort((a, b) => b.date.localeCompare(a.date));
+        if (sortedReadiness.length > 0) {
+          const latest = sortedReadiness[0];
+          this.todayReadiness = latest.readinessScore ?? null;
+          this.todayRecommendation = latest.recommendation ?? null;
+          this.todayReadinessDate = latest.date;
+          try {
+            this.todayReadinessReasons = latest.reasonsJson ? JSON.parse(latest.reasonsJson) : [];
+          } catch {
+            this.todayReadinessReasons = [];
+          }
+        }
+        this.buildReadinessChart(metrics, startDate);
       },
       error: () => {}
     });
@@ -532,5 +559,108 @@ export class BodyStatusComponent implements OnInit {
       avg: count > 0 ? Math.round(sum / count * 100) / 100 : 0,
       sessions: count
     };
+  }
+
+  private buildReadinessChart(metrics: DailyMetrics[], from: Date): void {
+    const SCORE_MAX = 100;
+    const DAY_LABELS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+
+    const map = new Map<string, { score: number; rec: string }>();
+    for (const m of metrics) {
+      if (m.readinessScore != null && m.recommendation != null) {
+        const dateStr = typeof m.date === 'string' ? m.date : this.formatDateLocal(new Date(m.date));
+        map.set(dateStr, { score: m.readinessScore, rec: m.recommendation });
+      }
+    }
+
+    let sum = 0, count = 0;
+    const points: BarChartPoint[] = [];
+
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(from);
+      d.setDate(from.getDate() + i);
+      const dateStr = this.formatDateLocal(d);
+      const label = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const dayLabel = DAY_LABELS[d.getDay()];
+      const entry = map.get(dateStr) ?? null;
+
+      if (entry) { sum += entry.score; count++; }
+
+      points.push({
+        date: dateStr,
+        dayLabel,
+        label,
+        showLabel: i % 7 === 0 || i === 29,
+        value: entry ? entry.score : null,
+        pct: entry ? Math.max((entry.score / SCORE_MAX) * 100, 2) : 0,
+        color: entry ? this.getRecommendationColor(entry.rec) : 'transparent',
+        tooltip: entry ? `${entry.score} – ${this.getRecommendationLabel(entry.rec)}` : ''
+      });
+    }
+
+    this.readinessChart = points;
+    this.readinessChartStats = {
+      avg: count > 0 ? Math.round(sum / count) : 0,
+      sessions: count
+    };
+  }
+
+  get readinessChartHasData(): boolean {
+    return this.readinessChartStats.sessions > 0;
+  }
+
+  getRecommendationColor(rec: string | null): string {
+    switch (rec) {
+      case 'HARD':     return '#4caf50';
+      case 'MODERATE': return '#8bc34a';
+      case 'EASY':     return '#ffca28';
+      case 'REST':     return '#ef5350';
+      default:         return 'var(--accent-blue)';
+    }
+  }
+
+  getRecommendationLabel(rec: string | null): string {
+    switch (rec) {
+      case 'HARD':     return 'Hartes Training';
+      case 'MODERATE': return 'Moderates Training';
+      case 'EASY':     return 'Leichtes Training';
+      case 'REST':     return 'Ruhetag';
+      default:         return '';
+    }
+  }
+
+  getRecommendationIconBg(rec: string | null): string {
+    switch (rec) {
+      case 'HARD':     return 'rgba(76,175,80,0.14)';
+      case 'MODERATE': return 'rgba(139,195,74,0.14)';
+      case 'EASY':     return 'rgba(255,202,40,0.14)';
+      case 'REST':     return 'rgba(239,83,80,0.14)';
+      default:         return 'rgba(45,123,255,0.12)';
+    }
+  }
+
+  getRecommendationIcon(rec: string | null): string {
+    switch (rec) {
+      case 'HARD':     return 'bolt';
+      case 'MODERATE': return 'directions_run';
+      case 'EASY':     return 'self_improvement';
+      case 'REST':     return 'hotel';
+      default:         return 'psychology';
+    }
+  }
+
+  recomputeReadiness(): void {
+    this.recalculating = true;
+    this.apiService.recomputeReadiness().subscribe({
+      next: () => {
+        this.recalculating = false;
+        this.snackBar.open('Readiness neu berechnet', 'OK', { duration: 4000 });
+        this.loadDailyHistory();
+      },
+      error: () => {
+        this.recalculating = false;
+        this.snackBar.open('Fehler bei der Readiness-Berechnung', 'Schließen', { duration: 3000 });
+      }
+    });
   }
 }

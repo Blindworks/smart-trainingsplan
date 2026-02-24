@@ -98,9 +98,20 @@
 - `service/LoadModelService.java` — updateAcwr(user, date), recomputeAcwrForUser(user)
 - acute7 = sum of daily_strain21 for 7 days ending on date; chronic28 = sum28 / 4
 - ACWR flag thresholds: BLUE <0.8, GREEN 0.8–1.3 (inclusive), ORANGE 1.3–1.6 (inclusive), RED >1.6
-- DailyMetricsService.updateDailyStrain() calls loadModelService.updateAcwr() after save
+- DailyMetricsService.updateDailyStrain() calls loadModelService.updateAcwr() then readinessService.compute() after save
 - Liquibase 020: adds acute7, chronic28, acwr, acwr_flag (VARCHAR 10), acwr_message (VARCHAR 100)
 - Test: `AcwrServiceTest.java` — 10 tests, JUnit5/Mockito/reflection injection, fixed TODAY=2026-02-24
 
+## Readiness Proxy Model v1 (added 2026-02)
+- `entity/Recommendation.java` — enum: EASY, MODERATE, HARD, REST
+- `DailyMetrics` new fields: readinessScore (INT), recommendation (EnumType.STRING, length 10), reasonsJson (VARCHAR 500)
+- `service/ReadinessService.java` — compute(user, date), recomputeForUser(user, 90 days)
+- Heuristic: base 80, deductions: RED -35, ORANGE -20, yesterdayStrain>14 -15, decoupling>10% -10, >5% -5, z4z5>20min -5; clamped [0,100]
+- Recommendation thresholds: <30=REST, 30-49=EASY, 50-69=MODERATE, >=70=HARD; RED flag caps at EASY
+- ActivityMetricsRepository.sumZ4Z5MinByUserIdAndDateRange() — sums z4Min+z5Min for date range
+- Liquibase 021: adds readiness_score (INT), recommendation (VARCHAR 10), reasons_json (VARCHAR 500)
+- Endpoint: POST /api/daily-metrics/recompute-readiness (401 if not authenticated)
+- DailyMetricsController uses securityUtils.getCurrentUser() (not userService) — follows existing pattern
+
 ## Compilation
-- `mvn compile -q` from backend/ directory (clean output = success)
+- `mvn compile -q -f /path/to/pom.xml` (clean output = success; use Unix paths in bash)

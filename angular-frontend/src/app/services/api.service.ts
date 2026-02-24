@@ -218,6 +218,10 @@ export class ApiService {
     );
   }
 
+  recomputeReadiness(): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/daily-metrics/recompute-readiness`, {});
+  }
+
   // User API
   getMe(): Observable<User> {
     return this.http.get<User>(`${this.baseUrl}/users/me`);

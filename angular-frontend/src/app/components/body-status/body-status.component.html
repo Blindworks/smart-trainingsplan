@@ -49,6 +49,43 @@
       </div>
     </article>
 
+    <!-- Readiness Card -->
+    <article class="metric-card readiness-card" *ngIf="todayReadiness != null">
+      <div class="metric-card__header">
+        <div class="metric-icon"
+             [style.background]="getRecommendationIconBg(todayRecommendation)"
+             [style.color]="getRecommendationColor(todayRecommendation)">
+          <mat-icon>{{ getRecommendationIcon(todayRecommendation) }}</mat-icon>
+        </div>
+        <div>
+          <h2>Readiness</h2>
+          <p *ngIf="todayReadinessDate">{{ formatDate(todayReadinessDate) }}</p>
+        </div>
+        <div class="readiness-badge"
+             [style.background]="getRecommendationIconBg(todayRecommendation)"
+             [style.color]="getRecommendationColor(todayRecommendation)">
+          {{ getRecommendationLabel(todayRecommendation) }}
+        </div>
+      </div>
+      <div class="metric-card__content">
+        <div class="metric-value" [style.color]="getRecommendationColor(todayRecommendation)">
+          {{ todayReadiness }}
+          <span class="metric-unit">/ 100</span>
+        </div>
+        <!-- Score bar -->
+        <div class="strain-gauge-track">
+          <div class="strain-gauge-fill"
+               [style.width.%]="todayReadiness"
+               [style.background-color]="getRecommendationColor(todayRecommendation)">
+          </div>
+        </div>
+        <!-- Reasons -->
+        <ul class="readiness-reasons" *ngIf="todayReadinessReasons.length > 0">
+          <li *ngFor="let r of todayReadinessReasons">{{ r }}</li>
+        </ul>
+      </div>
+    </article>
+
     <!-- Strain Card (row 2, full width) -->
     <article class="metric-card strain-card" *ngIf="todayStrain != null">
       <div class="metric-card__header">
@@ -495,6 +532,84 @@
       <div class="history-legend-item">
         <span class="history-legend-dot" style="background:#ef5350"></span>
         <span>Hohes Verletzungsrisiko (&gt; 1.6)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Readiness History Chart -->
+  <div class="history-chart-card" *ngIf="!loading && readinessChartHasData">
+    <div class="history-chart-header">
+      <div class="history-chart-title-group">
+        <div class="history-chart-icon"
+             [style.background]="getRecommendationIconBg(todayRecommendation)"
+             [style.color]="getRecommendationColor(todayRecommendation)">
+          <mat-icon>psychology</mat-icon>
+        </div>
+        <div>
+          <h2>Readiness Verlauf</h2>
+          <p>Letzte 30 Tage</p>
+        </div>
+      </div>
+      <div class="history-chart-stats">
+        <div class="history-stat">
+          <span class="history-stat-value"
+                [style.color]="getRecommendationColor(todayRecommendation)">
+            {{ todayReadiness != null ? todayReadiness : '–' }}
+          </span>
+          <span class="history-stat-label">Aktuell</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value">{{ readinessChartStats.avg }}</span>
+          <span class="history-stat-label">Ø Score</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value">{{ readinessChartStats.sessions }}</span>
+          <span class="history-stat-label">Tage</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-chart-area">
+      <div class="history-chart-bars">
+        <div class="history-bar-slot"
+             *ngFor="let p of readinessChart; let i = index"
+             (mouseenter)="readinessHoveredIndex = i"
+             (mouseleave)="readinessHoveredIndex = null">
+          <div class="bar-tooltip" *ngIf="readinessHoveredIndex === i && p.value != null">
+            <span class="bar-tooltip-day">{{ p.dayLabel }}</span>
+            <span class="bar-tooltip-date">{{ p.label }}</span>
+            <span class="bar-tooltip-value" [style.color]="p.color">{{ p.tooltip }}</span>
+          </div>
+          <div class="history-bar"
+               [style.height.%]="p.pct"
+               [style.background-color]="p.color"
+               [class.history-bar--empty]="p.value == null">
+          </div>
+        </div>
+      </div>
+      <div class="history-chart-labels">
+        <div class="history-label-slot" *ngFor="let p of readinessChart">
+          <span *ngIf="p.showLabel">{{ p.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-legend">
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#4caf50"></span>
+        <span>Hartes Training (&#8805; 70)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#8bc34a"></span>
+        <span>Moderat (50–69)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ffca28"></span>
+        <span>Leicht (30–49)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ef5350"></span>
+        <span>Ruhetag (0–29)</span>
       </div>
     </div>
   </div>
