@@ -15,6 +15,7 @@ import {
   BodyStatusVo2Max,
   BodyMetric,
   BodyMeasurement,
+  BloodPressure,
   ActivityMetrics,
   DailyMetrics,
   DecouplingHistoryPoint
@@ -269,5 +270,26 @@ export class ApiService {
 
   deleteBodyMeasurement(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/body-measurements/${id}`);
+  }
+
+  // Blood Pressure API
+  getBloodPressures(): Observable<BloodPressure[]> {
+    return this.http.get<BloodPressure[]>(`${this.baseUrl}/blood-pressure`);
+  }
+
+  getLatestBloodPressure(): Observable<BloodPressure> {
+    return this.http.get<BloodPressure>(`${this.baseUrl}/blood-pressure/latest`);
+  }
+
+  createBloodPressure(bp: BloodPressure): Observable<BloodPressure> {
+    return this.http.post<BloodPressure>(`${this.baseUrl}/blood-pressure`, bp);
+  }
+
+  updateBloodPressure(id: number, bp: BloodPressure): Observable<BloodPressure> {
+    return this.http.put<BloodPressure>(`${this.baseUrl}/blood-pressure/${id}`, bp);
+  }
+
+  deleteBloodPressure(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/blood-pressure/${id}`);
   }
 }

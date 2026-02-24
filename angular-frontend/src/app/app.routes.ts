@@ -33,6 +33,7 @@ export const routes: Routes = [
       import('./components/body-measurement/body-measurement.component')
         .then(m => m.BodyMeasurementComponent)
   },
+  { path: 'blood-pressure', redirectTo: 'body-measurements', pathMatch: 'full' },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '' }
 ];

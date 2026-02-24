@@ -7,14 +7,22 @@
         <span class="page-label">KÖRPERDATEN</span>
         <h1 class="page-title">Messungen</h1>
       </div>
-      <button class="add-btn"
-              *ngIf="editingId === null"
-              (click)="openNewForm()"
-              title="Neue Messung erfassen">
-        <mat-icon>add</mat-icon>
-        <span>Neue Messung</span>
-      </button>
     </div>
+  </div>
+
+  <!-- ─── Section Header: Körpermessungen ─────────────────────────────────── -->
+  <div class="section-header">
+    <div class="section-title-group">
+      <mat-icon class="section-icon">scale</mat-icon>
+      <h2 class="section-title">Körpermessungen</h2>
+    </div>
+    <button class="add-btn"
+            *ngIf="editingId === null && editingBpId === null"
+            (click)="openNewForm()"
+            title="Neue Körpermessung erfassen">
+      <mat-icon>add</mat-icon>
+      <span>Neue Messung</span>
+    </button>
   </div>
 
   <!-- ─── Inline Form (new / edit) ────────────────────────────────────────── -->
@@ -252,6 +260,177 @@
       <p class="measurement-notes" *ngIf="m.notes">
         <mat-icon class="notes-icon">notes</mat-icon>
         {{ m.notes }}
+      </p>
+    </article>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- Section Header: Blutdruck -->
+  <div class="section-header">
+    <div class="section-title-group">
+      <mat-icon class="section-icon">favorite</mat-icon>
+      <h2 class="section-title">Blutdruck</h2>
+    </div>
+    <button class="add-btn"
+            *ngIf="editingBpId === null && editingId === null"
+            (click)="openNewBpForm()"
+            title="Neue Blutdruckmessung erfassen">
+      <mat-icon>add</mat-icon>
+      <span>Neue Messung</span>
+    </button>
+  </div>
+
+  <!-- Blutdruck-Formular -->
+  <div class="form-panel" *ngIf="editingBpId !== null">
+    <div class="form-panel__header">
+      <div class="form-panel__title-row">
+        <div class="form-icon">
+          <mat-icon>favorite</mat-icon>
+        </div>
+        <h2 class="form-panel__title">
+          {{ editingBpId === -1 ? 'Neue Blutdruckmessung' : 'Blutdruckmessung bearbeiten' }}
+        </h2>
+      </div>
+      <button class="icon-action-btn" (click)="cancelBpForm()" title="Abbrechen">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="bpForm" (ngSubmit)="saveBp()" class="measurement-form" novalidate>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Datum</mat-label>
+          <input matInput
+                 [matDatepicker]="bpPicker"
+                 formControlName="measuredAt"
+                 placeholder="TT.MM.JJJJ">
+          <mat-datepicker-toggle matIconSuffix [for]="bpPicker"></mat-datepicker-toggle>
+          <mat-datepicker #bpPicker></mat-datepicker>
+          <mat-error *ngIf="bpForm.get('measuredAt')?.hasError('required')">
+            Datum ist ein Pflichtfeld
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Systolisch (mmHg)</mat-label>
+          <input matInput type="number" min="0" max="300" step="1"
+                 formControlName="systolicPressure" placeholder="z. B. 120">
+          <span matTextSuffix>mmHg</span>
+          <mat-error *ngIf="bpForm.get('systolicPressure')?.hasError('required')">
+            Pflichtfeld
+          </mat-error>
+          <mat-error *ngIf="bpForm.get('systolicPressure')?.hasError('min') || bpForm.get('systolicPressure')?.hasError('max')">
+            Muss zwischen 0 und 300 liegen
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Diastolisch (mmHg)</mat-label>
+          <input matInput type="number" min="0" max="200" step="1"
+                 formControlName="diastolicPressure" placeholder="z. B. 80">
+          <span matTextSuffix>mmHg</span>
+          <mat-error *ngIf="bpForm.get('diastolicPressure')?.hasError('required')">
+            Pflichtfeld
+          </mat-error>
+          <mat-error *ngIf="bpForm.get('diastolicPressure')?.hasError('min') || bpForm.get('diastolicPressure')?.hasError('max')">
+            Muss zwischen 0 und 200 liegen
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Puls (bpm)</mat-label>
+          <input matInput type="number" min="0" max="300" step="1"
+                 formControlName="pulseAtMeasurement" placeholder="z. B. 72">
+          <span matTextSuffix>bpm</span>
+          <mat-error *ngIf="bpForm.get('pulseAtMeasurement')?.hasError('min') || bpForm.get('pulseAtMeasurement')?.hasError('max')">
+            Muss zwischen 0 und 300 liegen
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field form-field--full">
+          <mat-label>Notizen</mat-label>
+          <textarea matInput formControlName="notes"
+                    rows="3"
+                    placeholder="Optionale Anmerkungen zur Messung..."></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" (click)="cancelBpForm()" [disabled]="bpSaving">
+          Abbrechen
+        </button>
+        <button type="submit" class="save-btn" [disabled]="bpSaving">
+          <mat-spinner *ngIf="bpSaving" diameter="16" class="btn-spinner"></mat-spinner>
+          <mat-icon *ngIf="!bpSaving">check</mat-icon>
+          <span>{{ bpSaving ? 'Speichern...' : 'Speichern' }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Blutdruck Loading -->
+  <div class="loading-state" *ngIf="bpLoading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Blutdruckwerte werden geladen...</span>
+  </div>
+
+  <!-- Blutdruck Empty State -->
+  <div class="empty-state" *ngIf="!bpLoading && bloodPressures.length === 0 && editingBpId === null">
+    <div class="empty-icon">
+      <mat-icon>favorite</mat-icon>
+    </div>
+    <h2>Noch keine Blutdruckmessungen</h2>
+    <p>
+      Erfasse deine erste Blutdruckmessung separat von den Waagendaten.
+    </p>
+    <button class="add-btn" (click)="openNewBpForm()">
+      <mat-icon>add</mat-icon>
+      <span>Erste Blutdruckmessung erfassen</span>
+    </button>
+  </div>
+
+  <!-- Blutdruck Liste -->
+  <div class="measurement-list" *ngIf="!bpLoading && bloodPressures.length > 0">
+    <article class="measurement-card"
+             *ngFor="let bp of bloodPressures"
+             [class.measurement-card--editing]="isEditingBp(bp)">
+      <div class="measurement-card__header">
+        <div class="date-badge">
+          <mat-icon class="date-icon">calendar_today</mat-icon>
+          <span class="date-text">{{ formatDate(bp.measuredAt) }}</span>
+        </div>
+        <div class="card-actions" *ngIf="editingBpId === null && editingId === null">
+          <button class="icon-action-btn" (click)="openEditBpForm(bp)" title="Bearbeiten">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button class="icon-action-btn icon-action-btn--danger" (click)="deleteBp(bp)" title="Löschen">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-chip metric-chip--bp">
+          <span class="metric-chip__value">{{ bp.systolicPressure }}/{{ bp.diastolicPressure }}</span>
+          <span class="metric-chip__unit">mmHg</span>
+          <span class="metric-chip__label">Blutdruck</span>
+        </div>
+      </div>
+
+      <div class="metrics-row metrics-row--secondary"
+           *ngIf="bp.pulseAtMeasurement !== undefined && bp.pulseAtMeasurement !== null">
+        <div class="meta-item">
+          <span class="meta-item__label">Puls</span>
+          <span class="meta-item__value">{{ bp.pulseAtMeasurement }} bpm</span>
+        </div>
+      </div>
+
+      <p class="measurement-notes" *ngIf="bp.notes">
+        <mat-icon class="notes-icon">notes</mat-icon>
+        {{ bp.notes }}
       </p>
     </article>
   </div>

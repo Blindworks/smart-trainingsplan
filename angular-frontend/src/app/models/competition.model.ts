@@ -229,3 +229,12 @@ export interface BodyMeasurement {
   bmi?: number;              // BMI
   notes?: string;            // Notizen
 }
+
+export interface BloodPressure {
+  id?: number;
+  measuredAt: string;           // "YYYY-MM-DD"
+  systolicPressure: number;     // Systolischer Druck (mmHg)
+  diastolicPressure: number;    // Diastolischer Druck (mmHg)
+  pulseAtMeasurement?: number;  // Puls bei Messung (bpm)
+  notes?: string;
+}

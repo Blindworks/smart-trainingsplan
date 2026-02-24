@@ -13,7 +13,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { ApiService } from '../../services/api.service';
-import { BodyMeasurement } from '../../models/competition.model';
+import { BodyMeasurement, BloodPressure } from '../../models/competition.model';
 
 @Component({
   selector: 'app-body-measurement',
@@ -36,14 +36,20 @@ import { BodyMeasurement } from '../../models/competition.model';
 export class BodyMeasurementComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
+  // ─── Körpermessungen ──────────────────────────────────────────────────────
   measurements: BodyMeasurement[] = [];
   loading = true;
   saving = false;
-
-  /** null  → form hidden, -1 → new entry, N → editing existing ID N */
+  /** null → form hidden, -1 → new entry, N → editing existing ID N */
   editingId: number | null = null;
-
   form!: FormGroup;
+
+  // ─── Blutdruck ────────────────────────────────────────────────────────────
+  bloodPressures: BloodPressure[] = [];
+  bpLoading = true;
+  bpSaving = false;
+  editingBpId: number | null = null;
+  bpForm!: FormGroup;
 
   constructor(
     private apiService: ApiService,
@@ -53,7 +59,9 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.buildForm();
+    this.buildBpForm();
     this.loadMeasurements();
+    this.loadBloodPressures();
   }
 
   ngOnDestroy(): void {
@@ -61,7 +69,7 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ─── Form ───────────────────────────────────────────────────────────────────
+  // ─── Körpermessungen: Form ────────────────────────────────────────────────
 
   private buildForm(): void {
     this.form = this.fb.group({
@@ -78,21 +86,12 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     });
   }
 
-  private todayIso(): string {
-    return new Date().toISOString().split('T')[0];
-  }
-
-  // ─── Data loading ────────────────────────────────────────────────────────────
-
   loadMeasurements(): void {
     this.loading = true;
     this.apiService.getBodyMeasurements()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (data) => {
-          this.measurements = data;
-          this.loading = false;
-        },
+        next: (data) => { this.measurements = data; this.loading = false; },
         error: () => {
           this.loading = false;
           this.snackBar.open('Fehler beim Laden der Messungen', 'Schließen', { duration: 3000 });
@@ -100,9 +99,8 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ─── Form open / close ───────────────────────────────────────────────────────
-
   openNewForm(): void {
+    this.editingBpId = null;
     this.editingId = -1;
     this.form.reset({
       measuredAt:       this.todayIso(),
@@ -119,6 +117,7 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
   }
 
   openEditForm(measurement: BodyMeasurement): void {
+    this.editingBpId = null;
     this.editingId = measurement.id ?? -1;
     this.form.setValue({
       measuredAt:       measurement.measuredAt,
@@ -139,20 +138,11 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     this.form.reset();
   }
 
-  // ─── Save ────────────────────────────────────────────────────────────────────
-
   save(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
     const raw = this.form.getRawValue();
-
-    // Convert Date object from datepicker to YYYY-MM-DD string
-    const measuredAt: string = raw.measuredAt instanceof Date
-      ? raw.measuredAt.toISOString().split('T')[0]
-      : raw.measuredAt;
+    const measuredAt: string = this.toIsoDate(raw.measuredAt);
 
     const payload: BodyMeasurement = {
       measuredAt,
@@ -169,7 +159,6 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
 
     this.saving = true;
     const isNew = this.editingId === -1;
-
     const request$ = isNew
       ? this.apiService.createBodyMeasurement(payload)
       : this.apiService.updateBodyMeasurement(this.editingId!, payload);
@@ -178,11 +167,7 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
       next: () => {
         this.saving = false;
         this.editingId = null;
-        this.snackBar.open(
-          isNew ? 'Messung gespeichert' : 'Messung aktualisiert',
-          'Schließen',
-          { duration: 3000 }
-        );
+        this.snackBar.open(isNew ? 'Messung gespeichert' : 'Messung aktualisiert', 'Schließen', { duration: 3000 });
         this.loadMeasurements();
       },
       error: () => {
@@ -192,12 +177,9 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ─── Delete ──────────────────────────────────────────────────────────────────
-
   deleteMeasurement(measurement: BodyMeasurement): void {
     if (!measurement.id) return;
     if (!confirm(`Messung vom ${this.formatDate(measurement.measuredAt)} wirklich löschen?`)) return;
-
     this.apiService.deleteBodyMeasurement(measurement.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -205,13 +187,135 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
           this.snackBar.open('Messung gelöscht', 'Schließen', { duration: 3000 });
           this.loadMeasurements();
         },
+        error: () => this.snackBar.open('Fehler beim Löschen', 'Schließen', { duration: 3000 })
+      });
+  }
+
+  isEditing(measurement: BodyMeasurement): boolean {
+    return this.editingId === measurement.id;
+  }
+
+  // ─── Blutdruck: Form ──────────────────────────────────────────────────────
+
+  private buildBpForm(): void {
+    this.bpForm = this.fb.group({
+      measuredAt:        [this.todayIso(), Validators.required],
+      systolicPressure:  [null, [Validators.required, Validators.min(0), Validators.max(300)]],
+      diastolicPressure: [null, [Validators.required, Validators.min(0), Validators.max(200)]],
+      pulseAtMeasurement:[null, [Validators.min(0), Validators.max(300)]],
+      notes:             [null],
+    });
+  }
+
+  loadBloodPressures(): void {
+    this.bpLoading = true;
+    this.apiService.getBloodPressures()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => { this.bloodPressures = data; this.bpLoading = false; },
         error: () => {
-          this.snackBar.open('Fehler beim Löschen', 'Schließen', { duration: 3000 });
+          this.bpLoading = false;
+          this.snackBar.open('Fehler beim Laden der Blutdruckwerte', 'Schließen', { duration: 3000 });
         }
       });
   }
 
+  openNewBpForm(): void {
+    this.editingId = null;
+    this.editingBpId = -1;
+    this.bpForm.reset({
+      measuredAt:         this.todayIso(),
+      systolicPressure:   null,
+      diastolicPressure:  null,
+      pulseAtMeasurement: null,
+      notes:              null,
+    });
+  }
+
+  openEditBpForm(bp: BloodPressure): void {
+    this.editingId = null;
+    this.editingBpId = bp.id ?? -1;
+    this.bpForm.setValue({
+      measuredAt:         bp.measuredAt,
+      systolicPressure:   bp.systolicPressure,
+      diastolicPressure:  bp.diastolicPressure,
+      pulseAtMeasurement: bp.pulseAtMeasurement ?? null,
+      notes:              bp.notes              ?? null,
+    });
+  }
+
+  cancelBpForm(): void {
+    this.editingBpId = null;
+    this.bpForm.reset();
+  }
+
+  saveBp(): void {
+    if (this.bpForm.invalid) { this.bpForm.markAllAsTouched(); return; }
+
+    const raw = this.bpForm.getRawValue();
+    const measuredAt: string = this.toIsoDate(raw.measuredAt);
+
+    const payload: BloodPressure = {
+      measuredAt,
+      systolicPressure:   Number(raw.systolicPressure),
+      diastolicPressure:  Number(raw.diastolicPressure),
+      pulseAtMeasurement: this.toNumber(raw.pulseAtMeasurement),
+      notes:              raw.notes || undefined,
+    };
+
+    this.bpSaving = true;
+    const isNew = this.editingBpId === -1;
+    const request$ = isNew
+      ? this.apiService.createBloodPressure(payload)
+      : this.apiService.updateBloodPressure(this.editingBpId!, payload);
+
+    request$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.bpSaving = false;
+        this.editingBpId = null;
+        this.snackBar.open(isNew ? 'Blutdruckwert gespeichert' : 'Blutdruckwert aktualisiert', 'Schließen', { duration: 3000 });
+        this.loadBloodPressures();
+      },
+      error: () => {
+        this.bpSaving = false;
+        this.snackBar.open('Fehler beim Speichern', 'Schließen', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteBp(bp: BloodPressure): void {
+    if (!bp.id) return;
+    if (!confirm(`Blutdruckwert vom ${this.formatDate(bp.measuredAt)} wirklich löschen?`)) return;
+    this.apiService.deleteBloodPressure(bp.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Blutdruckwert gelöscht', 'Schließen', { duration: 3000 });
+          this.loadBloodPressures();
+        },
+        error: () => this.snackBar.open('Fehler beim Löschen', 'Schließen', { duration: 3000 })
+      });
+  }
+
+  isEditingBp(bp: BloodPressure): boolean {
+    return this.editingBpId === bp.id;
+  }
+
   // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+  private todayIso(): string {
+    return this.toIsoDate(new Date());
+  }
+
+  private toIsoDate(value: string | Date): string {
+    if (value instanceof Date) {
+      const year = value.getFullYear();
+      const month = String(value.getMonth() + 1).padStart(2, '0');
+      const day = String(value.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    return value;
+  }
 
   private toNumber(value: unknown): number | undefined {
     if (value === null || value === undefined || value === '') return undefined;
@@ -223,9 +327,5 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     if (!dateString) return '';
     const [year, month, day] = dateString.split('-');
     return `${day}.${month}.${year}`;
-  }
-
-  isEditing(measurement: BodyMeasurement): boolean {
-    return this.editingId === measurement.id;
   }
 }
