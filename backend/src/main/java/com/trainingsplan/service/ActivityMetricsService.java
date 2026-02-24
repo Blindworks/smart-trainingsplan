@@ -41,13 +41,63 @@ public class ActivityMetricsService {
 
     /**
      * Convenience overload for FIT file uploads (no velocity/distance streams available).
-     * Aerobic decoupling is skipped; all other metrics are computed as usual.
+     * Aerobic decoupling is skipped; EF is still computed from the summary fields on
+     * {@link CompletedTraining} (averageSpeedKmh / averageHeartRate).
      */
     public void calculateAndPersist(CompletedTraining completedTraining,
                                     List<Integer> timeSeconds,
                                     List<Integer> heartRates,
                                     User user) {
-        calculateAndPersist(completedTraining, timeSeconds, heartRates, null, null, user);
+        ActivityMetrics metrics = activityMetricsRepository
+                .findByCompletedTrainingId(completedTraining.getId())
+                .orElse(new ActivityMetrics());
+
+        metrics.setCompletedTraining(completedTraining);
+
+        // ── HR zones + strain ──────────────────────────────────────────────────
+        if (user.getMaxHeartRate() != null && user.getMaxHeartRate() > 0) {
+            HeartRateZoneConfig config = HeartRateZoneConfig.fromHrMax(user.getMaxHeartRate());
+            ZoneTimeResult result = zoneTimeCalculator.calculate(timeSeconds, heartRates, config);
+
+            if (result.isUnknown()) {
+                metrics.setZonesUnknown(true);
+            } else {
+                metrics.setZonesUnknown(false);
+                metrics.setZ1Min(result.getZ1Min());
+                metrics.setZ2Min(result.getZ2Min());
+                metrics.setZ3Min(result.getZ3Min());
+                metrics.setZ4Min(result.getZ4Min());
+                metrics.setZ5Min(result.getZ5Min());
+                metrics.setHrDataCoverage(result.getHrDataCoverage());
+
+                double rawLoad = strainCalculator.rawLoad(
+                        result.getZ1Min(), result.getZ2Min(), result.getZ3Min(),
+                        result.getZ4Min(), result.getZ5Min());
+                metrics.setRawLoad(rawLoad);
+                metrics.setStrain21(strainCalculator.strain21(rawLoad));
+            }
+        } else {
+            metrics.setZonesUnknown(true);
+        }
+
+        // ── TRIMP ─────────────────────────────────────────────────────────────
+        if (user.getMaxHeartRate() != null && user.getMaxHeartRate() > 0
+                && user.getHrRest() != null && user.getHrRest() > 0) {
+            double k = TRIMPCalculator.kForGender(user.getGender());
+            TRIMPResult trimpResult = trimpCalculator.calculate(
+                    timeSeconds, heartRates, user.getHrRest(), user.getMaxHeartRate(), k);
+            if (trimpResult != null) {
+                metrics.setTrimp(trimpResult.trimp());
+                metrics.setTrimpQuality(trimpResult.quality().name());
+            }
+        }
+
+        // ── Efficiency Factor ─────────────────────────────────────────────────
+        metrics.setEfficiencyFactor(computeEF(completedTraining));
+
+        activityMetricsRepository.save(metrics);
+        dailyMetricsService.updateDailyStrain(user, completedTraining.getTrainingDate());
+        dailyMetricsService.updateDailyEf(user, completedTraining.getTrainingDate());
     }
 
     /**
@@ -124,7 +174,22 @@ public class ActivityMetricsService {
             metrics.setDecouplingReason(dr.reason());
         }
 
+        // ── Efficiency Factor ─────────────────────────────────────────────────
+        metrics.setEfficiencyFactor(computeEF(completedTraining));
+
         activityMetricsRepository.save(metrics);
         dailyMetricsService.updateDailyStrain(user, completedTraining.getTrainingDate());
+        dailyMetricsService.updateDailyEf(user, completedTraining.getTrainingDate());
+    }
+
+    /**
+     * Efficiency Factor = avgSpeed (m/s) / avgHR (bpm).
+     * Returns {@code null} when speed or heart rate data is unavailable or zero.
+     */
+    private Double computeEF(CompletedTraining ct) {
+        if (ct.getAverageHeartRate() == null || ct.getAverageHeartRate() <= 0) return null;
+        if (ct.getAverageSpeedKmh() == null || ct.getAverageSpeedKmh() <= 0) return null;
+        double speedMps = ct.getAverageSpeedKmh() / 3.6;
+        return speedMps / ct.getAverageHeartRate();
     }
 }

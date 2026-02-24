@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="019-add-ef-to-daily-metrics" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="daily_metrics" columnName="ef7"/></not>
+        </preConditions>
+        <addColumn tableName="daily_metrics">
+            <column name="ef7" type="DOUBLE"
+                    remarks="Rolling 7-day average Efficiency Factor (m/s per bpm). NULL when no eligible activities in window."/>
+            <column name="ef28" type="DOUBLE"
+                    remarks="Rolling 28-day average Efficiency Factor (m/s per bpm). NULL when no eligible activities in window."/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

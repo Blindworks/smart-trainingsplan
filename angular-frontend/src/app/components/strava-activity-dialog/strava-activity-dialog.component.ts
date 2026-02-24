@@ -253,6 +253,27 @@ export class StravaActivityDialogComponent implements OnInit {
     return Math.abs(Math.max(-10, Math.min(10, pct)) / 10) * 50;
   }
 
+  getEfFormatted(ef: number | undefined): string {
+    if (ef == null) return '—';
+    return ef.toFixed(4);
+  }
+
+  getEfColor(ef: number): string {
+    if (ef >= 0.030) return '#4caf50';
+    if (ef >= 0.024) return '#8bc34a';
+    if (ef >= 0.018) return '#ffca28';
+    if (ef >= 0.013) return '#ff7043';
+    return '#ef5350';
+  }
+
+  getEfCategory(ef: number): string {
+    if (ef >= 0.030) return 'Sehr effizient';
+    if (ef >= 0.024) return 'Effizient';
+    if (ef >= 0.018) return 'Durchschnittlich';
+    if (ef >= 0.013) return 'Unterdurchschnittlich';
+    return 'Wenig effizient';
+  }
+
   /** Human-readable explanation for an ineligible decoupling result. */
   getDecouplingIneligibleText(reason: string | undefined): string {
     switch (reason) {

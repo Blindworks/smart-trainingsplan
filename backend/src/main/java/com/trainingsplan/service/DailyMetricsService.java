@@ -1,5 +1,6 @@
 package com.trainingsplan.service;
 
+import com.trainingsplan.entity.ActivityMetrics;
 import com.trainingsplan.entity.DailyMetrics;
 import com.trainingsplan.entity.User;
 import com.trainingsplan.repository.ActivityMetricsRepository;
@@ -8,10 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
- * Maintains aggregated daily strain in {@code daily_metrics}.
- * Recomputes the total by summing all strain21 values for the day,
+ * Maintains aggregated daily strain and rolling efficiency metrics in {@code daily_metrics}.
+ * Recomputes totals by aggregating all activity_metrics records for the day,
  * ensuring idempotency (safe on re-import of the same activity).
  */
 @Service
@@ -43,5 +45,62 @@ public class DailyMetricsService {
         daily.setDailyStrain21(totalStrain);
         daily.setDailyTrimp(totalTrimp);
         dailyMetricsRepository.save(daily);
+    }
+
+    /**
+     * Recomputes and upserts the rolling 7-day and 28-day average Efficiency Factor
+     * for {@code user} on {@code date}.
+     *
+     * <p>ef7 is the average EF of all activities in [{@code date}-6, {@code date}].
+     * ef28 is the average EF of all activities in [{@code date}-27, {@code date}].
+     * Both are {@code null} when the respective window contains no eligible activity.
+     */
+    public void updateDailyEf(User user, LocalDate date) {
+        List<ActivityMetrics> window28 = activityMetricsRepository
+                .findWithEfByUserIdAndDateRange(user.getId(), date.minusDays(27), date);
+
+        Double ef7  = averageEfInWindow(window28, date.minusDays(6), date);
+        Double ef28 = averageEfInWindow(window28, date.minusDays(27), date);
+
+        DailyMetrics daily = dailyMetricsRepository
+                .findByUserIdAndDate(user.getId(), date)
+                .orElse(new DailyMetrics());
+
+        daily.setUser(user);
+        daily.setDate(date);
+        daily.setEf7(ef7);
+        daily.setEf28(ef28);
+        dailyMetricsRepository.save(daily);
+    }
+
+    /**
+     * Recomputes EF rolling averages for the last 90 days (today-89 through today) for the given user.
+     * Useful for backfilling after the EF feature is deployed.
+     */
+    public void recomputeEfForUser(User user) {
+        LocalDate today = LocalDate.now();
+        for (int i = 89; i >= 0; i--) {
+            updateDailyEf(user, today.minusDays(i));
+        }
+    }
+
+    /**
+     * Averages the efficiencyFactor of all records in {@code candidates} whose activity date
+     * falls within [{@code windowStart}, {@code windowEnd}] (inclusive).
+     * Returns {@code null} when no eligible records fall in the window.
+     */
+    private Double averageEfInWindow(List<ActivityMetrics> candidates,
+                                     LocalDate windowStart,
+                                     LocalDate windowEnd) {
+        double sum = 0.0;
+        int count = 0;
+        for (ActivityMetrics am : candidates) {
+            LocalDate activityDate = am.getCompletedTraining().getTrainingDate();
+            if (!activityDate.isBefore(windowStart) && !activityDate.isAfter(windowEnd)) {
+                sum += am.getEfficiencyFactor();
+                count++;
+            }
+        }
+        return count > 0 ? sum / count : null;
     }
 }

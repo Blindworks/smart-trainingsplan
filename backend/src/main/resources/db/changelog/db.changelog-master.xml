@@ -21,5 +21,7 @@
     <include file="db/changelog/changes/015-add-user-hr-rest-gender.xml"/>
     <include file="db/changelog/changes/016-add-daily-trimp.xml"/>
     <include file="db/changelog/changes/017-add-decoupling-to-activity-metrics.xml"/>
+    <include file="db/changelog/changes/018-add-ef-to-activity-metrics.xml"/>
+    <include file="db/changelog/changes/019-add-ef-to-daily-metrics.xml"/>
 
 </databaseChangeLog>

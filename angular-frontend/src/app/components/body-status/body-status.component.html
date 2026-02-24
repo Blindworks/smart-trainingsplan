@@ -304,6 +304,83 @@
     </div>
   </div>
 
+  <!-- Efficiency Factor Chart -->
+  <div class="history-chart-card" *ngIf="!loading && efChartHasData">
+    <div class="history-chart-header">
+      <div class="history-chart-title-group">
+        <div class="history-chart-icon" style="background: rgba(76,175,80,0.12); color: #4caf50;">
+          <mat-icon>speed</mat-icon>
+        </div>
+        <div>
+          <h2>Efficiency Factor</h2>
+          <p>7-Tage-&#216; &#8212; Letzte 30 Tage</p>
+        </div>
+      </div>
+      <div class="history-chart-stats">
+        <div class="history-stat">
+          <span class="history-stat-value" [style.color]="getEfColor(efChartStats.avg)">
+            {{ efChartStats.avg | number:'1.4-4' }}
+          </span>
+          <span class="history-stat-label">&#216; EF</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value" [style.color]="getEfColor(efChartStats.max)">
+            {{ efChartStats.max | number:'1.4-4' }}
+          </span>
+          <span class="history-stat-label">Max EF</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value">{{ efChartStats.sessions }}</span>
+          <span class="history-stat-label">Tage</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-chart-area">
+      <div class="history-chart-bars">
+        <div class="history-bar-slot"
+             *ngFor="let p of efChart; let i = index"
+             (mouseenter)="efHoveredIndex = i"
+             (mouseleave)="efHoveredIndex = null">
+          <div class="bar-tooltip" *ngIf="efHoveredIndex === i && p.value != null">
+            <span class="bar-tooltip-day">{{ p.dayLabel }}</span>
+            <span class="bar-tooltip-date">{{ p.label }}</span>
+            <span class="bar-tooltip-value" [style.color]="p.color">{{ p.tooltip }}</span>
+          </div>
+          <div class="history-bar"
+               [style.height.%]="p.pct"
+               [style.background-color]="p.color"
+               [class.history-bar--empty]="p.value == null">
+          </div>
+        </div>
+      </div>
+      <div class="history-chart-labels">
+        <div class="history-label-slot" *ngFor="let p of efChart">
+          <span *ngIf="p.showLabel">{{ p.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-legend">
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#4caf50"></span>
+        <span>Sehr effizient (&#8805; 0.030)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#8bc34a"></span>
+        <span>Effizient (&#8805; 0.024)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ffca28"></span>
+        <span>Durchschnittlich (&#8805; 0.018)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ef5350"></span>
+        <span>Wenig effizient (&lt; 0.013)</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Empty state -->
   <div class="empty-state" *ngIf="!loading && metrics.length === 0 && todayStrain == null">
     <div class="empty-icon">

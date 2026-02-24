@@ -57,6 +57,10 @@ export class BodyStatusComponent implements OnInit {
   decouplingChartStats = { avg: 0, best: 0, sessions: 0 };
   decouplingHoveredIndex: number | null = null;
 
+  efChart: BarChartPoint[] = [];
+  efChartStats: ChartStats = { avg: 0, max: 0, sessions: 0 };
+  efHoveredIndex: number | null = null;
+
   constructor(
     private apiService: ApiService,
     private snackBar: MatSnackBar
@@ -105,6 +109,7 @@ export class BodyStatusComponent implements OnInit {
         }
         this.buildStrainChart(metrics, startDate);
         this.buildTrIMPChart(metrics, startDate);
+        this.buildEfChart(metrics, startDate);
       },
       error: () => {}
     });
@@ -188,6 +193,44 @@ export class BodyStatusComponent implements OnInit {
     );
     this.trimpChart = result.points;
     this.trimpChartStats = result.stats;
+  }
+
+  private buildEfChart(metrics: DailyMetrics[], from: Date): void {
+    const result = this.buildChart(
+      metrics, from,
+      m => m.ef7 ?? null,
+      0.04,
+      v => this.getEfColor(v),
+      'EF'
+    );
+    // Fix tooltip and stats precision for small EF values
+    let sum = 0, max = 0, count = 0;
+    result.points.forEach(p => {
+      if (p.value !== null) {
+        p.tooltip = p.value.toFixed(4);
+        sum += p.value;
+        if (p.value > max) max = p.value;
+        count++;
+      }
+    });
+    this.efChart = result.points;
+    this.efChartStats = {
+      avg: count > 0 ? Math.round(sum / count * 10000) / 10000 : 0,
+      max: Math.round(max * 10000) / 10000,
+      sessions: count
+    };
+  }
+
+  get efChartHasData(): boolean {
+    return this.efChartStats.sessions > 0;
+  }
+
+  getEfColor(ef: number): string {
+    if (ef >= 0.030) return '#4caf50'; // sehr effizient
+    if (ef >= 0.024) return '#8bc34a';
+    if (ef >= 0.018) return '#ffca28';
+    if (ef >= 0.013) return '#ff7043';
+    return '#ef5350';                  // wenig effizient
   }
 
   get strainChartHasData(): boolean {

@@ -839,6 +839,60 @@ $decoupling-accent: #42a5f5;
   line-height: 1.4;
 }
 
+// ─── Efficiency Factor ──────────────────────────────────────────────────────
+
+$ef-green: #4caf50;
+
+.info-section--ef .mat-mdc-card-avatar {
+  background-color: rgba(76, 175, 80, 0.12) !important;
+  color: $ef-green !important;
+}
+
+.info-section--ef:hover {
+  border-color: rgba(76, 175, 80, 0.3) !important;
+}
+
+.ef-avatar-icon {
+  color: $ef-green !important;
+}
+
+.info-section--ef {
+  background: rgba(76, 175, 80, 0.04);
+  border-color: rgba(76, 175, 80, 0.18);
+}
+
+.ef-display {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 10px 0 6px;
+}
+
+.ef-value {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ef-unit {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.ef-category {
+  font-size: 13px;
+  font-weight: 700;
+  margin-left: auto;
+}
+
+.ef-footnote {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+
 // ─── Responsive ───────────────────────────────────────────────────────────────
 
 @media (max-width: 600px) {

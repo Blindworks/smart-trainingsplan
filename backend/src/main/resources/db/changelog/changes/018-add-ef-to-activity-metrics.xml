@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="018-add-ef-to-activity-metrics" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="activity_metrics" columnName="efficiency_factor"/></not>
+        </preConditions>
+        <addColumn tableName="activity_metrics">
+            <column name="efficiency_factor" type="DOUBLE"
+                    remarks="Efficiency Factor = avgSpeed (m/s) / avgHR (bpm). Higher = more efficient. NULL when speed or HR unavailable."/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

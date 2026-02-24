@@ -28,6 +28,9 @@ public class BodyMetricService {
     private Vo2MaxService vo2MaxService;
 
     @Autowired
+    private DailyMetricsService dailyMetricsService;
+
+    @Autowired
     private SecurityUtils securityUtils;
 
     /**
@@ -100,6 +103,9 @@ public class BodyMetricService {
         for (CompletedTraining t : trainings) {
             calculateAndStore(t, user);
         }
+
+        dailyMetricsService.recomputeEfForUser(user);
+
         return total;
     }
 

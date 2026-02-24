@@ -172,6 +172,7 @@ export interface ActivityMetrics {
   decouplingPct?: number;
   decouplingEligible?: boolean;
   decouplingReason?: string;
+  efficiencyFactor?: number;
 }
 
 export interface DailyMetrics {
@@ -179,6 +180,8 @@ export interface DailyMetrics {
   date: string;
   dailyStrain21?: number;
   dailyTrimp?: number;
+  ef7?: number;
+  ef28?: number;
 }
 
 export interface DecouplingHistoryPoint {

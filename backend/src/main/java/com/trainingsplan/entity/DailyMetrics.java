@@ -36,6 +36,20 @@ public class DailyMetrics {
     @Column(name = "daily_trimp")
     private Double dailyTrimp;
 
+    /**
+     * Rolling 7-day average Efficiency Factor (m/s per bpm).
+     * NULL when no eligible activities in the 7-day window ending on {@code date}.
+     */
+    @Column(name = "ef7")
+    private Double ef7;
+
+    /**
+     * Rolling 28-day average Efficiency Factor (m/s per bpm).
+     * NULL when no eligible activities in the 28-day window ending on {@code date}.
+     */
+    @Column(name = "ef28")
+    private Double ef28;
+
     public DailyMetrics() {}
 
     public Long getId() { return id; }
@@ -51,4 +65,10 @@ public class DailyMetrics {
 
     public Double getDailyTrimp() { return dailyTrimp; }
     public void setDailyTrimp(Double dailyTrimp) { this.dailyTrimp = dailyTrimp; }
+
+    public Double getEf7() { return ef7; }
+    public void setEf7(Double ef7) { this.ef7 = ef7; }
+
+    public Double getEf28() { return ef28; }
+    public void setEf28(Double ef28) { this.ef28 = ef28; }
 }

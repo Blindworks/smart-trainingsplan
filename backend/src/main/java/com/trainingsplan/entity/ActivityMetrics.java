@@ -91,6 +91,14 @@ public class ActivityMetrics {
     @Column(name = "decoupling_reason", length = 30)
     private String decouplingReason;
 
+    /**
+     * Efficiency Factor = avgSpeed (m/s) / avgHR (bpm).
+     * Higher values indicate more aerobic efficiency (more speed per heartbeat).
+     * NULL when speed or heart rate data is unavailable.
+     */
+    @Column(name = "efficiency_factor")
+    private Double efficiencyFactor;
+
     public ActivityMetrics() {}
 
     // Getters and setters
@@ -143,4 +151,7 @@ public class ActivityMetrics {
 
     public String getDecouplingReason() { return decouplingReason; }
     public void setDecouplingReason(String decouplingReason) { this.decouplingReason = decouplingReason; }
+
+    public Double getEfficiencyFactor() { return efficiencyFactor; }
+    public void setEfficiencyFactor(Double efficiencyFactor) { this.efficiencyFactor = efficiencyFactor; }
 }

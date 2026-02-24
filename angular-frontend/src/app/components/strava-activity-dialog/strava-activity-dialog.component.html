@@ -362,6 +362,27 @@
   </mat-card-content>
 </mat-card>
 
+    <!-- Efficiency Factor -->
+    <mat-card class="info-section info-section--ef" appearance="outlined"
+              *ngIf="activityMetrics && activityMetrics.efficiencyFactor != null">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="ef-avatar-icon">speed</mat-icon>
+        <mat-card-title>Efficiency Factor</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="ef-display">
+          <span class="ef-value" [style.color]="getEfColor(activityMetrics.efficiencyFactor!)">
+            {{ getEfFormatted(activityMetrics.efficiencyFactor) }}
+          </span>
+          <span class="ef-unit">m/s&#xB7;bpm&#x207B;&#xB9;</span>
+          <span class="ef-category" [style.color]="getEfColor(activityMetrics.efficiencyFactor!)">
+            {{ getEfCategory(activityMetrics.efficiencyFactor!) }}
+          </span>
+        </div>
+        <p class="ef-footnote">EF = Durchschnittsgeschwindigkeit (m/s) &#247; Durchschnittsherzfrequenz (bpm)</p>
+      </mat-card-content>
+    </mat-card>
+
     <!-- Aerobic Decoupling (Strava, sobald berechnet) -->
     <mat-card class="info-section info-section--decoupling" appearance="outlined"
               *ngIf="activityMetrics && isStrava() && activityMetrics.decouplingEligible != null">
