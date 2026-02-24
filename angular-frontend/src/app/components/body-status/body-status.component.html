@@ -86,6 +86,32 @@
       </div>
     </article>
 
+    <!-- Coach Card -->
+    <article class="metric-card coach-card" *ngIf="todayCoachTitle">
+      <div class="metric-card__header">
+        <div class="metric-icon"
+             [style.background]="getRecommendationIconBg(todayRecommendation)"
+             [style.color]="getRecommendationColor(todayRecommendation)">
+          <mat-icon>assistant</mat-icon>
+        </div>
+        <div>
+          <h2>Coach</h2>
+          <p *ngIf="todayReadinessDate">{{ formatDate(todayReadinessDate) }}</p>
+        </div>
+      </div>
+      <div class="coach-card__body">
+        <div class="coach-title" [style.color]="getRecommendationColor(todayRecommendation)">
+          {{ todayCoachTitle }}
+        </div>
+        <ul class="coach-bullets" *ngIf="todayCoachBullets.length > 0">
+          <li *ngFor="let bullet of todayCoachBullets">
+            <mat-icon>chevron_right</mat-icon>
+            {{ bullet }}
+          </li>
+        </ul>
+      </div>
+    </article>
+
     <!-- Strain Card (row 2, full width) -->
     <article class="metric-card strain-card" *ngIf="todayStrain != null">
       <div class="metric-card__header">

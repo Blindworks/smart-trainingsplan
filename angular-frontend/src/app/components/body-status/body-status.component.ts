@@ -79,6 +79,10 @@ export class BodyStatusComponent implements OnInit {
   todayReadinessReasons: string[] = [];
   todayReadinessDate: string | null = null;
 
+  // Coach card state
+  todayCoachTitle: string | null = null;
+  todayCoachBullets: string[] = [];
+
   // Readiness chart
   readinessChart: BarChartPoint[] = [];
   readinessChartStats = { avg: 0, sessions: 0 };
@@ -159,6 +163,12 @@ export class BodyStatusComponent implements OnInit {
             this.todayReadinessReasons = latest.reasonsJson ? JSON.parse(latest.reasonsJson) : [];
           } catch {
             this.todayReadinessReasons = [];
+          }
+          this.todayCoachTitle = latest.coachTitle ?? null;
+          try {
+            this.todayCoachBullets = latest.coachBulletsJson ? JSON.parse(latest.coachBulletsJson) : [];
+          } catch {
+            this.todayCoachBullets = [];
           }
         }
         this.buildReadinessChart(metrics, startDate);

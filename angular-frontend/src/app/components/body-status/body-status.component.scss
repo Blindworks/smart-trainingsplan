@@ -547,6 +547,54 @@
   }
 }
 
+// ─── Coach Card ─────────────────────────────────────────────────────────────
+
+.coach-card {
+  grid-column: 1 / -1;
+}
+
+.coach-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.coach-title {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.coach-bullets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+
+    mat-icon {
+      font-size: 15px;
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--text-muted);
+    }
+  }
+}
+
 // ─── Responsive ────────────────────────────────────────────────────────────────
 
 @media (max-width: 600px) {

@@ -113,5 +113,15 @@
 - Endpoint: POST /api/daily-metrics/recompute-readiness (401 if not authenticated)
 - DailyMetricsController uses securityUtils.getCurrentUser() (not userService) — follows existing pattern
 
+## Coach Cards (added 2026-02)
+- `service/CoachCardService.java` — pure stateless @Service, no DB; record CoachCard(title, bullets)
+- `CoachCardService.generate(recommendation, acwrFlag, readinessScore, yesterdayStrain, lastDecouplingPct, z45Sum)`
+- Title: REST→"Rest / Recovery", EASY→"Easy day recommended", MODERATE→"Moderate training day", HARD→"Hard training possible", null→"Training day"
+- Bullets (max 3, priority order): RED acwr, REST+high strain>14, REST+z45>20, decoupling>10, score>=70+GREEN
+- `DailyMetrics` new fields: coachTitle (VARCHAR 100), coachBulletsJson (VARCHAR 500)
+- ReadinessService: @Autowired CoachCardService; generates+stores coach card in compute() before save
+- Liquibase 022: adds coach_title, coach_bullets_json to daily_metrics
+- Test: `CoachCardServiceTest.java` — 28 tests, no Spring context (service is stateless)
+
 ## Compilation
 - `mvn compile -q -f /path/to/pom.xml` (clean output = success; use Unix paths in bash)

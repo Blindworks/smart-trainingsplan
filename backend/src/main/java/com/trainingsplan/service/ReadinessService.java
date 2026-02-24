@@ -56,6 +56,9 @@ public class ReadinessService {
     @Autowired
     private ActivityMetricsRepository activityMetricsRepository;
 
+    @Autowired
+    private CoachCardService coachCardService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -159,6 +162,23 @@ public class ReadinessService {
         daily.setReadinessScore(score);
         daily.setRecommendation(recommendation);
         daily.setReasonsJson(reasonsJson);
+
+        // ── Coach card ─────────────────────────────────────────────────────────
+        Double lastDecouplingPct = latestDecoupling.isEmpty() ? null
+                : latestDecoupling.get(0).getDecouplingPct();
+
+        CoachCardService.CoachCard card = coachCardService.generate(
+                recommendation, acwrFlag, score, yesterdayStrain, lastDecouplingPct, z45Sum);
+
+        String coachBulletsJson;
+        try {
+            coachBulletsJson = objectMapper.writeValueAsString(card.bullets());
+        } catch (JsonProcessingException e) {
+            coachBulletsJson = "[]";
+        }
+        daily.setCoachTitle(card.title());
+        daily.setCoachBulletsJson(coachBulletsJson);
+
         dailyMetricsRepository.save(daily);
     }
 

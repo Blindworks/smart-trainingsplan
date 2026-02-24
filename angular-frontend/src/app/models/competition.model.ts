@@ -190,6 +190,8 @@ export interface DailyMetrics {
   readinessScore?: number;                              // 0–100
   recommendation?: 'EASY' | 'MODERATE' | 'HARD' | 'REST';
   reasonsJson?: string;                                 // JSON string like ["reason1","reason2"]
+  coachTitle?: string;                                  // e.g. "Easy day recommended"
+  coachBulletsJson?: string;                            // JSON string of max 3 bullet strings
 }
 
 export interface DecouplingHistoryPoint {
