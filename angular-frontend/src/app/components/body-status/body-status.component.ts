@@ -581,7 +581,7 @@ export class BodyStatusComponent implements OnInit {
 
     const map = new Map<string, { score: number; rec: string }>();
     for (const m of metrics) {
-      if (m.readinessScore != null && m.recommendation != null) {
+      if (m.readinessScore != null && m.recommendation != null && m.dailyStrain21 != null && m.dailyStrain21 > 0) {
         const dateStr = typeof m.date === 'string' ? m.date : this.formatDateLocal(new Date(m.date));
         map.set(dateStr, { score: m.readinessScore, rec: m.recommendation });
       }
