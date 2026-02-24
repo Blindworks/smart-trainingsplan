@@ -92,5 +92,15 @@
 - Marathon/half-marathon format: dates computed from competition.getDate(), no shifting needed
 - TrainingPlanDto wraps entity to avoid Lazy-loading in controller responses
 
+## ACWR / Load Model (added 2026-02)
+- `entity/AcwrFlag.java` — enum: BLUE, GREEN, ORANGE, RED
+- `DailyMetrics` now has: acute7, chronic28, acwr, acwrFlag (EnumType.STRING), acwrMessage
+- `service/LoadModelService.java` — updateAcwr(user, date), recomputeAcwrForUser(user)
+- acute7 = sum of daily_strain21 for 7 days ending on date; chronic28 = sum28 / 4
+- ACWR flag thresholds: BLUE <0.8, GREEN 0.8–1.3 (inclusive), ORANGE 1.3–1.6 (inclusive), RED >1.6
+- DailyMetricsService.updateDailyStrain() calls loadModelService.updateAcwr() after save
+- Liquibase 020: adds acute7, chronic28, acwr, acwr_flag (VARCHAR 10), acwr_message (VARCHAR 100)
+- Test: `AcwrServiceTest.java` — 10 tests, JUnit5/Mockito/reflection injection, fixed TODAY=2026-02-24
+
 ## Compilation
 - `mvn compile -q` from backend/ directory (clean output = success)
