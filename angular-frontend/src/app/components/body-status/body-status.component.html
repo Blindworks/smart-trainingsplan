@@ -77,6 +77,49 @@
       </div>
     </article>
 
+    <!-- ACWR Card -->
+    <article class="metric-card acwr-card" *ngIf="todayAcwr != null">
+      <div class="metric-card__header">
+        <div class="metric-icon"
+             [style.background]="getAcwrFlagIconBg(todayAcwrFlag)"
+             [style.color]="getAcwrFlagColor(todayAcwrFlag)">
+          <mat-icon>monitoring</mat-icon>
+        </div>
+        <div>
+          <h2>ACWR</h2>
+          <p *ngIf="todayAcwrDate">{{ formatDate(todayAcwrDate) }}</p>
+        </div>
+      </div>
+      <div class="metric-card__content">
+        <div class="metric-value" [style.color]="getAcwrFlagColor(todayAcwrFlag)">
+          {{ todayAcwr | number:'1.2-2' }}
+        </div>
+        <div class="metric-category" [style.color]="getAcwrFlagColor(todayAcwrFlag)">
+          {{ getAcwrFlagLabel(todayAcwrFlag) }}
+        </div>
+        <div class="acwr-sub-metrics" *ngIf="todayAcute7 != null && todayAcwrChronic28 != null">
+          <span>Akut₇: <strong>{{ todayAcute7 | number:'1.1-1' }}</strong></span>
+          <span>Chronisch₂₈: <strong>{{ todayAcwrChronic28 | number:'1.1-1' }}</strong></span>
+        </div>
+        <div class="acwr-zone-bar" *ngIf="todayAcwr != null">
+          <div class="acwr-zone-track">
+            <div class="acwr-zone acwr-zone--blue"></div>
+            <div class="acwr-zone acwr-zone--green"></div>
+            <div class="acwr-zone acwr-zone--orange"></div>
+            <div class="acwr-zone acwr-zone--red"></div>
+            <div class="acwr-zone-marker" [style.left.%]="acwrMarkerPct"></div>
+          </div>
+          <div class="acwr-zone-labels">
+            <span>0</span>
+            <span style="left:40%">0.8</span>
+            <span style="left:65%">1.3</span>
+            <span style="left:80%">1.6</span>
+            <span style="left:97%">2+</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
   </div>
 
   <!-- Strain History Chart -->
@@ -377,6 +420,81 @@
       <div class="history-legend-item">
         <span class="history-legend-dot" style="background:#ef5350"></span>
         <span>Wenig effizient (&lt; 0.013)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACWR History Chart -->
+  <div class="history-chart-card" *ngIf="!loading && acwrChartHasData">
+    <div class="history-chart-header">
+      <div class="history-chart-title-group">
+        <div class="history-chart-icon" style="background: rgba(45,123,255,0.12); color: var(--accent-blue);">
+          <mat-icon>monitoring</mat-icon>
+        </div>
+        <div>
+          <h2>ACWR Verlauf</h2>
+          <p>Akute/Chronische Belastung – Letzte 30 Tage</p>
+        </div>
+      </div>
+      <div class="history-chart-stats">
+        <div class="history-stat">
+          <span class="history-stat-value" [style.color]="getAcwrFlagColor(todayAcwrFlag)">
+            {{ todayAcwr != null ? (todayAcwr | number:'1.2-2') : '–' }}
+          </span>
+          <span class="history-stat-label">Aktuell</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value">{{ acwrChartStats.avg | number:'1.2-2' }}</span>
+          <span class="history-stat-label">Ø ACWR</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value">{{ acwrChartStats.sessions }}</span>
+          <span class="history-stat-label">Tage</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-chart-area">
+      <div class="history-chart-bars">
+        <div class="history-bar-slot"
+             *ngFor="let p of acwrChart; let i = index"
+             (mouseenter)="acwrHoveredIndex = i"
+             (mouseleave)="acwrHoveredIndex = null">
+          <div class="bar-tooltip" *ngIf="acwrHoveredIndex === i && p.value != null">
+            <span class="bar-tooltip-day">{{ p.dayLabel }}</span>
+            <span class="bar-tooltip-date">{{ p.label }}</span>
+            <span class="bar-tooltip-value" [style.color]="p.color">{{ p.tooltip }}</span>
+          </div>
+          <div class="history-bar"
+               [style.height.%]="p.pct"
+               [style.background-color]="p.color"
+               [class.history-bar--empty]="p.value == null">
+          </div>
+        </div>
+      </div>
+      <div class="history-chart-labels">
+        <div class="history-label-slot" *ngFor="let p of acwrChart">
+          <span *ngIf="p.showLabel">{{ p.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-legend">
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#42a5f5"></span>
+        <span>Unterbelastung (&lt; 0.8)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#66bb6a"></span>
+        <span>Optimal (0.8 – 1.3)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ff7043"></span>
+        <span>Erhöhtes Risiko (1.3 – 1.6)</span>
+      </div>
+      <div class="history-legend-item">
+        <span class="history-legend-dot" style="background:#ef5350"></span>
+        <span>Hohes Verletzungsrisiko (&gt; 1.6)</span>
       </div>
     </div>
   </div>

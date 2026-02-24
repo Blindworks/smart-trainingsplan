@@ -25,6 +25,9 @@ public class DailyMetricsService {
     @Autowired
     private DailyMetricsRepository dailyMetricsRepository;
 
+    @Autowired
+    private LoadModelService loadModelService;
+
     /**
      * Recomputes and upserts the daily strain21 and TRIMP aggregates for {@code user} on {@code date}.
      */
@@ -45,6 +48,7 @@ public class DailyMetricsService {
         daily.setDailyStrain21(totalStrain);
         daily.setDailyTrimp(totalTrimp);
         dailyMetricsRepository.save(daily);
+        loadModelService.updateAcwr(user, date);
     }
 
     /**

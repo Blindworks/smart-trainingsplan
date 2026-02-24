@@ -182,6 +182,11 @@ export interface DailyMetrics {
   dailyTrimp?: number;
   ef7?: number;
   ef28?: number;
+  acute7?: number;
+  chronic28?: number;
+  acwr?: number;
+  acwrFlag?: 'BLUE' | 'GREEN' | 'ORANGE' | 'RED';
+  acwrMessage?: string;
 }
 
 export interface DecouplingHistoryPoint {

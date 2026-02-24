@@ -61,6 +61,18 @@ export class BodyStatusComponent implements OnInit {
   efChartStats: ChartStats = { avg: 0, max: 0, sessions: 0 };
   efHoveredIndex: number | null = null;
 
+  // ACWR card state
+  todayAcwr: number | null = null;
+  todayAcwrFlag: string | null = null;
+  todayAcwrDate: string | null = null;
+  todayAcute7: number | null = null;
+  todayAcwrChronic28: number | null = null;
+
+  // ACWR chart
+  acwrChart: BarChartPoint[] = [];
+  acwrChartStats = { avg: 0, sessions: 0 };
+  acwrHoveredIndex: number | null = null;
+
   constructor(
     private apiService: ApiService,
     private snackBar: MatSnackBar
@@ -110,6 +122,19 @@ export class BodyStatusComponent implements OnInit {
         this.buildStrainChart(metrics, startDate);
         this.buildTrIMPChart(metrics, startDate);
         this.buildEfChart(metrics, startDate);
+        // Most recent ACWR
+        const sortedAcwr = metrics
+          .filter(m => m.acwr != null)
+          .sort((a, b) => b.date.localeCompare(a.date));
+        if (sortedAcwr.length > 0) {
+          const latest = sortedAcwr[0];
+          this.todayAcwr = latest.acwr ?? null;
+          this.todayAcwrFlag = latest.acwrFlag ?? null;
+          this.todayAcwrDate = latest.date;
+          this.todayAcute7 = latest.acute7 ?? null;
+          this.todayAcwrChronic28 = latest.chronic28 ?? null;
+        }
+        this.buildAcwrChart(metrics, startDate);
       },
       error: () => {}
     });
@@ -424,5 +449,88 @@ export class BodyStatusComponent implements OnInit {
   formatDate(dateString: string | undefined): string {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('de-DE');
+  }
+
+  get acwrChartHasData(): boolean {
+    return this.acwrChartStats.sessions > 0;
+  }
+
+  get acwrMarkerPct(): number {
+    if (this.todayAcwr == null) return 0;
+    return Math.min((this.todayAcwr / 2.0) * 100, 97);
+  }
+
+  getAcwrFlagColor(flag: string | null): string {
+    switch (flag) {
+      case 'BLUE':   return '#42a5f5';
+      case 'GREEN':  return '#66bb6a';
+      case 'ORANGE': return '#ff7043';
+      case 'RED':    return '#ef5350';
+      default:       return 'var(--accent-blue)';
+    }
+  }
+
+  getAcwrFlagIconBg(flag: string | null): string {
+    switch (flag) {
+      case 'BLUE':   return 'rgba(66,165,245,0.12)';
+      case 'GREEN':  return 'rgba(102,187,106,0.12)';
+      case 'ORANGE': return 'rgba(255,112,67,0.12)';
+      case 'RED':    return 'rgba(239,83,80,0.12)';
+      default:       return 'rgba(45,123,255,0.12)';
+    }
+  }
+
+  getAcwrFlagLabel(flag: string | null): string {
+    switch (flag) {
+      case 'BLUE':   return 'Unterbelastung';
+      case 'GREEN':  return 'Optimale Belastung';
+      case 'ORANGE': return 'Erhöhte Belastung';
+      case 'RED':    return 'Hohes Verletzungsrisiko';
+      default:       return '';
+    }
+  }
+
+  private buildAcwrChart(metrics: DailyMetrics[], from: Date): void {
+    const ACWR_MAX = 2.0;
+    const DAY_LABELS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+
+    const map = new Map<string, { acwr: number; flag: string }>();
+    for (const m of metrics) {
+      if (m.acwr != null && m.acwrFlag != null) {
+        const dateStr = typeof m.date === 'string' ? m.date : this.formatDateLocal(new Date(m.date));
+        map.set(dateStr, { acwr: m.acwr, flag: m.acwrFlag });
+      }
+    }
+
+    let sum = 0, count = 0;
+    const points: BarChartPoint[] = [];
+
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(from);
+      d.setDate(from.getDate() + i);
+      const dateStr = this.formatDateLocal(d);
+      const label = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const dayLabel = DAY_LABELS[d.getDay()];
+      const entry = map.get(dateStr) ?? null;
+
+      if (entry) { sum += entry.acwr; count++; }
+
+      points.push({
+        date: dateStr,
+        dayLabel,
+        label,
+        showLabel: i % 7 === 0 || i === 29,
+        value: entry ? entry.acwr : null,
+        pct: entry ? Math.max((entry.acwr / ACWR_MAX) * 100, 1) : 0,
+        color: entry ? this.getAcwrFlagColor(entry.flag) : 'transparent',
+        tooltip: entry ? entry.acwr.toFixed(2) : ''
+      });
+    }
+
+    this.acwrChart = points;
+    this.acwrChartStats = {
+      avg: count > 0 ? Math.round(sum / count * 100) / 100 : 0,
+      sessions: count
+    };
   }
 }

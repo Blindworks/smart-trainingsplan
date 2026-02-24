@@ -440,6 +440,74 @@
   flex-shrink: 0;
 }
 
+// ─── ACWR Card ──────────────────────────────────────────────────────────────
+
+.acwr-card {
+  grid-column: 1 / -1;
+}
+
+.acwr-sub-metrics {
+  display: flex;
+  gap: 20px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+
+  strong {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+}
+
+.acwr-zone-bar {
+  margin-top: 16px;
+}
+
+.acwr-zone-track {
+  position: relative;
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: visible;
+}
+
+.acwr-zone {
+  height: 100%;
+
+  &--blue   { flex: 40; background: #42a5f5; border-radius: 3px 0 0 3px; }
+  &--green  { flex: 25; background: #66bb6a; }
+  &--orange { flex: 15; background: #ff7043; }
+  &--red    { flex: 20; background: #ef5350; border-radius: 0 3px 3px 0; }
+}
+
+.acwr-zone-marker {
+  position: absolute;
+  top: -3px;
+  width: 3px;
+  height: 12px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transform: translateX(-50%);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+  transition: left 0.4s ease;
+}
+
+.acwr-zone-labels {
+  position: relative;
+  height: 16px;
+  margin-top: 4px;
+  font-size: 9px;
+  color: var(--text-secondary);
+
+  span {
+    position: absolute;
+    transform: translateX(-50%);
+
+    &:first-child { left: 0; transform: none; }
+    &:last-child  { transform: translateX(-100%); }
+  }
+}
+
 // ─── Responsive ────────────────────────────────────────────────────────────────
 
 @media (max-width: 600px) {

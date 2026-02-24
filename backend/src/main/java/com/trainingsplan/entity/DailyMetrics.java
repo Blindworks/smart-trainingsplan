@@ -50,6 +50,36 @@ public class DailyMetrics {
     @Column(name = "ef28")
     private Double ef28;
 
+    /** 7-day sum of daily_strain21 ending on this date. */
+    @Column(name = "acute7")
+    private Double acute7;
+
+    /**
+     * 28-day sum of daily_strain21 / 4 — same scale as acute7 (= avg(28d) × 7).
+     * NULL when all 28 days have zero strain.
+     */
+    @Column(name = "chronic28")
+    private Double chronic28;
+
+    /**
+     * Acute:Chronic Workload Ratio = acute7 / chronic28.
+     * NULL when chronic28 = 0.
+     */
+    @Column(name = "acwr")
+    private Double acwr;
+
+    /**
+     * Load-zone flag: BLUE (&lt;0.8), GREEN (0.8–1.3), ORANGE (1.3–1.6), RED (&gt;1.6).
+     * NULL when acwr is NULL.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "acwr_flag", length = 10)
+    private AcwrFlag acwrFlag;
+
+    /** Short German text describing the ACWR flag. NULL when acwr is NULL. */
+    @Column(name = "acwr_message", length = 100)
+    private String acwrMessage;
+
     public DailyMetrics() {}
 
     public Long getId() { return id; }
@@ -71,4 +101,19 @@ public class DailyMetrics {
 
     public Double getEf28() { return ef28; }
     public void setEf28(Double ef28) { this.ef28 = ef28; }
+
+    public Double getAcute7() { return acute7; }
+    public void setAcute7(Double acute7) { this.acute7 = acute7; }
+
+    public Double getChronic28() { return chronic28; }
+    public void setChronic28(Double chronic28) { this.chronic28 = chronic28; }
+
+    public Double getAcwr() { return acwr; }
+    public void setAcwr(Double acwr) { this.acwr = acwr; }
+
+    public AcwrFlag getAcwrFlag() { return acwrFlag; }
+    public void setAcwrFlag(AcwrFlag acwrFlag) { this.acwrFlag = acwrFlag; }
+
+    public String getAcwrMessage() { return acwrMessage; }
+    public void setAcwrMessage(String acwrMessage) { this.acwrMessage = acwrMessage; }
 }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="020-add-acwr-to-daily-metrics" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="daily_metrics" columnName="acute7"/></not>
+        </preConditions>
+        <addColumn tableName="daily_metrics">
+            <column name="acute7" type="DOUBLE"
+                    remarks="7-day sum of daily_strain21 ending on this date."/>
+            <column name="chronic28" type="DOUBLE"
+                    remarks="28-day sum of daily_strain21 / 4 (= avg*7). Same scale as acute7."/>
+            <column name="acwr" type="DOUBLE"
+                    remarks="Acute:Chronic Workload Ratio = acute7 / chronic28. NULL when chronic28 = 0."/>
+            <column name="acwr_flag" type="VARCHAR(10)"
+                    remarks="BLUE (&lt;0.8), GREEN (0.8–1.3), ORANGE (1.3–1.6), RED (&gt;1.6). NULL when acwr is NULL."/>
+            <column name="acwr_message" type="VARCHAR(100)"
+                    remarks="Short German text describing the ACWR flag."/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
