@@ -18,6 +18,12 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'strava/callback', component: StravaCallbackComponent },
+  {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent)
+  },
   { path: 'competitions', component: CompetitionListComponent, canActivate: [authGuard] },
   { path: 'competitions/new', component: CompetitionFormComponent, canActivate: [authGuard] },
   { path: 'competitions/:id/edit', component: CompetitionFormComponent, canActivate: [authGuard] },

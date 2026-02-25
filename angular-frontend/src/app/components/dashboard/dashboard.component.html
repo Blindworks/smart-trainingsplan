@@ -1,0 +1,112 @@
+<section class="dashboard-page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">PERFORMANCE</p>
+      <h1>Runner Dashboard</h1>
+    </div>
+  </header>
+
+  <div class="loading-state" *ngIf="loading">Loading dashboard...</div>
+  <div class="error-state" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
+
+  <ng-container *ngIf="!loading && dashboard">
+    <section class="score-grid">
+      <app-score-ring-card
+        [value]="dashboard.strain21"
+        [max]="21"
+        label="Strain"
+        subtitle="Normalized training load"
+        [state]="strainState"
+        footerText="Current daily strain"
+      ></app-score-ring-card>
+
+      <app-score-ring-card
+        [value]="dashboard.readinessScore"
+        [max]="100"
+        label="Readiness"
+        [subtitle]="dashboard.readinessRecommendation"
+        [state]="readinessState"
+        footerText="Recovery and adaptation score"
+      ></app-score-ring-card>
+
+      <app-score-ring-card
+        [value]="dashboard.loadStatus.acwr"
+        [max]="2"
+        label="Load Status"
+        [subtitle]="loadSubtitle"
+        [state]="loadState"
+        [footerText]="loadFooterText"
+      ></app-score-ring-card>
+    </section>
+
+    <article class="panel panel--trend">
+      <div class="panel-head">
+        <h2>Load Trend</h2>
+        <p>Last 28 days of normalized strain</p>
+      </div>
+      <div class="chart-wrap chart-wrap--main">
+        <canvas #loadTrendCanvas></canvas>
+      </div>
+    </article>
+
+    <section class="bottom-grid">
+      <article class="panel panel--last-run" *ngIf="dashboard.lastRun">
+        <div class="panel-head">
+          <h2>Last Run Insight</h2>
+          <p>{{ formatDate(dashboard.lastRun.date) }}</p>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <span class="metric-label">Strain</span>
+            <span class="metric-value">{{ dashboard.lastRun.strain21 | number:'1.1-1' }}</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Drift</span>
+            <span class="metric-value">{{ dashboard.lastRun.driftPct | number:'1.1-1' }}%</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Z4 Minutes</span>
+            <span class="metric-value">{{ dashboard.lastRun.z4Min | number:'1.0-0' }}</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Z5 Minutes</span>
+            <span class="metric-value">{{ dashboard.lastRun.z5Min | number:'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <div class="bullet-block" *ngIf="dashboard.lastRun.coachBullets?.length">
+          <h3>Coach Notes</h3>
+          <ul>
+            <li *ngFor="let bullet of dashboard.lastRun.coachBullets">{{ bullet }}</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="panel panel--mini-trends">
+        <div class="panel-head">
+          <h2>Mini Trends</h2>
+          <p>Efficiency factor and drift snapshots</p>
+        </div>
+
+        <div class="mini-chart-block">
+          <div class="mini-chart-head">
+            <h3>Efficiency Factor</h3>
+          </div>
+          <div class="chart-wrap chart-wrap--mini">
+            <canvas #efTrendCanvas></canvas>
+          </div>
+        </div>
+
+        <div class="mini-chart-block">
+          <div class="mini-chart-head">
+            <h3>Drift</h3>
+          </div>
+          <div class="chart-wrap chart-wrap--mini">
+            <canvas #driftTrendCanvas></canvas>
+          </div>
+        </div>
+      </article>
+    </section>
+  </ng-container>
+</section>

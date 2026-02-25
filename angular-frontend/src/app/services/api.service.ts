@@ -21,6 +21,7 @@ import {
   DecouplingHistoryPoint
 } from '../models/competition.model';
 import { StravaStatus, StravaActivity } from '../models/strava.model';
+import { DashboardDto } from '../models/dashboard.model';
 
 @Injectable({
   providedIn: 'root'
@@ -225,6 +226,10 @@ export class ApiService {
 
   computeToday(): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/daily-metrics/compute-today`, {});
+  }
+
+  getDashboard(): Observable<DashboardDto> {
+    return this.http.get<DashboardDto>(`${this.baseUrl}/dashboard`);
   }
 
   // User API
