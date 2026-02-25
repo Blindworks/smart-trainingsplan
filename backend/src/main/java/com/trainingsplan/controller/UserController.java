@@ -1,7 +1,9 @@
 package com.trainingsplan.controller;
 
+import com.trainingsplan.dto.ProfileCompletionDto;
 import com.trainingsplan.entity.User;
 import com.trainingsplan.security.SecurityUtils;
+import com.trainingsplan.service.UserProfileValidationService;
 import com.trainingsplan.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +20,13 @@ public class UserController {
 
     private final UserService userService;
     private final SecurityUtils securityUtils;
+    private final UserProfileValidationService userProfileValidationService;
 
-    public UserController(UserService userService, SecurityUtils securityUtils) {
+    public UserController(UserService userService, SecurityUtils securityUtils,
+                          UserProfileValidationService userProfileValidationService) {
         this.userService = userService;
         this.securityUtils = securityUtils;
+        this.userProfileValidationService = userProfileValidationService;
     }
 
     public record CreateUserRequest(String username, String email) {}
@@ -47,6 +52,15 @@ public class UserController {
             return ResponseEntity.status(401).build();
         }
         return ResponseEntity.ok(user);
+    }
+
+    @GetMapping("/me/profile-completion")
+    public ResponseEntity<ProfileCompletionDto> getMyProfileCompletion() {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(userProfileValidationService.getProfileCompletion(user));
     }
 
     @PostMapping

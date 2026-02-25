@@ -12,6 +12,7 @@ import {
   TrainingFeedback,
   DailyTrainingCompletion,
   User,
+  ProfileCompletion,
   BodyStatusVo2Max,
   BodyMetric,
   BodyMeasurement,
@@ -235,6 +236,10 @@ export class ApiService {
   // User API
   getMe(): Observable<User> {
     return this.http.get<User>(`${this.baseUrl}/users/me`);
+  }
+
+  getMyProfileCompletion(): Observable<ProfileCompletion> {
+    return this.http.get<ProfileCompletion>(`${this.baseUrl}/users/me/profile-completion`);
   }
 
   getUsers(): Observable<User[]> {

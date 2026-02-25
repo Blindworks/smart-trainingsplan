@@ -41,6 +41,9 @@ interface ChartStats {
 export class BodyStatusComponent implements OnInit {
   loading = true;
   recalculating = false;
+  profileWarningMessage = '';
+  profileMissingFields: string[] = [];
+  private profileValidationBlocked = false;
   metrics: BodyMetric[] = [];
   todayStrain: number | null = null;
   todayStrainDate: string | null = null;
@@ -124,11 +127,27 @@ export class BodyStatusComponent implements OnInit {
     const start = this.formatDateLocal(startDate);
     const end = this.formatDateLocal(today);
 
+    this.profileValidationBlocked = false;
     this.apiService.computeToday().pipe(
-      catchError(() => of(null))
+      catchError((error) => {
+        const message = error?.error?.message;
+        const missingFields = error?.error?.missingFields;
+        if (Array.isArray(missingFields)) {
+          this.profileValidationBlocked = true;
+          this.profileMissingFields = missingFields;
+          this.profileWarningMessage = message || 'Profil unvollstaendig fuer Metrik-Berechnungen.';
+        } else if (message) {
+          this.snackBar.open(message, 'Schliessen', { duration: 5000 });
+        }
+        return of(null);
+      })
     ).subscribe(() => {
       this.apiService.getDailyMetrics(start, end).subscribe({
         next: (metrics: DailyMetrics[]) => {
+          if (!this.profileValidationBlocked) {
+            this.profileWarningMessage = '';
+            this.profileMissingFields = [];
+          }
           // Most recent day with strain data
           const sorted = metrics
             .filter(m => m.dailyStrain21 != null)
@@ -667,14 +686,45 @@ export class BodyStatusComponent implements OnInit {
     this.recalculating = true;
     this.apiService.recomputeReadiness().subscribe({
       next: () => {
+        this.profileWarningMessage = '';
+        this.profileMissingFields = [];
         this.recalculating = false;
         this.snackBar.open('Readiness neu berechnet', 'OK', { duration: 4000 });
         this.loadDailyHistory();
       },
-      error: () => {
+      error: (error) => {
         this.recalculating = false;
-        this.snackBar.open('Fehler bei der Readiness-Berechnung', 'Schließen', { duration: 3000 });
+        const message = error?.error?.message;
+        const missingFields = error?.error?.missingFields;
+        if (Array.isArray(missingFields)) {
+          this.profileMissingFields = missingFields;
+          this.profileWarningMessage = message || 'Profil unvollstaendig fuer Metrik-Berechnungen.';
+          return;
+        }
+        this.snackBar.open(message || 'Fehler bei der Readiness-Berechnung', 'Schliessen', { duration: 4000 });
       }
     });
+  }
+
+  get profileMissingFieldsLabel(): string {
+    if (!this.profileMissingFields.length) {
+      return '';
+    }
+    const labels = this.profileMissingFields.map((field) => this.getFieldLabel(field));
+    return labels.join(', ');
+  }
+
+  private getFieldLabel(field: string): string {
+    const map: Record<string, string> = {
+      firstName: 'Vorname',
+      lastName: 'Nachname',
+      dateOfBirth: 'Geburtsdatum',
+      heightCm: 'Groesse',
+      weightKg: 'Gewicht',
+      maxHeartRate: 'Maximale Herzfrequenz',
+      hrRest: 'Ruhepuls',
+      gender: 'Geschlecht'
+    };
+    return map[field] ?? field;
   }
 }

@@ -128,8 +128,8 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           this.dashboard = dashboard;
           requestAnimationFrame(() => this.renderCharts());
         },
-        error: () => {
-          this.errorMessage = 'Dashboard data could not be loaded.';
+        error: (error) => {
+          this.errorMessage = error?.error?.message || 'Dashboard data could not be loaded.';
           this.dashboard = undefined;
           this.destroyCharts();
         }

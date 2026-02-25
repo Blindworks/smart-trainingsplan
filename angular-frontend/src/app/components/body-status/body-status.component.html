@@ -15,6 +15,17 @@
     </div>
   </div>
 
+  <div class="profile-warning-banner" *ngIf="profileWarningMessage">
+    <mat-icon>warning</mat-icon>
+    <div class="profile-warning-content">
+      <p class="profile-warning-title">Body-Status kann nicht vollstaendig berechnet werden.</p>
+      <p class="profile-warning-message">{{ profileWarningMessage }}</p>
+      <p class="profile-warning-fields" *ngIf="profileMissingFieldsLabel">
+        Fehlende Profildaten: {{ profileMissingFieldsLabel }}
+      </p>
+    </div>
+  </div>
+
   <div class="loading-state" *ngIf="loading">
     <mat-spinner diameter="36"></mat-spinner>
     <span>Status wird geladen...</span>

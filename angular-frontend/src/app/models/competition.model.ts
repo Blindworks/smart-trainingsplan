@@ -158,6 +158,12 @@ export interface User {
   gender?: string;
 }
 
+export interface ProfileCompletion {
+  complete: boolean;
+  missingFields: string[];
+  message: string;
+}
+
 export interface ActivityMetrics {
   id?: number;
   zonesUnknown: boolean;

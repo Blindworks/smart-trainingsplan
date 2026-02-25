@@ -1,5 +1,6 @@
 package com.trainingsplan.controller;
 
+import com.trainingsplan.dto.ProfileCompletionDto;
 import com.trainingsplan.entity.ActivityMetrics;
 import com.trainingsplan.entity.CompletedTraining;
 import com.trainingsplan.entity.User;
@@ -8,6 +9,7 @@ import com.trainingsplan.repository.CompletedTrainingRepository;
 import com.trainingsplan.security.SecurityUtils;
 import com.trainingsplan.service.CompletedTrainingService;
 import com.trainingsplan.service.StravaService;
+import com.trainingsplan.service.UserProfileValidationService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -45,6 +47,9 @@ public class CompletedTrainingController {
     @Autowired
     private SecurityUtils securityUtils;
 
+    @Autowired
+    private UserProfileValidationService userProfileValidationService;
+
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFitFile(
             @RequestParam("file") MultipartFile file,
@@ -52,6 +57,15 @@ public class CompletedTrainingController {
             @RequestParam(value = "trainingId", required = false) Long trainingId) {
         
         try {
+            User user = securityUtils.getCurrentUser();
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            ProfileCompletionDto completion = userProfileValidationService.getProfileCompletion(user);
+            if (!completion.complete()) {
+                return ResponseEntity.badRequest().body(completion);
+            }
+
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest().body("Datei ist leer");
             }
@@ -99,6 +113,15 @@ public class CompletedTrainingController {
     @PostMapping("/{id}/compute-strava-metrics")
     public ResponseEntity<?> computeStravaMetrics(@PathVariable Long id) {
         try {
+            User user = securityUtils.getCurrentUser();
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            ProfileCompletionDto completion = userProfileValidationService.getProfileCompletion(user);
+            if (!completion.complete()) {
+                return ResponseEntity.badRequest().body(completion);
+            }
+
             ActivityMetrics metrics = stravaService.computeMetricsForCompletedTraining(id);
             if (metrics == null) {
                 return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)

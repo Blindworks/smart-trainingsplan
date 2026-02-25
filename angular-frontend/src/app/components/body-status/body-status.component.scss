@@ -85,6 +85,42 @@
   color: var(--text-secondary);
 }
 
+.profile-warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #f44336;
+  background: rgba(244, 67, 54, 0.16);
+  color: #ffcdd2;
+
+  mat-icon {
+    color: #ff8a80;
+    margin-top: 1px;
+  }
+}
+
+.profile-warning-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-warning-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.profile-warning-message,
+.profile-warning-fields {
+  margin: 0;
+  font-size: 13px;
+  color: #ffe0e0;
+}
+
 // ─── Grid ──────────────────────────────────────────────────────────────────────
 
 .status-grid {

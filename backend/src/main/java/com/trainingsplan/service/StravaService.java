@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trainingsplan.dto.StravaActivityDto;
+import com.trainingsplan.dto.ProfileCompletionDto;
 import com.trainingsplan.dto.StravaStatusDto;
 import com.trainingsplan.entity.ActivityMetrics;
 import com.trainingsplan.entity.CompletedTraining;
@@ -51,19 +52,22 @@ public class StravaService {
     private final ActivityMetricsService activityMetricsService;
     private final ActivityMetricsRepository activityMetricsRepository;
     private final SecurityUtils securityUtils;
+    private final UserProfileValidationService userProfileValidationService;
     private final RestClient restClient;
 
     public StravaService(StravaTokenRepository tokenRepository, ObjectMapper objectMapper,
                          CompletedTrainingRepository completedTrainingRepository,
                          ActivityMetricsService activityMetricsService,
                          ActivityMetricsRepository activityMetricsRepository,
-                         SecurityUtils securityUtils) {
+                         SecurityUtils securityUtils,
+                         UserProfileValidationService userProfileValidationService) {
         this.tokenRepository = tokenRepository;
         this.objectMapper = objectMapper;
         this.completedTrainingRepository = completedTrainingRepository;
         this.activityMetricsService = activityMetricsService;
         this.activityMetricsRepository = activityMetricsRepository;
         this.securityUtils = securityUtils;
+        this.userProfileValidationService = userProfileValidationService;
         this.restClient = RestClient.create();
     }
 
@@ -199,6 +203,13 @@ public class StravaService {
     private void fetchStreamsAndPersistMetrics(Long stravaActivityId, CompletedTraining ct,
                                                String accessToken, User user) {
         try {
+            ProfileCompletionDto completion = userProfileValidationService.getProfileCompletion(user);
+            if (!completion.complete()) {
+                log.info("Skipping metric calculation for Strava activity {}. Incomplete profile: {}",
+                        stravaActivityId, completion.missingFields());
+                return;
+            }
+
             String url = "https://www.strava.com/api/v3/activities/" + stravaActivityId
                     + "/streams?keys=time,heartrate,velocity_smooth,distance&key_by_type=true";
             String body = restClient.get()

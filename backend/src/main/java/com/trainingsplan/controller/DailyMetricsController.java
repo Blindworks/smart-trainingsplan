@@ -1,11 +1,13 @@
 package com.trainingsplan.controller;
 
+import com.trainingsplan.dto.ProfileCompletionDto;
 import com.trainingsplan.entity.DailyMetrics;
 import com.trainingsplan.entity.User;
 import com.trainingsplan.repository.DailyMetricsRepository;
 import com.trainingsplan.security.SecurityUtils;
 import com.trainingsplan.service.DailyMetricsService;
 import com.trainingsplan.service.ReadinessService;
+import com.trainingsplan.service.UserProfileValidationService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -28,15 +30,18 @@ public class DailyMetricsController {
     private final DailyMetricsService dailyMetricsService;
     private final SecurityUtils securityUtils;
     private final ReadinessService readinessService;
+    private final UserProfileValidationService userProfileValidationService;
 
     public DailyMetricsController(DailyMetricsRepository dailyMetricsRepository,
                                    DailyMetricsService dailyMetricsService,
                                    SecurityUtils securityUtils,
-                                   ReadinessService readinessService) {
+                                   ReadinessService readinessService,
+                                   UserProfileValidationService userProfileValidationService) {
         this.dailyMetricsRepository = dailyMetricsRepository;
         this.dailyMetricsService = dailyMetricsService;
         this.securityUtils = securityUtils;
         this.readinessService = readinessService;
+        this.userProfileValidationService = userProfileValidationService;
     }
 
     @GetMapping
@@ -53,10 +58,14 @@ public class DailyMetricsController {
      * for the currently authenticated user.
      */
     @PostMapping("/recompute-ef")
-    public ResponseEntity<Map<String, Object>> recomputeEf() {
+    public ResponseEntity<?> recomputeEf() {
         User user = securityUtils.getCurrentUser();
         if (user == null) {
             return ResponseEntity.status(401).build();
+        }
+        ProfileCompletionDto completion = userProfileValidationService.getProfileCompletion(user);
+        if (!completion.complete()) {
+            return ResponseEntity.badRequest().body(completion);
         }
         dailyMetricsService.recomputeEfForUser(user);
         return ResponseEntity.ok(Map.of(
@@ -71,10 +80,14 @@ public class DailyMetricsController {
      * Requires ACWR data to already be populated for those days.
      */
     @PostMapping("/recompute-readiness")
-    public ResponseEntity<Void> recomputeReadiness() {
+    public ResponseEntity<?> recomputeReadiness() {
         User user = securityUtils.getCurrentUser();
         if (user == null) {
             return ResponseEntity.status(401).build();
+        }
+        ProfileCompletionDto completion = userProfileValidationService.getProfileCompletion(user);
+        if (!completion.complete()) {
+            return ResponseEntity.badRequest().body(completion);
         }
         readinessService.recomputeForUser(user);
         return ResponseEntity.ok().build();
@@ -86,10 +99,14 @@ public class DailyMetricsController {
      * even on rest days with no training activity.
      */
     @PostMapping("/compute-today")
-    public ResponseEntity<Void> computeToday() {
+    public ResponseEntity<?> computeToday() {
         User user = securityUtils.getCurrentUser();
         if (user == null) {
             return ResponseEntity.status(401).build();
+        }
+        ProfileCompletionDto completion = userProfileValidationService.getProfileCompletion(user);
+        if (!completion.complete()) {
+            return ResponseEntity.badRequest().body(completion);
         }
         dailyMetricsService.computeToday(user);
         return ResponseEntity.ok().build();
