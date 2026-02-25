@@ -14,6 +14,7 @@ export interface AuthResponse {
   userId: number;
   username: string;
   email: string;
+  role: string;
 }
 
 export interface AuthState {
@@ -22,4 +23,5 @@ export interface AuthState {
   userId: number | null;
   username: string | null;
   email: string | null;
+  role: string | null;
 }

@@ -27,13 +27,14 @@ export class AuthService {
           token,
           userId: user.userId,
           username: user.username,
-          email: user.email
+          email: user.email,
+          role: user.role ?? null
         };
       } catch {
-        return { isLoggedIn: false, token: null, userId: null, username: null, email: null };
+        return { isLoggedIn: false, token: null, userId: null, username: null, email: null, role: null };
       }
     }
-    return { isLoggedIn: false, token: null, userId: null, username: null, email: null };
+    return { isLoggedIn: false, token: null, userId: null, username: null, email: null, role: null };
   }
 
   login(request: LoginRequest): Observable<AuthResponse> {
@@ -56,14 +57,15 @@ export class AuthService {
       token: response.token,
       userId: response.userId,
       username: response.username,
-      email: response.email
+      email: response.email,
+      role: response.role
     });
   }
 
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
-    this.authState.next({ isLoggedIn: false, token: null, userId: null, username: null, email: null });
+    this.authState.next({ isLoggedIn: false, token: null, userId: null, username: null, email: null, role: null });
     this.router.navigate(['/login']);
   }
 
@@ -81,5 +83,9 @@ export class AuthService {
 
   getCurrentUsername(): string | null {
     return this.authState.getValue().username;
+  }
+
+  getCurrentRole(): string | null {
+    return this.authState.getValue().role;
   }
 }

@@ -4,6 +4,7 @@ import com.trainingsplan.dto.AuthRequest;
 import com.trainingsplan.dto.AuthResponse;
 import com.trainingsplan.dto.RegisterRequest;
 import com.trainingsplan.entity.User;
+import com.trainingsplan.entity.UserRole;
 import com.trainingsplan.repository.UserRepository;
 import com.trainingsplan.security.JwtService;
 import org.springframework.http.HttpStatus;
@@ -46,13 +47,14 @@ public class AuthController {
         user.setUsername(request.username());
         user.setEmail(request.email());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setRole(UserRole.USER);
         user.setCreatedAt(LocalDateTime.now());
 
         User saved = userRepository.save(user);
         String token = jwtService.generateToken(saved);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new AuthResponse(token, saved.getId(), saved.getUsername(), saved.getEmail()));
+                .body(new AuthResponse(token, saved.getId(), saved.getUsername(), saved.getEmail(), saved.getRole().name()));
     }
 
     @PostMapping("/login")
@@ -64,6 +66,6 @@ public class AuthController {
         User user = (User) authentication.getPrincipal();
         String token = jwtService.generateToken(user);
 
-        return ResponseEntity.ok(new AuthResponse(token, user.getId(), user.getUsername(), user.getEmail()));
+        return ResponseEntity.ok(new AuthResponse(token, user.getId(), user.getUsername(), user.getEmail(), user.getRole().name()));
     }
 }
