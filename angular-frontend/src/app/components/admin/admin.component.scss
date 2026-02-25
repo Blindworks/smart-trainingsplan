@@ -32,3 +32,21 @@ p {
   margin: 0;
   color: var(--text-secondary);
 }
+
+.admin-submenu {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+
+  h2 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: var(--text-primary);
+  }
+}
+
+.submenu-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

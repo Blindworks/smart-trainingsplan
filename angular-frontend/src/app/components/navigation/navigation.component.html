@@ -49,10 +49,18 @@
         <span>Körperdaten</span>
       </a>
       @if (isAdmin()) {
-        <a class="nav-link" routerLink="/admin" routerLinkActive="active">
-          <mat-icon>admin_panel_settings</mat-icon>
-          <span>Admin</span>
-        </a>
+        <div class="nav-admin-menu">
+          <a class="nav-link" routerLink="/admin" routerLinkActive="active">
+            <mat-icon>admin_panel_settings</mat-icon>
+            <span>Admin</span>
+          </a>
+          <div class="admin-submenu">
+            <a class="nav-link nav-sub-link" routerLink="/admin/users" routerLinkActive="active">
+              <mat-icon>group</mat-icon>
+              <span>Usersverwaltung</span>
+            </a>
+          </div>
+        </div>
       }
     </div>
 
