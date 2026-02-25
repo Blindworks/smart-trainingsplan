@@ -156,6 +156,7 @@ export interface User {
   maxHeartRate?: number;
   hrRest?: number;
   gender?: string;
+  profileImageFilename?: string;
 }
 
 export interface ProfileCompletion {

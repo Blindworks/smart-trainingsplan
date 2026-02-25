@@ -5,9 +5,12 @@ import com.trainingsplan.entity.User;
 import com.trainingsplan.security.SecurityUtils;
 import com.trainingsplan.service.UserProfileValidationService;
 import com.trainingsplan.service.UserService;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -96,5 +99,25 @@ public class UserController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping(path = "/{id}/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> uploadProfileImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        userService.uploadProfileImage(id, file);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/profile-image")
+    public ResponseEntity<Resource> getProfileImage(@PathVariable Long id) {
+        UserService.ProfileImageData profileImage = userService.loadProfileImage(id);
+        MediaType mediaType;
+        try {
+            mediaType = MediaType.parseMediaType(profileImage.contentType());
+        } catch (IllegalArgumentException e) {
+            mediaType = MediaType.APPLICATION_OCTET_STREAM;
+        }
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .body(profileImage.resource());
     }
 }

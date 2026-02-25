@@ -8,9 +8,18 @@ COPY src ./src
 RUN mvn -q -DskipTests package
 
 FROM eclipse-temurin:21-jre
+
+# ➜ optional aber sauber
+RUN addgroup --system spring && adduser --system spring --ingroup spring
+
 WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
+
+# ➜ Upload Ordner anlegen
+RUN mkdir -p /app/uploads && chown -R spring:spring /app
+
+USER spring
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

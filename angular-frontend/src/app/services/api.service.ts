@@ -262,6 +262,16 @@ export class ApiService {
     return this.http.put<User>(`${this.baseUrl}/users/${id}`, data);
   }
 
+  uploadProfileImage(id: number, file: File): Observable<void> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<void>(`${this.baseUrl}/users/${id}/profile-image`, formData);
+  }
+
+  getProfileImage(id: number): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/users/${id}/profile-image`, { responseType: 'blob' });
+  }
+
   // Body Measurement API
   getBodyMeasurements(): Observable<BodyMeasurement[]> {
     return this.http.get<BodyMeasurement[]>(`${this.baseUrl}/body-measurements`);

@@ -10,7 +10,8 @@
     <!-- Header -->
     <div class="profile-header">
       <div class="avatar">
-        <span class="avatar-initials">{{ getInitials(stravaStatus?.athleteName) }}</span>
+        <img *ngIf="profileImageUrl" class="avatar-image" [src]="profileImageUrl" alt="Profilbild" />
+        <span class="avatar-initials" *ngIf="!profileImageUrl">{{ getInitials(stravaStatus?.athleteName) }}</span>
         <div class="avatar-ring"></div>
       </div>
       <div class="header-info">
@@ -19,6 +20,14 @@
           <mat-icon>location_on</mat-icon>
           {{ stravaStatus?.athleteCity }}
         </p>
+        <label class="avatar-upload-btn" *ngIf="user?.id">
+          <input type="file"
+                 accept="image/png,image/jpeg,image/webp"
+                 [disabled]="profileImageUploading"
+                 (change)="onProfileImageSelected($event)" />
+          <mat-icon>image</mat-icon>
+          {{ profileImageUploading ? 'Upload...' : 'Profilbild ändern' }}
+        </label>
       </div>
     </div>
 

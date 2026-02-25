@@ -39,6 +39,7 @@ import { StravaStatus, StravaActivity } from '../../models/strava.model';
 })
 export class ProfileComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private profileImageObjectUrl: string | null = null;
 
   loading = true;
   stravaLoading = false;
@@ -64,6 +65,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   editMaxHeartRate: number | null = null;
   editHrRest: number | null = null;
   editGender: string = '';
+  profileImageUrl: string | null = null;
+  profileImageUploading = false;
+  profileImageMessage = '';
 
   constructor(
     private apiService: ApiService,
@@ -77,6 +81,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.revokeProfileImageObjectUrl();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -193,8 +198,63 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .subscribe(user => {
         if (user) {
           this.user = user;
+          this.loadProfileImage();
         }
       });
+  }
+
+  loadProfileImage(): void {
+    if (!this.user?.id) {
+      this.revokeProfileImageObjectUrl();
+      this.profileImageUrl = null;
+      return;
+    }
+
+    this.apiService.getProfileImage(this.user.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: blob => {
+          this.revokeProfileImageObjectUrl();
+          this.profileImageObjectUrl = URL.createObjectURL(blob);
+          this.profileImageUrl = this.profileImageObjectUrl;
+          this.profileImageMessage = '';
+        },
+        error: (error) => {
+          this.revokeProfileImageObjectUrl();
+          this.profileImageUrl = null;
+          if (error?.status === 404) {
+            this.profileImageMessage = 'Noch kein Profilbild hochgeladen.';
+          } else {
+            this.profileImageMessage = 'Profilbild konnte nicht geladen werden.';
+          }
+        }
+      });
+  }
+
+  onProfileImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !this.user?.id) {
+      return;
+    }
+
+    this.profileImageUploading = true;
+    this.apiService.uploadProfileImage(this.user.id, file)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.profileImageUploading = false;
+          this.profileImageMessage = '';
+          this.snackBar.open('Profilbild aktualisiert', 'SchlieÃŸen', { duration: 3000 });
+          this.loadUser();
+        },
+        error: () => {
+          this.profileImageUploading = false;
+          this.snackBar.open('Fehler beim Profilbild-Upload', 'SchlieÃŸen', { duration: 3000 });
+        }
+      });
+
+    input.value = '';
   }
 
   startEdit(): void {
@@ -271,6 +331,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
         return 'Aktiv';
       default:
         return 'Unbekannt';
+    }
+  }
+
+  private revokeProfileImageObjectUrl(): void {
+    if (this.profileImageObjectUrl) {
+      URL.revokeObjectURL(this.profileImageObjectUrl);
+      this.profileImageObjectUrl = null;
     }
   }
 }

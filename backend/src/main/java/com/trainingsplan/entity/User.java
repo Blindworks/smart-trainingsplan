@@ -74,6 +74,9 @@ public class User implements UserDetails {
     @Column(name = "email_verification_expires_at")
     private LocalDateTime emailVerificationExpiresAt;
 
+    @Column(name = "profile_image", length = 255)
+    private String profileImageFilename;
+
     @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
     private StravaToken stravaToken;
@@ -256,5 +259,13 @@ public class User implements UserDetails {
 
     public void setEmailVerificationExpiresAt(LocalDateTime emailVerificationExpiresAt) {
         this.emailVerificationExpiresAt = emailVerificationExpiresAt;
+    }
+
+    public String getProfileImageFilename() {
+        return profileImageFilename;
+    }
+
+    public void setProfileImageFilename(String profileImageFilename) {
+        this.profileImageFilename = profileImageFilename;
     }
 }
