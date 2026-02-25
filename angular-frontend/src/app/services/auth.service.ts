@@ -23,18 +23,19 @@ export class AuthService {
       try {
         const user = JSON.parse(userStr) as AuthResponse;
         return {
-          isLoggedIn: true,
+          isLoggedIn: !!token,
           token,
           userId: user.userId,
           username: user.username,
           email: user.email,
-          role: user.role ?? null
+          role: user.role ?? null,
+          status: user.status ?? null
         };
       } catch {
-        return { isLoggedIn: false, token: null, userId: null, username: null, email: null, role: null };
+        return { isLoggedIn: false, token: null, userId: null, username: null, email: null, role: null, status: null };
       }
     }
-    return { isLoggedIn: false, token: null, userId: null, username: null, email: null, role: null };
+    return { isLoggedIn: false, token: null, userId: null, username: null, email: null, role: null, status: null };
   }
 
   login(request: LoginRequest): Observable<AuthResponse> {
@@ -50,22 +51,38 @@ export class AuthService {
   }
 
   private handleAuthResponse(response: AuthResponse): void {
-    localStorage.setItem(this.TOKEN_KEY, response.token);
-    localStorage.setItem(this.USER_KEY, JSON.stringify(response));
+    if (response.token) {
+      localStorage.setItem(this.TOKEN_KEY, response.token);
+      localStorage.setItem(this.USER_KEY, JSON.stringify(response));
+      this.authState.next({
+        isLoggedIn: true,
+        token: response.token,
+        userId: response.userId,
+        username: response.username,
+        email: response.email,
+        role: response.role,
+        status: response.status
+      });
+      return;
+    }
+
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.USER_KEY);
     this.authState.next({
-      isLoggedIn: true,
-      token: response.token,
-      userId: response.userId,
-      username: response.username,
-      email: response.email,
-      role: response.role
+      isLoggedIn: false,
+      token: null,
+      userId: null,
+      username: null,
+      email: null,
+      role: null,
+      status: response.status ?? null
     });
   }
 
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
-    this.authState.next({ isLoggedIn: false, token: null, userId: null, username: null, email: null, role: null });
+    this.authState.next({ isLoggedIn: false, token: null, userId: null, username: null, email: null, role: null, status: null });
     this.router.navigate(['/login']);
   }
 
@@ -87,6 +104,10 @@ export class AuthService {
 
   getCurrentRole(): string | null {
     return this.authState.getValue().role;
+  }
+
+  getCurrentStatus(): string | null {
+    return this.authState.getValue().status;
   }
 
   isAdmin(): boolean {

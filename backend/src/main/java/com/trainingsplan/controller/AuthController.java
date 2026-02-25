@@ -5,6 +5,7 @@ import com.trainingsplan.dto.AuthResponse;
 import com.trainingsplan.dto.RegisterRequest;
 import com.trainingsplan.entity.User;
 import com.trainingsplan.entity.UserRole;
+import com.trainingsplan.entity.UserStatus;
 import com.trainingsplan.repository.UserRepository;
 import com.trainingsplan.security.JwtService;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -48,24 +50,44 @@ public class AuthController {
         user.setEmail(request.email());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setRole(UserRole.USER);
+        user.setStatus(UserStatus.EMAIL_VERIFICATION_PENDING);
         user.setCreatedAt(LocalDateTime.now());
 
         User saved = userRepository.save(user);
-        String token = jwtService.generateToken(saved);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new AuthResponse(token, saved.getId(), saved.getUsername(), saved.getEmail(), saved.getRole().name()));
+                .body(new AuthResponse(null, saved.getId(), saved.getUsername(), saved.getEmail(),
+                        saved.getRole().name(), saved.getStatus().name()));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
+        User user = userRepository.findByUsername(request.username()).orElse(null);
+        if (user != null && user.getStatus() != UserStatus.ACTIVE) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "status", user.getStatus().name(),
+                    "message", getStatusMessage(user.getStatus())
+            ));
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );
 
-        User user = (User) authentication.getPrincipal();
-        String token = jwtService.generateToken(user);
+        User authenticatedUser = (User) authentication.getPrincipal();
+        String token = jwtService.generateToken(authenticatedUser);
 
-        return ResponseEntity.ok(new AuthResponse(token, user.getId(), user.getUsername(), user.getEmail(), user.getRole().name()));
+        return ResponseEntity.ok(new AuthResponse(token, authenticatedUser.getId(), authenticatedUser.getUsername(),
+                authenticatedUser.getEmail(), authenticatedUser.getRole().name(), authenticatedUser.getStatus().name()));
+    }
+
+    private String getStatusMessage(UserStatus status) {
+        return switch (status) {
+            case EMAIL_VERIFICATION_PENDING -> "Bitte bestätige zuerst deine E-Mail-Adresse.";
+            case ADMIN_APPROVAL_PENDING -> "Dein Konto wartet auf Freigabe durch einen Admin.";
+            case BLOCKED -> "Dein Konto ist blockiert.";
+            case INACTIVE -> "Dein Konto ist inaktiv.";
+            case ACTIVE -> "Konto ist aktiv.";
+        };
     }
 }

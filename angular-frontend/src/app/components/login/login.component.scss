@@ -47,6 +47,21 @@
   }
 }
 
+.info-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1565c0;
+  margin-bottom: 8px;
+  font-size: 14px;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+}
+
 mat-card-actions {
   padding: 16px;
   text-align: center;

@@ -84,6 +84,10 @@
             <span class="field-value">{{ user?.email || '–' }}</span>
           </div>
           <div class="profile-field">
+            <span class="field-label">Anmeldestatus</span>
+            <span class="field-value">{{ getUserStatusLabel(user?.status) }}</span>
+          </div>
+          <div class="profile-field">
             <span class="field-label">Vorname</span>
             <span class="field-value">{{ user?.firstName || '–' }}</span>
           </div>

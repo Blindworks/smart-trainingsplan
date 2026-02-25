@@ -1,6 +1,7 @@
 package com.trainingsplan.service;
 
 import com.trainingsplan.entity.User;
+import com.trainingsplan.entity.UserStatus;
 import com.trainingsplan.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class UserService {
     public User updateUser(Long id, String username, String email,
                            String firstName, String lastName,
                            LocalDate dateOfBirth, Integer heightCm, Double weightKg,
-                           Integer maxHeartRate, Integer hrRest, String gender) {
+                           Integer maxHeartRate, Integer hrRest, String gender, String status) {
         User user = findById(id);
         user.setUsername(username);
         user.setEmail(email);
@@ -49,6 +50,9 @@ public class UserService {
         user.setMaxHeartRate(maxHeartRate);
         user.setHrRest(hrRest);
         user.setGender(gender);
+        if (status != null && !status.isBlank()) {
+            user.setStatus(UserStatus.valueOf(status));
+        }
         return userRepository.save(user);
     }
 }

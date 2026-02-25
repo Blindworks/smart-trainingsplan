@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/auth.service';
+import { AuthResponse } from '../../models/auth.model';
 
 @Component({
   selector: 'app-register',
@@ -51,9 +52,9 @@ export class RegisterComponent {
     this.errorMessage = '';
 
     this.authService.register(this.registerForm.value).subscribe({
-      next: () => {
+      next: (response: AuthResponse) => {
         this.isLoading = false;
-        this.router.navigate(['/overview']);
+        this.router.navigate(['/login'], { queryParams: { status: response.status } });
       },
       error: (err) => {
         this.isLoading = false;

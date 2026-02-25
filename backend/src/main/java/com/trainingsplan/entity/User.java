@@ -62,6 +62,10 @@ public class User implements UserDetails {
     @Column(nullable = false, length = 20)
     private UserRole role = UserRole.USER;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 40)
+    private UserStatus status = UserStatus.ACTIVE;
+
     @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
     private StravaToken stravaToken;
@@ -96,13 +100,13 @@ public class User implements UserDetails {
     public boolean isAccountNonExpired() { return true; }
 
     @Override
-    public boolean isAccountNonLocked() { return true; }
+    public boolean isAccountNonLocked() { return status != UserStatus.BLOCKED; }
 
     @Override
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() { return status == UserStatus.ACTIVE; }
 
     // Standard getters and setters
 
@@ -220,5 +224,13 @@ public class User implements UserDetails {
 
     public void setRole(UserRole role) {
         this.role = role == null ? UserRole.USER : role;
+    }
+
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(UserStatus status) {
+        this.status = status == null ? UserStatus.ACTIVE : status;
     }
 }

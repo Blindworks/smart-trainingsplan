@@ -34,6 +34,13 @@
           </div>
         }
 
+        @if (infoMessage && !errorMessage) {
+          <div class="info-message">
+            <mat-icon>info</mat-icon>
+            {{ infoMessage }}
+          </div>
+        }
+
         <button mat-raised-button color="primary" type="submit" class="full-width submit-btn"
                 [disabled]="isLoading || loginForm.invalid">
           @if (isLoading) {

@@ -188,10 +188,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   loadUser(): void {
-    this.apiService.getUsers()
-      .pipe(takeUntil(this.destroy$), catchError(() => of([])))
-      .subscribe(users => {
-        if (users.length > 0) this.user = users[0];
+    this.apiService.getMe()
+      .pipe(takeUntil(this.destroy$), catchError(() => of(null)))
+      .subscribe(user => {
+        if (user) {
+          this.user = user;
+        }
       });
   }
 
@@ -253,5 +255,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
       WeightTraining: 'fitness_center'
     };
     return icons[type] ?? 'sports';
+  }
+
+  getUserStatusLabel(status?: User['status']): string {
+    switch (status) {
+      case 'EMAIL_VERIFICATION_PENDING':
+        return 'E-Mail-Bestätigung ausstehend';
+      case 'ADMIN_APPROVAL_PENDING':
+        return 'Admin-Freigabe ausstehend';
+      case 'BLOCKED':
+        return 'Blockiert';
+      case 'INACTIVE':
+        return 'Inaktiv';
+      case 'ACTIVE':
+        return 'Aktiv';
+      default:
+        return 'Unbekannt';
+    }
   }
 }

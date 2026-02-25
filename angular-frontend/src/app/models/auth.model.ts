@@ -10,11 +10,12 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  token: string;
+  token: string | null;
   userId: number;
   username: string;
   email: string;
   role: string;
+  status: string;
 }
 
 export interface AuthState {
@@ -24,4 +25,5 @@ export interface AuthState {
   username: string | null;
   email: string | null;
   role: string | null;
+  status: string | null;
 }

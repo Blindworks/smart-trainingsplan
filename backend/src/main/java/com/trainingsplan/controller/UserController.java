@@ -36,7 +36,8 @@ public class UserController {
             Double weightKg,
             Integer maxHeartRate,
             Integer hrRest,
-            String gender
+            String gender,
+            String status
     ) {}
 
     @GetMapping("/me")
@@ -74,8 +75,10 @@ public class UserController {
             User updated = userService.updateUser(id, request.username(), request.email(),
                     request.firstName(), request.lastName(),
                     request.dateOfBirth(), request.heightCm(), request.weightKg(),
-                    request.maxHeartRate(), request.hrRest(), request.gender());
+                    request.maxHeartRate(), request.hrRest(), request.gender(), request.status());
             return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

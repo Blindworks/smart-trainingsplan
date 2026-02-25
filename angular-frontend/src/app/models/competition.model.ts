@@ -146,6 +146,7 @@ export interface User {
   username: string;
   email: string;
   role?: string;
+  status?: 'EMAIL_VERIFICATION_PENDING' | 'ADMIN_APPROVAL_PENDING' | 'BLOCKED' | 'INACTIVE' | 'ACTIVE';
   createdAt?: string;
   firstName?: string;
   lastName?: string;

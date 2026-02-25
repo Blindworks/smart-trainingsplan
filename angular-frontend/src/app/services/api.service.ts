@@ -252,6 +252,7 @@ export class ApiService {
     maxHeartRate?: number | null;
     hrRest?: number | null;
     gender?: string | null;
+    status?: 'EMAIL_VERIFICATION_PENDING' | 'ADMIN_APPROVAL_PENDING' | 'BLOCKED' | 'INACTIVE' | 'ACTIVE';
   }): Observable<User> {
     return this.http.put<User>(`${this.baseUrl}/users/${id}`, data);
   }
