@@ -88,4 +88,8 @@ export class AuthService {
   getCurrentRole(): string | null {
     return this.authState.getValue().role;
   }
+
+  isAdmin(): boolean {
+    return this.getCurrentRole() === 'ADMIN';
+  }
 }

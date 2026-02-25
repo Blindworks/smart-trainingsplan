@@ -1,4 +1,4 @@
-<nav class="pacr-nav">
+ï»¿<nav class="pacr-nav">
   <div class="nav-inner">
     <!-- Brand -->
     <a class="nav-brand" routerLink="/">
@@ -30,7 +30,7 @@
       </a>
       <a class="nav-link" routerLink="/plans" routerLinkActive="active">
         <mat-icon>library_books</mat-icon>
-        <span>Pläne</span>
+        <span>PlÃ¤ne</span>
       </a>
       <a class="nav-link" routerLink="/overview" routerLinkActive="active">
         <mat-icon>grid_view</mat-icon>
@@ -46,8 +46,14 @@
       </a>
       <a class="nav-link" routerLink="/body-measurements" routerLinkActive="active">
         <mat-icon>scale</mat-icon>
-        <span>Körperdaten</span>
+        <span>KÃ¶rperdaten</span>
       </a>
+      @if (isAdmin()) {
+        <a class="nav-link" routerLink="/admin" routerLinkActive="active">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <span>Admin</span>
+        </a>
+      }
     </div>
 
     <!-- Profile Link -->
@@ -63,3 +69,4 @@
     }
   </div>
 </nav>
+

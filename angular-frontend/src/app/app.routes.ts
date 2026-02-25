@@ -12,6 +12,7 @@ import { RegisterComponent } from './components/register/register.component';
 import { PlanLibraryComponent } from './components/plan-library/plan-library.component';
 import { BodyStatusComponent } from './components/body-status/body-status.component';
 import { authGuard } from './guards/auth.guard';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -23,6 +24,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent)
+  },
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./components/admin/admin.component').then(m => m.AdminComponent)
   },
   { path: 'competitions', component: CompetitionListComponent, canActivate: [authGuard] },
   { path: 'competitions/new', component: CompetitionFormComponent, canActivate: [authGuard] },
