@@ -15,6 +15,25 @@ import { takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../services/api.service';
 import { BodyMeasurement, BloodPressure } from '../../models/competition.model';
 
+interface TrendPoint {
+  x: number;
+  y: number;
+  valueLabel: string;
+}
+
+interface TrendSeries {
+  label: string;
+  unit: string;
+  color: string;
+  points: TrendPoint[];
+  polylinePoints: string;
+  latestLabel: string;
+  minLabel: string;
+  maxLabel: string;
+  startDateLabel: string;
+  endDateLabel: string;
+}
+
 @Component({
   selector: 'app-body-measurement',
   standalone: true,
@@ -36,16 +55,21 @@ import { BodyMeasurement, BloodPressure } from '../../models/competition.model';
 export class BodyMeasurementComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  // ─── Körpermessungen ──────────────────────────────────────────────────────
+  bodyViewMode: 'values' | 'graph' = 'values';
+  bpViewMode: 'values' | 'graph' = 'values';
+
+  // K�rpermessungen
   measurements: BodyMeasurement[] = [];
+  bodyTrendSeries: TrendSeries[] = [];
   loading = true;
   saving = false;
-  /** null → form hidden, -1 → new entry, N → editing existing ID N */
+  /** null -> form hidden, -1 -> new entry, N -> editing existing ID N */
   editingId: number | null = null;
   form!: FormGroup;
 
-  // ─── Blutdruck ────────────────────────────────────────────────────────────
+  // Blutdruck
   bloodPressures: BloodPressure[] = [];
+  bpTrendSeries: TrendSeries[] = [];
   bpLoading = true;
   bpSaving = false;
   editingBpId: number | null = null;
@@ -69,20 +93,20 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ─── Körpermessungen: Form ────────────────────────────────────────────────
+  // K�rpermessungen: Form
 
   private buildForm(): void {
     this.form = this.fb.group({
-      measuredAt:       [this.todayIso(), Validators.required],
-      weightKg:         [null, [Validators.min(0)]],
-      fatPercentage:    [null, [Validators.min(0), Validators.max(100)]],
-      waterPercentage:  [null, [Validators.min(0), Validators.max(100)]],
-      muscleMassKg:     [null, [Validators.min(0)]],
-      boneMassKg:       [null, [Validators.min(0)]],
+      measuredAt: [this.todayIso(), Validators.required],
+      weightKg: [null, [Validators.min(0)]],
+      fatPercentage: [null, [Validators.min(0), Validators.max(100)]],
+      waterPercentage: [null, [Validators.min(0), Validators.max(100)]],
+      muscleMassKg: [null, [Validators.min(0)]],
+      boneMassKg: [null, [Validators.min(0)]],
       visceralFatLevel: [null, [Validators.min(0)]],
-      metabolicAge:     [null, [Validators.min(0)]],
-      bmi:              [null, [Validators.min(0)]],
-      notes:            [null],
+      metabolicAge: [null, [Validators.min(0)]],
+      bmi: [null, [Validators.min(0)]],
+      notes: [null],
     });
   }
 
@@ -91,10 +115,14 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     this.apiService.getBodyMeasurements()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (data) => { this.measurements = data; this.loading = false; },
+        next: (data) => {
+          this.measurements = data;
+          this.buildBodyTrendSeries();
+          this.loading = false;
+        },
         error: () => {
           this.loading = false;
-          this.snackBar.open('Fehler beim Laden der Messungen', 'Schließen', { duration: 3000 });
+          this.snackBar.open('Fehler beim Laden der Messungen', 'Schlie�en', { duration: 3000 });
         }
       });
   }
@@ -103,16 +131,16 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     this.editingBpId = null;
     this.editingId = -1;
     this.form.reset({
-      measuredAt:       this.todayIso(),
-      weightKg:         null,
-      fatPercentage:    null,
-      waterPercentage:  null,
-      muscleMassKg:     null,
-      boneMassKg:       null,
+      measuredAt: this.todayIso(),
+      weightKg: null,
+      fatPercentage: null,
+      waterPercentage: null,
+      muscleMassKg: null,
+      boneMassKg: null,
       visceralFatLevel: null,
-      metabolicAge:     null,
-      bmi:              null,
-      notes:            null,
+      metabolicAge: null,
+      bmi: null,
+      notes: null,
     });
   }
 
@@ -120,16 +148,16 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     this.editingBpId = null;
     this.editingId = measurement.id ?? -1;
     this.form.setValue({
-      measuredAt:       measurement.measuredAt,
-      weightKg:         measurement.weightKg         ?? null,
-      fatPercentage:    measurement.fatPercentage    ?? null,
-      waterPercentage:  measurement.waterPercentage  ?? null,
-      muscleMassKg:     measurement.muscleMassKg     ?? null,
-      boneMassKg:       measurement.boneMassKg       ?? null,
+      measuredAt: measurement.measuredAt,
+      weightKg: measurement.weightKg ?? null,
+      fatPercentage: measurement.fatPercentage ?? null,
+      waterPercentage: measurement.waterPercentage ?? null,
+      muscleMassKg: measurement.muscleMassKg ?? null,
+      boneMassKg: measurement.boneMassKg ?? null,
       visceralFatLevel: measurement.visceralFatLevel ?? null,
-      metabolicAge:     measurement.metabolicAge     ?? null,
-      bmi:              measurement.bmi              ?? null,
-      notes:            measurement.notes            ?? null,
+      metabolicAge: measurement.metabolicAge ?? null,
+      bmi: measurement.bmi ?? null,
+      notes: measurement.notes ?? null,
     });
   }
 
@@ -146,15 +174,15 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
 
     const payload: BodyMeasurement = {
       measuredAt,
-      weightKg:         this.toNumber(raw.weightKg),
-      fatPercentage:    this.toNumber(raw.fatPercentage),
-      waterPercentage:  this.toNumber(raw.waterPercentage),
-      muscleMassKg:     this.toNumber(raw.muscleMassKg),
-      boneMassKg:       this.toNumber(raw.boneMassKg),
+      weightKg: this.toNumber(raw.weightKg),
+      fatPercentage: this.toNumber(raw.fatPercentage),
+      waterPercentage: this.toNumber(raw.waterPercentage),
+      muscleMassKg: this.toNumber(raw.muscleMassKg),
+      boneMassKg: this.toNumber(raw.boneMassKg),
       visceralFatLevel: this.toNumber(raw.visceralFatLevel),
-      metabolicAge:     this.toNumber(raw.metabolicAge),
-      bmi:              this.toNumber(raw.bmi),
-      notes:            raw.notes || undefined,
+      metabolicAge: this.toNumber(raw.metabolicAge),
+      bmi: this.toNumber(raw.bmi),
+      notes: raw.notes || undefined,
     };
 
     this.saving = true;
@@ -167,27 +195,27 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
       next: () => {
         this.saving = false;
         this.editingId = null;
-        this.snackBar.open(isNew ? 'Messung gespeichert' : 'Messung aktualisiert', 'Schließen', { duration: 3000 });
+        this.snackBar.open(isNew ? 'Messung gespeichert' : 'Messung aktualisiert', 'Schlie�en', { duration: 3000 });
         this.loadMeasurements();
       },
       error: () => {
         this.saving = false;
-        this.snackBar.open('Fehler beim Speichern', 'Schließen', { duration: 3000 });
+        this.snackBar.open('Fehler beim Speichern', 'Schlie�en', { duration: 3000 });
       }
     });
   }
 
   deleteMeasurement(measurement: BodyMeasurement): void {
     if (!measurement.id) return;
-    if (!confirm(`Messung vom ${this.formatDate(measurement.measuredAt)} wirklich löschen?`)) return;
+    if (!confirm(`Messung vom ${this.formatDate(measurement.measuredAt)} wirklich l�schen?`)) return;
     this.apiService.deleteBodyMeasurement(measurement.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.snackBar.open('Messung gelöscht', 'Schließen', { duration: 3000 });
+          this.snackBar.open('Messung gel�scht', 'Schlie�en', { duration: 3000 });
           this.loadMeasurements();
         },
-        error: () => this.snackBar.open('Fehler beim Löschen', 'Schließen', { duration: 3000 })
+        error: () => this.snackBar.open('Fehler beim L�schen', 'Schlie�en', { duration: 3000 })
       });
   }
 
@@ -195,15 +223,15 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     return this.editingId === measurement.id;
   }
 
-  // ─── Blutdruck: Form ──────────────────────────────────────────────────────
+  // Blutdruck: Form
 
   private buildBpForm(): void {
     this.bpForm = this.fb.group({
-      measuredAt:        [this.todayIso(), Validators.required],
-      systolicPressure:  [null, [Validators.required, Validators.min(0), Validators.max(300)]],
+      measuredAt: [this.todayIso(), Validators.required],
+      systolicPressure: [null, [Validators.required, Validators.min(0), Validators.max(300)]],
       diastolicPressure: [null, [Validators.required, Validators.min(0), Validators.max(200)]],
-      pulseAtMeasurement:[null, [Validators.min(0), Validators.max(300)]],
-      notes:             [null],
+      pulseAtMeasurement: [null, [Validators.min(0), Validators.max(300)]],
+      notes: [null],
     });
   }
 
@@ -212,10 +240,14 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     this.apiService.getBloodPressures()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (data) => { this.bloodPressures = data; this.bpLoading = false; },
+        next: (data) => {
+          this.bloodPressures = data;
+          this.buildBpTrendSeries();
+          this.bpLoading = false;
+        },
         error: () => {
           this.bpLoading = false;
-          this.snackBar.open('Fehler beim Laden der Blutdruckwerte', 'Schließen', { duration: 3000 });
+          this.snackBar.open('Fehler beim Laden der Blutdruckwerte', 'Schlie�en', { duration: 3000 });
         }
       });
   }
@@ -224,11 +256,11 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     this.editingId = null;
     this.editingBpId = -1;
     this.bpForm.reset({
-      measuredAt:         this.todayIso(),
-      systolicPressure:   null,
-      diastolicPressure:  null,
+      measuredAt: this.todayIso(),
+      systolicPressure: null,
+      diastolicPressure: null,
       pulseAtMeasurement: null,
-      notes:              null,
+      notes: null,
     });
   }
 
@@ -236,11 +268,11 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     this.editingId = null;
     this.editingBpId = bp.id ?? -1;
     this.bpForm.setValue({
-      measuredAt:         bp.measuredAt,
-      systolicPressure:   bp.systolicPressure,
-      diastolicPressure:  bp.diastolicPressure,
+      measuredAt: bp.measuredAt,
+      systolicPressure: bp.systolicPressure,
+      diastolicPressure: bp.diastolicPressure,
       pulseAtMeasurement: bp.pulseAtMeasurement ?? null,
-      notes:              bp.notes              ?? null,
+      notes: bp.notes ?? null,
     });
   }
 
@@ -257,10 +289,10 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
 
     const payload: BloodPressure = {
       measuredAt,
-      systolicPressure:   Number(raw.systolicPressure),
-      diastolicPressure:  Number(raw.diastolicPressure),
+      systolicPressure: Number(raw.systolicPressure),
+      diastolicPressure: Number(raw.diastolicPressure),
       pulseAtMeasurement: this.toNumber(raw.pulseAtMeasurement),
-      notes:              raw.notes || undefined,
+      notes: raw.notes || undefined,
     };
 
     this.bpSaving = true;
@@ -273,27 +305,27 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
       next: () => {
         this.bpSaving = false;
         this.editingBpId = null;
-        this.snackBar.open(isNew ? 'Blutdruckwert gespeichert' : 'Blutdruckwert aktualisiert', 'Schließen', { duration: 3000 });
+        this.snackBar.open(isNew ? 'Blutdruckwert gespeichert' : 'Blutdruckwert aktualisiert', 'Schlie�en', { duration: 3000 });
         this.loadBloodPressures();
       },
       error: () => {
         this.bpSaving = false;
-        this.snackBar.open('Fehler beim Speichern', 'Schließen', { duration: 3000 });
+        this.snackBar.open('Fehler beim Speichern', 'Schlie�en', { duration: 3000 });
       }
     });
   }
 
   deleteBp(bp: BloodPressure): void {
     if (!bp.id) return;
-    if (!confirm(`Blutdruckwert vom ${this.formatDate(bp.measuredAt)} wirklich löschen?`)) return;
+    if (!confirm(`Blutdruckwert vom ${this.formatDate(bp.measuredAt)} wirklich l�schen?`)) return;
     this.apiService.deleteBloodPressure(bp.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.snackBar.open('Blutdruckwert gelöscht', 'Schließen', { duration: 3000 });
+          this.snackBar.open('Blutdruckwert gel�scht', 'Schlie�en', { duration: 3000 });
           this.loadBloodPressures();
         },
-        error: () => this.snackBar.open('Fehler beim Löschen', 'Schließen', { duration: 3000 })
+        error: () => this.snackBar.open('Fehler beim L�schen', 'Schlie�en', { duration: 3000 })
       });
   }
 
@@ -301,7 +333,86 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     return this.editingBpId === bp.id;
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────────
+  private buildBodyTrendSeries(): void {
+    const sorted = [...this.measurements].sort((a, b) => a.measuredAt.localeCompare(b.measuredAt));
+    this.bodyTrendSeries = [
+      this.createTrendSeries(sorted, 'Gewicht', 'kg', '#2d7bff', (m) => m.weightKg),
+      this.createTrendSeries(sorted, 'K�rperfett', '%', '#ff9800', (m) => m.fatPercentage),
+      this.createTrendSeries(sorted, 'Wasser', '%', '#00bcd4', (m) => m.waterPercentage),
+      this.createTrendSeries(sorted, 'Muskelmasse', 'kg', '#00c853', (m) => m.muscleMassKg),
+      this.createTrendSeries(sorted, 'BMI', '', '#7e57c2', (m) => m.bmi),
+    ].filter((series) => series.points.length > 0);
+  }
+
+  private buildBpTrendSeries(): void {
+    const sorted = [...this.bloodPressures].sort((a, b) => a.measuredAt.localeCompare(b.measuredAt));
+    this.bpTrendSeries = [
+      this.createTrendSeries(sorted, 'Systolisch', 'mmHg', '#ef5350', (bp) => bp.systolicPressure),
+      this.createTrendSeries(sorted, 'Diastolisch', 'mmHg', '#ff9800', (bp) => bp.diastolicPressure),
+      this.createTrendSeries(sorted, 'Puls', 'bpm', '#26a69a', (bp) => bp.pulseAtMeasurement),
+    ].filter((series) => series.points.length > 0);
+  }
+
+  private createTrendSeries<T extends { measuredAt: string }>(
+    rows: T[],
+    label: string,
+    unit: string,
+    color: string,
+    valuePicker: (row: T) => number | undefined
+  ): TrendSeries {
+    const entries = rows
+      .map((row) => ({ measuredAt: row.measuredAt, value: valuePicker(row) }))
+      .filter((entry): entry is { measuredAt: string; value: number } =>
+        entry.value !== undefined && entry.value !== null && !isNaN(entry.value)
+      );
+
+    if (entries.length === 0) {
+      return {
+        label,
+        unit,
+        color,
+        points: [],
+        polylinePoints: '',
+        latestLabel: '',
+        minLabel: '',
+        maxLabel: '',
+        startDateLabel: '',
+        endDateLabel: '',
+      };
+    }
+
+    const values = entries.map((entry) => entry.value);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const span = max - min;
+    const pointCount = entries.length;
+
+    const points: TrendPoint[] = entries.map((entry, index) => {
+      const x = pointCount <= 1 ? 50 : (index / (pointCount - 1)) * 100;
+      const normalized = span === 0 ? 0.5 : (entry.value - min) / span;
+      const y = 90 - normalized * 70;
+      return {
+        x,
+        y,
+        valueLabel: this.formatTrendValue(entry.value),
+      };
+    });
+
+    return {
+      label,
+      unit,
+      color,
+      points,
+      polylinePoints: points.map((point) => `${point.x},${point.y}`).join(' '),
+      latestLabel: this.formatTrendValue(values[values.length - 1]),
+      minLabel: this.formatTrendValue(min),
+      maxLabel: this.formatTrendValue(max),
+      startDateLabel: this.formatDate(entries[0].measuredAt),
+      endDateLabel: this.formatDate(entries[entries.length - 1].measuredAt),
+    };
+  }
+
+  // Helpers
 
   private todayIso(): string {
     return this.toIsoDate(new Date());
@@ -321,6 +432,10 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     if (value === null || value === undefined || value === '') return undefined;
     const n = Number(value);
     return isNaN(n) ? undefined : n;
+  }
+
+  private formatTrendValue(value: number): string {
+    return Number.isInteger(value) ? `${value}` : value.toFixed(1);
   }
 
   formatDate(dateString: string): string {

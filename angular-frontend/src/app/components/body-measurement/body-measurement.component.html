@@ -1,31 +1,40 @@
 <div class="body-measurement-page">
 
-  <!-- ─── Page Header ─────────────────────────────────────────────────────── -->
   <div class="page-header">
     <div class="page-header-inner">
       <div class="page-title-group">
-        <span class="page-label">KÖRPERDATEN</span>
+        <span class="page-label">K�RPERDATEN</span>
         <h1 class="page-title">Messungen</h1>
       </div>
     </div>
   </div>
 
-  <!-- ─── Section Header: Körpermessungen ─────────────────────────────────── -->
   <div class="section-header">
     <div class="section-title-group">
       <mat-icon class="section-icon">scale</mat-icon>
-      <h2 class="section-title">Körpermessungen</h2>
+      <h2 class="section-title">K�rpermessungen</h2>
     </div>
-    <button class="add-btn"
-            *ngIf="editingId === null && editingBpId === null"
-            (click)="openNewForm()"
-            title="Neue Körpermessung erfassen">
-      <mat-icon>add</mat-icon>
-      <span>Neue Messung</span>
-    </button>
+    <div class="section-actions">
+      <div class="view-toggle" *ngIf="editingId === null && editingBpId === null">
+        <button type="button" [class.active]="bodyViewMode === 'values'" (click)="bodyViewMode = 'values'">
+          <mat-icon>view_list</mat-icon>
+          <span>Werte</span>
+        </button>
+        <button type="button" [class.active]="bodyViewMode === 'graph'" (click)="bodyViewMode = 'graph'">
+          <mat-icon>show_chart</mat-icon>
+          <span>Graph</span>
+        </button>
+      </div>
+      <button class="add-btn"
+              *ngIf="editingId === null && editingBpId === null"
+              (click)="openNewForm()"
+              title="Neue K�rpermessung erfassen">
+        <mat-icon>add</mat-icon>
+        <span>Neue Messung</span>
+      </button>
+    </div>
   </div>
 
-  <!-- ─── Inline Form (new / edit) ────────────────────────────────────────── -->
   <div class="form-panel" *ngIf="editingId !== null">
     <div class="form-panel__header">
       <div class="form-panel__title-row">
@@ -42,8 +51,6 @@
     </div>
 
     <form [formGroup]="form" (ngSubmit)="save()" class="measurement-form" novalidate>
-
-      <!-- Row 1: Datum + Gewicht -->
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Datum</mat-label>
@@ -76,10 +83,9 @@
         </mat-form-field>
       </div>
 
-      <!-- Row 2: Körperfett + Wasser + Muskelmasse -->
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Körperfett (%)</mat-label>
+          <mat-label>K�rperfett (%)</mat-label>
           <input matInput type="number" min="0" max="100" step="0.1"
                  formControlName="fatPercentage" placeholder="z. B. 18.5">
           <span matTextSuffix>%</span>
@@ -109,7 +115,6 @@
         </mat-form-field>
       </div>
 
-      <!-- Row 3: Knochenmasse + Viszeralfett + Metabolisches Alter -->
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Knochenmasse (kg)</mat-label>
@@ -141,7 +146,6 @@
         </mat-form-field>
       </div>
 
-      <!-- Row 4: Notizen -->
       <div class="form-row form-row--full">
         <mat-form-field appearance="outline" class="form-field form-field--full">
           <mat-label>Notizen</mat-label>
@@ -151,7 +155,6 @@
         </mat-form-field>
       </div>
 
-      <!-- Actions -->
       <div class="form-actions">
         <button type="button" class="cancel-btn" (click)="cancelForm()" [disabled]="saving">
           Abbrechen
@@ -165,20 +168,18 @@
     </form>
   </div>
 
-  <!-- ─── Loading State ────────────────────────────────────────────────────── -->
   <div class="loading-state" *ngIf="loading">
     <mat-spinner diameter="36"></mat-spinner>
     <span>Messungen werden geladen...</span>
   </div>
 
-  <!-- ─── Empty State ──────────────────────────────────────────────────────── -->
   <div class="empty-state" *ngIf="!loading && measurements.length === 0 && editingId === null">
     <div class="empty-icon">
       <mat-icon>scale</mat-icon>
     </div>
     <h2>Noch keine Messungen</h2>
     <p>
-      Erfasse deine erste Körpermessung, um deinen Fortschritt über die Zeit zu verfolgen.
+      Erfasse deine erste K�rpermessung, um deinen Fortschritt �ber die Zeit zu verfolgen.
     </p>
     <button class="add-btn" (click)="openNewForm()">
       <mat-icon>add</mat-icon>
@@ -186,13 +187,10 @@
     </button>
   </div>
 
-  <!-- ─── Measurement List ─────────────────────────────────────────────────── -->
-  <div class="measurement-list" *ngIf="!loading && measurements.length > 0">
+  <div class="measurement-list" *ngIf="!loading && measurements.length > 0 && bodyViewMode === 'values'">
     <article class="measurement-card"
              *ngFor="let m of measurements"
              [class.measurement-card--editing]="isEditing(m)">
-
-      <!-- Card Header -->
       <div class="measurement-card__header">
         <div class="date-badge">
           <mat-icon class="date-icon">calendar_today</mat-icon>
@@ -202,13 +200,12 @@
           <button class="icon-action-btn" (click)="openEditForm(m)" title="Bearbeiten">
             <mat-icon>edit</mat-icon>
           </button>
-          <button class="icon-action-btn icon-action-btn--danger" (click)="deleteMeasurement(m)" title="Löschen">
+          <button class="icon-action-btn icon-action-btn--danger" (click)="deleteMeasurement(m)" title="L�schen">
             <mat-icon>delete_outline</mat-icon>
           </button>
         </div>
       </div>
 
-      <!-- Primary metrics row -->
       <div class="metrics-row">
         <div class="metric-chip" *ngIf="m.weightKg !== undefined && m.weightKg !== null">
           <span class="metric-chip__value">{{ m.weightKg | number:'1.1-1' }}</span>
@@ -218,7 +215,7 @@
         <div class="metric-chip metric-chip--fat" *ngIf="m.fatPercentage !== undefined && m.fatPercentage !== null">
           <span class="metric-chip__value">{{ m.fatPercentage | number:'1.1-1' }}</span>
           <span class="metric-chip__unit">%</span>
-          <span class="metric-chip__label">Körperfett</span>
+          <span class="metric-chip__label">K�rperfett</span>
         </div>
         <div class="metric-chip metric-chip--water" *ngIf="m.waterPercentage !== undefined && m.waterPercentage !== null">
           <span class="metric-chip__value">{{ m.waterPercentage | number:'1.1-1' }}</span>
@@ -232,7 +229,6 @@
         </div>
       </div>
 
-      <!-- Secondary metrics row -->
       <div class="metrics-row metrics-row--secondary"
            *ngIf="(m.boneMassKg !== undefined && m.boneMassKg !== null)
                || (m.visceralFatLevel !== undefined && m.visceralFatLevel !== null)
@@ -256,7 +252,6 @@
         </div>
       </div>
 
-      <!-- Notes -->
       <p class="measurement-notes" *ngIf="m.notes">
         <mat-icon class="notes-icon">notes</mat-icon>
         {{ m.notes }}
@@ -264,24 +259,63 @@
     </article>
   </div>
 
+  <div class="trend-grid" *ngIf="!loading && measurements.length > 0 && bodyViewMode === 'graph'">
+    <article class="trend-card" *ngFor="let series of bodyTrendSeries">
+      <div class="trend-card__header">
+        <span class="trend-title">{{ series.label }}</span>
+        <span class="trend-latest">{{ series.latestLabel }} {{ series.unit }}</span>
+      </div>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="trend-chart">
+        <polyline [attr.points]="series.polylinePoints" [attr.stroke]="series.color"></polyline>
+        <circle *ngFor="let point of series.points"
+                [attr.cx]="point.x"
+                [attr.cy]="point.y"
+                [attr.fill]="series.color"
+                r="1.6"></circle>
+      </svg>
+      <div class="trend-meta">
+        <span>{{ series.minLabel }} {{ series.unit }} min</span>
+        <span>{{ series.maxLabel }} {{ series.unit }} max</span>
+      </div>
+      <div class="trend-dates">
+        <span>{{ series.startDateLabel }}</span>
+        <span>{{ series.endDateLabel }}</span>
+      </div>
+    </article>
+
+    <div class="trend-empty" *ngIf="bodyTrendSeries.length === 0">
+      F�r die Graph-Ansicht sind noch keine numerischen Messwerte vorhanden.
+    </div>
+  </div>
+
   <hr class="section-divider">
 
-  <!-- Section Header: Blutdruck -->
   <div class="section-header">
     <div class="section-title-group">
       <mat-icon class="section-icon">favorite</mat-icon>
       <h2 class="section-title">Blutdruck</h2>
     </div>
-    <button class="add-btn"
-            *ngIf="editingBpId === null && editingId === null"
-            (click)="openNewBpForm()"
-            title="Neue Blutdruckmessung erfassen">
-      <mat-icon>add</mat-icon>
-      <span>Neue Messung</span>
-    </button>
+    <div class="section-actions">
+      <div class="view-toggle" *ngIf="editingBpId === null && editingId === null">
+        <button type="button" [class.active]="bpViewMode === 'values'" (click)="bpViewMode = 'values'">
+          <mat-icon>view_list</mat-icon>
+          <span>Werte</span>
+        </button>
+        <button type="button" [class.active]="bpViewMode === 'graph'" (click)="bpViewMode = 'graph'">
+          <mat-icon>show_chart</mat-icon>
+          <span>Graph</span>
+        </button>
+      </div>
+      <button class="add-btn"
+              *ngIf="editingBpId === null && editingId === null"
+              (click)="openNewBpForm()"
+              title="Neue Blutdruckmessung erfassen">
+        <mat-icon>add</mat-icon>
+        <span>Neue Messung</span>
+      </button>
+    </div>
   </div>
 
-  <!-- Blutdruck-Formular -->
   <div class="form-panel" *ngIf="editingBpId !== null">
     <div class="form-panel__header">
       <div class="form-panel__title-row">
@@ -371,13 +405,11 @@
     </form>
   </div>
 
-  <!-- Blutdruck Loading -->
   <div class="loading-state" *ngIf="bpLoading">
     <mat-spinner diameter="36"></mat-spinner>
     <span>Blutdruckwerte werden geladen...</span>
   </div>
 
-  <!-- Blutdruck Empty State -->
   <div class="empty-state" *ngIf="!bpLoading && bloodPressures.length === 0 && editingBpId === null">
     <div class="empty-icon">
       <mat-icon>favorite</mat-icon>
@@ -392,8 +424,7 @@
     </button>
   </div>
 
-  <!-- Blutdruck Liste -->
-  <div class="measurement-list" *ngIf="!bpLoading && bloodPressures.length > 0">
+  <div class="measurement-list" *ngIf="!bpLoading && bloodPressures.length > 0 && bpViewMode === 'values'">
     <article class="measurement-card"
              *ngFor="let bp of bloodPressures"
              [class.measurement-card--editing]="isEditingBp(bp)">
@@ -406,7 +437,7 @@
           <button class="icon-action-btn" (click)="openEditBpForm(bp)" title="Bearbeiten">
             <mat-icon>edit</mat-icon>
           </button>
-          <button class="icon-action-btn icon-action-btn--danger" (click)="deleteBp(bp)" title="Löschen">
+          <button class="icon-action-btn icon-action-btn--danger" (click)="deleteBp(bp)" title="L�schen">
             <mat-icon>delete_outline</mat-icon>
           </button>
         </div>
@@ -433,6 +464,35 @@
         {{ bp.notes }}
       </p>
     </article>
+  </div>
+
+  <div class="trend-grid" *ngIf="!bpLoading && bloodPressures.length > 0 && bpViewMode === 'graph'">
+    <article class="trend-card" *ngFor="let series of bpTrendSeries">
+      <div class="trend-card__header">
+        <span class="trend-title">{{ series.label }}</span>
+        <span class="trend-latest">{{ series.latestLabel }} {{ series.unit }}</span>
+      </div>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="trend-chart">
+        <polyline [attr.points]="series.polylinePoints" [attr.stroke]="series.color"></polyline>
+        <circle *ngFor="let point of series.points"
+                [attr.cx]="point.x"
+                [attr.cy]="point.y"
+                [attr.fill]="series.color"
+                r="1.6"></circle>
+      </svg>
+      <div class="trend-meta">
+        <span>{{ series.minLabel }} {{ series.unit }} min</span>
+        <span>{{ series.maxLabel }} {{ series.unit }} max</span>
+      </div>
+      <div class="trend-dates">
+        <span>{{ series.startDateLabel }}</span>
+        <span>{{ series.endDateLabel }}</span>
+      </div>
+    </article>
+
+    <div class="trend-empty" *ngIf="bpTrendSeries.length === 0">
+      F�r die Graph-Ansicht sind noch keine numerischen Blutdruckwerte vorhanden.
+    </div>
   </div>
 
 </div>

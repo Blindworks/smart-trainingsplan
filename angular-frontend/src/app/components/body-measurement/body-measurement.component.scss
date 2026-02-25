@@ -64,6 +64,50 @@
   color: var(--text-primary);
 }
 
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-elevated);
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    mat-icon {
+      font-size: 15px;
+      width: 15px;
+      height: 15px;
+    }
+
+    &:hover {
+      color: var(--text-primary);
+      background: rgba(45, 123, 255, 0.08);
+    }
+
+    &.active {
+      color: #fff;
+      background: var(--accent-blue, #2D7BFF);
+    }
+  }
+}
+
 .section-divider {
   border: none;
   border-top: 1px solid var(--border);
@@ -341,6 +385,76 @@
   gap: 12px;
 }
 
+.trend-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.trend-card {
+  background: var(--gradient-card, var(--bg-elevated));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.trend-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.trend-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.trend-latest {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.trend-chart {
+  width: 100%;
+  height: 120px;
+  display: block;
+  margin-bottom: 8px;
+
+  polyline {
+    fill: none;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.trend-meta,
+.trend-dates {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.trend-dates {
+  margin-top: 4px;
+}
+
+.trend-empty {
+  grid-column: 1 / -1;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+}
+
 // ─── Measurement Card ─────────────────────────────────────────────────────────
 
 .measurement-card {
@@ -542,6 +656,12 @@
   .section-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .section-actions {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
   }
 
   .form-panel {
