@@ -21,6 +21,8 @@
           <span>Username</span>
           <span>E-Mail</span>
           <span>Rolle</span>
+          <span>Status</span>
+          <span>Aktionen</span>
         </div>
         @for (user of users; track user.id ?? user.username) {
           <div class="row">
@@ -28,6 +30,13 @@
             <span>{{ user.username }}</span>
             <span>{{ user.email }}</span>
             <span>{{ user.role ?? 'USER' }}</span>
+            <span>{{ getStatusLabel(user.status) }}</span>
+            <span>
+              <button mat-stroked-button color="primary" (click)="openEditDialog(user)">
+                <mat-icon>edit</mat-icon>
+                Bearbeiten
+              </button>
+            </span>
           </div>
         }
       </div>
