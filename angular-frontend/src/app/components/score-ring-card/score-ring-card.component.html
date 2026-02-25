@@ -1,7 +1,15 @@
 <article class="score-ring-card" [class]="'score-ring-card state-' + state">
   <header class="card-header">
-    <p class="label">{{ label }}</p>
-    <p class="subtitle">{{ subtitle }}</p>
+    <div class="header-row">
+      <div>
+        <p class="label">{{ label }}</p>
+        <p class="subtitle">{{ subtitle }}</p>
+      </div>
+      <button class="info-btn" type="button" *ngIf="infoText" (click)="toggleInfo()">
+        Was bedeutet das?
+      </button>
+    </div>
+    <p class="info-text" *ngIf="infoText && infoOpen">{{ infoText }}</p>
   </header>
 
   <div class="ring-wrap" aria-hidden="true">

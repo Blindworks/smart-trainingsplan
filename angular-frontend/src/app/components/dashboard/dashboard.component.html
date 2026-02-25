@@ -18,6 +18,7 @@
         subtitle="Normalized training load"
         [state]="strainState"
         footerText="Current daily strain"
+        infoText="Strain zeigt die Trainingsbelastung des Tages auf einer Skala von 0 bis 21. Hohe Werte bedeuten viel Intensität oder Umfang."
       ></app-score-ring-card>
 
       <app-score-ring-card
@@ -27,6 +28,7 @@
         [subtitle]="dashboard.readinessRecommendation"
         [state]="readinessState"
         footerText="Recovery and adaptation score"
+        infoText="Readiness ist ein Erholungs-Score von 0 bis 100. Je höher der Wert, desto eher ist ein fordernder Lauf sinnvoll."
       ></app-score-ring-card>
 
       <app-score-ring-card
@@ -36,6 +38,7 @@
         [subtitle]="loadSubtitle"
         [state]="loadState"
         [footerText]="loadFooterText"
+        infoText="Load Status nutzt ACWR (akute/chronische Last). Werte im grünen Bereich sprechen für eine stabile Belastungssteuerung."
       ></app-score-ring-card>
     </section>
 
@@ -43,7 +46,9 @@
       <div class="panel-head">
         <h2>Load Trend</h2>
         <p>Last 28 days of normalized strain</p>
+        <button class="info-btn" type="button" (click)="toggleInfo('loadTrend')">Was bedeutet das?</button>
       </div>
+      <p class="panel-info" *ngIf="isInfoOpen('loadTrend')">Der Verlauf zeigt deine tägliche Strain-Entwicklung der letzten 28 Tage. Achte auf starke Peaks und schnelle Lastanstiege.</p>
       <div class="chart-wrap chart-wrap--main">
         <canvas #loadTrendCanvas></canvas>
       </div>
@@ -54,7 +59,9 @@
         <div class="panel-head">
           <h2>Last Run Insight</h2>
           <p>{{ formatDate(dashboard.lastRun.date) }}</p>
+          <button class="info-btn" type="button" (click)="toggleInfo('lastRun')">Was bedeutet das?</button>
         </div>
+        <p class="panel-info" *ngIf="isInfoOpen('lastRun')">Hier siehst du die wichtigsten Kennzahlen deines letzten Laufs: Strain, Drift sowie Minuten in Z4 und Z5 für die Intensitätsbewertung.</p>
 
         <div class="metrics-grid">
           <div class="metric-item">
@@ -87,7 +94,9 @@
         <div class="panel-head">
           <h2>Mini Trends</h2>
           <p>Efficiency factor and drift snapshots</p>
+          <button class="info-btn" type="button" (click)="toggleInfo('miniTrends')">Was bedeutet das?</button>
         </div>
+        <p class="panel-info" *ngIf="isInfoOpen('miniTrends')">Efficiency Factor verknüpft Tempo und Herzfrequenz. Drift zeigt, wie stark die Effizienz innerhalb von Läufen abnimmt.</p>
 
         <div class="mini-chart-block">
           <div class="mini-chart-head">

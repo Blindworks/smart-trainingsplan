@@ -30,6 +30,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = true;
   errorMessage = '';
   dashboard?: DashboardDto;
+  infoOpen: Record<string, boolean> = {};
 
   private loadTrendChart?: Chart;
   private efTrendChart?: Chart;
@@ -113,6 +114,14 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       day: 'numeric',
       year: 'numeric'
     });
+  }
+
+  toggleInfo(key: string): void {
+    this.infoOpen[key] = !this.infoOpen[key];
+  }
+
+  isInfoOpen(key: string): boolean {
+    return !!this.infoOpen[key];
   }
 
   private fetchDashboard(): void {

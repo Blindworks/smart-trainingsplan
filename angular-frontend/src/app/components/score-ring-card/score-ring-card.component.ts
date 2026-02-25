@@ -17,11 +17,13 @@ export class ScoreRingCardComponent implements OnInit, OnChanges {
   @Input() subtitle = '';
   @Input() state: ScoreRingState = 'info';
   @Input() footerText?: string;
+  @Input() infoText?: string;
 
   readonly radius = 52;
   readonly circumference = 2 * Math.PI * this.radius;
 
   dashOffset = this.circumference;
+  infoOpen = false;
 
   ngOnInit(): void {
     this.animateRing();
@@ -49,6 +51,10 @@ export class ScoreRingCardComponent implements OnInit, OnChanges {
     }
 
     return Math.round(this.value).toString();
+  }
+
+  toggleInfo(): void {
+    this.infoOpen = !this.infoOpen;
   }
 
   private animateRing(): void {
