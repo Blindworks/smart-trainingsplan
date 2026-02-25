@@ -6,7 +6,6 @@ import com.trainingsplan.dto.StravaActivityDto;
 import com.trainingsplan.security.SecurityUtils;
 import com.trainingsplan.service.Vo2MaxService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +18,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/vo2max")
-@CrossOrigin(origins = "http://localhost:4200")
 public class Vo2MaxController {
 
     private final Vo2MaxService vo2MaxService;

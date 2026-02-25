@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/training-descriptions")
-@CrossOrigin(origins = "http://localhost:4200")
 public class TrainingDescriptionController {
 
     @Autowired

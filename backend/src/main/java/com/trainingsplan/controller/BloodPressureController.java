@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/blood-pressure")
-@CrossOrigin(origins = "http://localhost:4200")
 public class BloodPressureController {
 
     private final BloodPressureService bloodPressureService;

@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/competitions")
-@CrossOrigin(origins = "http://localhost:4200")
 public class CompetitionController {
 
     @Autowired

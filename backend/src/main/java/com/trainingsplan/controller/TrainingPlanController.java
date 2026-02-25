@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/training-plans")
-@CrossOrigin(origins = "http://localhost:4200")
 public class TrainingPlanController {
 
     private static final Logger log = LoggerFactory.getLogger(TrainingPlanController.class);

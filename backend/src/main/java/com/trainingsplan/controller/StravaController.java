@@ -15,7 +15,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/strava")
-@CrossOrigin(origins = "http://localhost:4200")
 public class StravaController {
 
     private final StravaService stravaService;

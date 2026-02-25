@@ -10,7 +10,7 @@ services:
       DB_NAME: pacr
       DB_USERNAME: pacr
       DB_PASSWORD: ${DB_PASSWORD}
-      APP_CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:4200
+      APP_CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:4200,http://localhost:4201,http://192.168.1.100:4201
       STRAVA_REDIRECT_URI: http://localhost/api/strava/callback
       STRAVA_FRONTEND_URL: http://localhost
       UPLOAD_PATH: /app/uploads

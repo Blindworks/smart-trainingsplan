@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/body-metrics")
-@CrossOrigin(origins = "http://localhost:4200")
 public class BodyMetricController {
 
     private final BodyMetricService bodyMetricService;
