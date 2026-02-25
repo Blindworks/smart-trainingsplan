@@ -2,12 +2,15 @@ package com.trainingsplan.controller;
 
 import com.trainingsplan.dto.AuthRequest;
 import com.trainingsplan.dto.AuthResponse;
+import com.trainingsplan.dto.EmailVerificationRequest;
+import com.trainingsplan.dto.MessageResponse;
 import com.trainingsplan.dto.RegisterRequest;
 import com.trainingsplan.entity.User;
 import com.trainingsplan.entity.UserRole;
 import com.trainingsplan.entity.UserStatus;
 import com.trainingsplan.repository.UserRepository;
 import com.trainingsplan.security.JwtService;
+import com.trainingsplan.service.EmailService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -27,13 +31,17 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
+    private final SecureRandom secureRandom = new SecureRandom();
 
     public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                          JwtService jwtService, AuthenticationManager authenticationManager) {
+                          JwtService jwtService, AuthenticationManager authenticationManager,
+                          EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
+        this.emailService = emailService;
     }
 
     @PostMapping("/register")
@@ -52,12 +60,47 @@ public class AuthController {
         user.setRole(UserRole.USER);
         user.setStatus(UserStatus.EMAIL_VERIFICATION_PENDING);
         user.setCreatedAt(LocalDateTime.now());
+        user.setEmailVerificationCode(generateVerificationCode());
+        user.setEmailVerificationExpiresAt(LocalDateTime.now().plusMinutes(15));
 
         User saved = userRepository.save(user);
+
+        emailService.sendSimpleMessage(
+                saved.getEmail(),
+                "Dein Verifizierungscode",
+                "Dein Code lautet: " + saved.getEmailVerificationCode() + "\n\nDer Code ist 15 Minuten gueltig."
+        );
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new AuthResponse(null, saved.getId(), saved.getUsername(), saved.getEmail(),
                         saved.getRole().name(), saved.getStatus().name()));
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestBody EmailVerificationRequest request) {
+        User user = userRepository.findByEmail(request.email()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Ungueltige E-Mail oder Code"));
+        }
+        if (user.getStatus() != UserStatus.EMAIL_VERIFICATION_PENDING) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("E-Mail ist bereits bestaetigt"));
+        }
+        if (user.getEmailVerificationCode() == null || user.getEmailVerificationExpiresAt() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Kein gueltiger Verifizierungscode vorhanden"));
+        }
+        if (LocalDateTime.now().isAfter(user.getEmailVerificationExpiresAt())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Verifizierungscode ist abgelaufen"));
+        }
+        if (!user.getEmailVerificationCode().equals(request.code())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Ungueltige E-Mail oder Code"));
+        }
+
+        user.setStatus(UserStatus.ACTIVE);
+        user.setEmailVerificationCode(null);
+        user.setEmailVerificationExpiresAt(null);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(new MessageResponse("E-Mail bestaetigt. Registrierung abgeschlossen."));
     }
 
     @PostMapping("/login")
@@ -83,11 +126,15 @@ public class AuthController {
 
     private String getStatusMessage(UserStatus status) {
         return switch (status) {
-            case EMAIL_VERIFICATION_PENDING -> "Bitte bestätige zuerst deine E-Mail-Adresse.";
+            case EMAIL_VERIFICATION_PENDING -> "Bitte bestaetige zuerst deine E-Mail-Adresse.";
             case ADMIN_APPROVAL_PENDING -> "Dein Konto wartet auf Freigabe durch einen Admin.";
             case BLOCKED -> "Dein Konto ist blockiert.";
             case INACTIVE -> "Dein Konto ist inaktiv.";
             case ACTIVE -> "Konto ist aktiv.";
         };
+    }
+
+    private String generateVerificationCode() {
+        return String.format("%06d", secureRandom.nextInt(1_000_000));
     }
 }

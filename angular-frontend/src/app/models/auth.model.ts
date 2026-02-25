@@ -9,6 +9,11 @@ export interface RegisterRequest {
   password: string;
 }
 
+export interface EmailVerificationRequest {
+  email: string;
+  code: string;
+}
+
 export interface AuthResponse {
   token: string | null;
   userId: number;
@@ -16,6 +21,10 @@ export interface AuthResponse {
   email: string;
   role: string;
   status: string;
+}
+
+export interface MessageResponse {
+  message: string;
 }
 
 export interface AuthState {

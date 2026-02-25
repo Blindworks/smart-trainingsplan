@@ -47,6 +47,27 @@
   }
 }
 
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2e7d32;
+  margin-bottom: 8px;
+  font-size: 14px;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+}
+
+.step-info {
+  margin: 0 0 12px 0;
+  color: #424242;
+  font-size: 14px;
+}
+
 mat-card-actions {
   padding: 16px;
   text-align: center;

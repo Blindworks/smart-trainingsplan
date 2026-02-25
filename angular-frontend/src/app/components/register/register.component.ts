@@ -30,9 +30,13 @@ import { AuthResponse } from '../../models/auth.model';
 })
 export class RegisterComponent {
   registerForm: FormGroup;
+  verificationForm: FormGroup;
   isLoading = false;
   errorMessage = '';
+  successMessage = '';
   hidePassword = true;
+  step: 'register' | 'verify' = 'register';
+  pendingEmail = '';
 
   constructor(
     private fb: FormBuilder,
@@ -44,17 +48,23 @@ export class RegisterComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+    this.verificationForm = this.fb.group({
+      code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
+    });
   }
 
   onSubmit(): void {
     if (this.registerForm.invalid) return;
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     this.authService.register(this.registerForm.value).subscribe({
       next: (response: AuthResponse) => {
         this.isLoading = false;
-        this.router.navigate(['/login'], { queryParams: { status: response.status } });
+        this.pendingEmail = response.email;
+        this.step = 'verify';
+        this.successMessage = 'Wir haben einen 6-stelligen Code an deine E-Mail gesendet.';
       },
       error: (err) => {
         this.isLoading = false;
@@ -65,5 +75,33 @@ export class RegisterComponent {
         }
       }
     });
+  }
+
+  onVerifySubmit(): void {
+    if (this.verificationForm.invalid || !this.pendingEmail) return;
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.authService.verifyEmail({
+      email: this.pendingEmail,
+      code: this.verificationForm.value.code
+    }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.router.navigate(['/login'], { queryParams: { status: 'ACTIVE' } });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.message ?? 'Code-Verifizierung fehlgeschlagen';
+      }
+    });
+  }
+
+  backToRegister(): void {
+    this.step = 'register';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.verificationForm.reset();
   }
 }

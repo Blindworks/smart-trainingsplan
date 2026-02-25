@@ -67,6 +67,14 @@ public class User implements UserDetails {
     private UserStatus status = UserStatus.ACTIVE;
 
     @JsonIgnore
+    @Column(name = "email_verification_code", length = 6)
+    private String emailVerificationCode;
+
+    @JsonIgnore
+    @Column(name = "email_verification_expires_at")
+    private LocalDateTime emailVerificationExpiresAt;
+
+    @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
     private StravaToken stravaToken;
 
@@ -232,5 +240,21 @@ public class User implements UserDetails {
 
     public void setStatus(UserStatus status) {
         this.status = status == null ? UserStatus.ACTIVE : status;
+    }
+
+    public String getEmailVerificationCode() {
+        return emailVerificationCode;
+    }
+
+    public void setEmailVerificationCode(String emailVerificationCode) {
+        this.emailVerificationCode = emailVerificationCode;
+    }
+
+    public LocalDateTime getEmailVerificationExpiresAt() {
+        return emailVerificationExpiresAt;
+    }
+
+    public void setEmailVerificationExpiresAt(LocalDateTime emailVerificationExpiresAt) {
+        this.emailVerificationExpiresAt = emailVerificationExpiresAt;
     }
 }

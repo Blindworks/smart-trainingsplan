@@ -29,5 +29,6 @@
     <include file="db/changelog/changes/023-add-blood-pressure-to-body-measurements.xml"/>
     <include file="db/changelog/changes/024-add-user-role.xml"/>
     <include file="db/changelog/changes/025-add-user-status.xml"/>
+    <include file="db/changelog/changes/026-add-email-verification-code.xml"/>
 
 </databaseChangeLog>

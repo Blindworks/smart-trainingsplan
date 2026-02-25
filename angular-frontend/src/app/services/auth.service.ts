@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
-import { AuthResponse, AuthState, LoginRequest, RegisterRequest } from '../models/auth.model';
+import { AuthResponse, AuthState, EmailVerificationRequest, LoginRequest, MessageResponse, RegisterRequest } from '../models/auth.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -48,6 +48,10 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.baseUrl}/auth/register`, request).pipe(
       tap(response => this.handleAuthResponse(response))
     );
+  }
+
+  verifyEmail(request: EmailVerificationRequest): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.baseUrl}/auth/verify-email`, request);
   }
 
   private handleAuthResponse(response: AuthResponse): void {
