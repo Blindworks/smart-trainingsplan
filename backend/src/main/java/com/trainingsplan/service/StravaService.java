@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -26,8 +27,10 @@ import org.springframework.util.MultiValueMap;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class StravaService {
@@ -154,6 +157,7 @@ public class StravaService {
         return new StravaStatusDto(true, token.getAthleteName(), token.getAthleteCity(), token.getProfileMedium());
     }
 
+    @Transactional
     public List<StravaActivityDto> getActivities(LocalDate start, LocalDate end) {
         Optional<StravaToken> tokenOpt = tokenRepository.findFirstByOrderByIdAsc();
         if (tokenOpt.isEmpty()) {
@@ -165,19 +169,37 @@ public class StravaService {
         long before = end.atStartOfDay(ZoneOffset.UTC).toEpochSecond() + 86399;
 
         try {
-            String responseBody = restClient.get()
-                    .uri("https://www.strava.com/api/v3/athlete/activities?after=" + after + "&before=" + before + "&per_page=50")
-                    .header("Authorization", "Bearer " + token.getAccessToken())
-                    .retrieve()
-                    .body(String.class);
-
-            List<StravaActivityDto> activities = objectMapper.readValue(responseBody, new TypeReference<List<StravaActivityDto>>() {});
+            List<StravaActivityDto> activities = fetchAllActivitiesInRange(token.getAccessToken(), after, before);
             User currentUser = securityUtils.getCurrentUser();
             syncActivitiesToDb(activities, token.getAccessToken(), currentUser);
+            removeDeletedActivitiesFromDb(activities, currentUser, start, end);
             return activities;
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch Strava activities", e);
         }
+    }
+
+    private List<StravaActivityDto> fetchAllActivitiesInRange(String accessToken, long after, long before) throws Exception {
+        List<StravaActivityDto> allActivities = new ArrayList<>();
+        int page = 1;
+
+        while (true) {
+            String responseBody = restClient.get()
+                    .uri("https://www.strava.com/api/v3/athlete/activities?after=" + after + "&before=" + before + "&per_page=200&page=" + page)
+                    .header("Authorization", "Bearer " + accessToken)
+                    .retrieve()
+                    .body(String.class);
+
+            List<StravaActivityDto> pageItems = objectMapper.readValue(responseBody, new TypeReference<List<StravaActivityDto>>() {});
+            if (pageItems.isEmpty()) {
+                break;
+            }
+
+            allActivities.addAll(pageItems);
+            page++;
+        }
+
+        return allActivities;
     }
 
     private void syncActivitiesToDb(List<StravaActivityDto> activities, String accessToken, User user) {
@@ -192,6 +214,35 @@ public class StravaService {
                     log.warn("Failed to persist Strava activity id={}: {}", dto.getId(), e.getMessage());
                 }
             }
+        }
+    }
+
+    private void removeDeletedActivitiesFromDb(List<StravaActivityDto> activities, User user, LocalDate start, LocalDate end) {
+        Set<Long> remoteStravaIds = new HashSet<>();
+        for (StravaActivityDto activity : activities) {
+            if (activity.getId() != null) {
+                remoteStravaIds.add(activity.getId());
+            }
+        }
+
+        List<CompletedTraining> localSyncedActivities;
+        if (user != null && user.getId() != null) {
+            localSyncedActivities = completedTrainingRepository.findByUserIdAndSourceAndTrainingDateBetween(
+                    user.getId(), "STRAVA", start, end);
+        } else {
+            localSyncedActivities = completedTrainingRepository.findByUserIsNullAndSourceAndTrainingDateBetween(
+                    "STRAVA", start, end);
+        }
+
+        for (CompletedTraining localActivity : localSyncedActivities) {
+            Long localStravaId = localActivity.getStravaActivityId();
+            if (localStravaId == null || remoteStravaIds.contains(localStravaId)) {
+                continue;
+            }
+
+            activityMetricsRepository.deleteByCompletedTrainingId(localActivity.getId());
+            completedTrainingRepository.delete(localActivity);
+            log.info("Removed local Strava activity {} because it no longer exists on Strava", localStravaId);
         }
     }
 

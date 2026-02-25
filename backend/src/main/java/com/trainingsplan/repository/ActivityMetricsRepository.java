@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface ActivityMetricsRepository extends JpaRepository<ActivityMetrics, Long> {
 
     Optional<ActivityMetrics> findByCompletedTrainingId(Long completedTrainingId);
+    void deleteByCompletedTrainingId(Long completedTrainingId);
 
     /** Returns the most recent activities with eligible decoupling data for the given user. */
     @Query("SELECT am FROM ActivityMetrics am " +
