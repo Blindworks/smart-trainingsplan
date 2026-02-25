@@ -25,6 +25,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -204,15 +206,27 @@ public class StravaService {
 
     private void syncActivitiesToDb(List<StravaActivityDto> activities, String accessToken, User user) {
         for (StravaActivityDto dto : activities) {
-            if (dto.getId() != null && !completedTrainingRepository.existsByStravaActivityId(dto.getId())) {
-                try {
-                    CompletedTraining ct = convertStravaActivityToCompletedTraining(dto);
-                    ct.setUser(user);
-                    CompletedTraining saved = completedTrainingRepository.save(ct);
-                    fetchStreamsAndPersistMetrics(dto.getId(), saved, accessToken, user);
-                } catch (Exception e) {
-                    log.warn("Failed to persist Strava activity id={}: {}", dto.getId(), e.getMessage());
+            if (dto.getId() == null) {
+                continue;
+            }
+            try {
+                Optional<CompletedTraining> existing = completedTrainingRepository.findByStravaActivityId(dto.getId());
+                if (existing.isPresent()) {
+                    CompletedTraining ct = existing.get();
+                    LocalDateTime startDateTime = parseStravaStartDateTime(dto);
+                    if (startDateTime != null && (ct.getUploadDate() == null || !startDateTime.equals(ct.getUploadDate()))) {
+                        ct.setUploadDate(startDateTime);
+                        completedTrainingRepository.save(ct);
+                    }
+                    continue;
                 }
+
+                CompletedTraining ct = convertStravaActivityToCompletedTraining(dto);
+                ct.setUser(user);
+                CompletedTraining saved = completedTrainingRepository.save(ct);
+                fetchStreamsAndPersistMetrics(dto.getId(), saved, accessToken, user);
+            } catch (Exception e) {
+                log.warn("Failed to persist Strava activity id={}: {}", dto.getId(), e.getMessage());
             }
         }
     }
@@ -344,6 +358,10 @@ public class StravaService {
         // Prefer start_date_local (user timezone) over UTC to get the correct calendar date
         String dateStr = dto.getStartDateLocal() != null ? dto.getStartDateLocal() : dto.getStartDate();
         ct.setTrainingDate(LocalDate.parse(dateStr.substring(0, 10)));
+        LocalDateTime startDateTime = parseStravaStartDateTime(dto);
+        if (startDateTime != null) {
+            ct.setUploadDate(startDateTime);
+        }
 
         if (dto.getDistanceMeters() != null && dto.getDistanceMeters() > 0) {
             ct.setDistanceKm(dto.getDistanceMeters() / 1000.0);
@@ -374,6 +392,23 @@ public class StravaService {
         }
 
         return ct;
+    }
+
+    private LocalDateTime parseStravaStartDateTime(StravaActivityDto dto) {
+        String raw = dto.getStartDateLocal() != null ? dto.getStartDateLocal() : dto.getStartDate();
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return OffsetDateTime.parse(raw).toLocalDateTime();
+        } catch (Exception ignored) {
+            // Fall through to LocalDateTime parsing for values without offset
+        }
+        try {
+            return LocalDateTime.parse(raw);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     public void disconnect() {

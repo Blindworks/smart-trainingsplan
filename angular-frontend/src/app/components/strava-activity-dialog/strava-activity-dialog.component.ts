@@ -159,6 +159,17 @@ export class StravaActivityDialogComponent implements OnInit {
     });
   }
 
+  formatStartTime(dateTimeString: string): string {
+    // Avoid timezone conversion: show the wall-clock time encoded in the ISO string.
+    const isoMatch = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})/.exec(dateTimeString);
+    if (isoMatch) {
+      return `${isoMatch[2]}:${isoMatch[3]}`;
+    }
+    const date = new Date(dateTimeString);
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  }
+
   formatDuration(seconds: number): string {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);

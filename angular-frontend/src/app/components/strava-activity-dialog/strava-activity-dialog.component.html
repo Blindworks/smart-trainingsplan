@@ -45,6 +45,14 @@
             </div>
           </div>
 
+          <div class="info-item" *ngIf="isStrava() && completed.uploadDate">
+            <mat-icon class="info-icon">access_time</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Startzeit</span>
+              <span class="info-value">{{ formatStartTime(completed.uploadDate) }}</span>
+            </div>
+          </div>
+
           <div class="info-item" *ngIf="completed.durationSeconds">
             <mat-icon class="info-icon">timer</mat-icon>
             <div class="info-content">

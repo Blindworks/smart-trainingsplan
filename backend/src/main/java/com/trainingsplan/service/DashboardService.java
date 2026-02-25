@@ -120,8 +120,10 @@ public class DashboardService {
         }
 
         CompletedTraining lastCompleted = completedTrainingRepository
-                .findTopByUserIdOrderByTrainingDateDescUploadDateDesc(user.getId())
-                .orElse(null);
+                .findTopByUserIdAndSportContainingIgnoreCaseOrderByTrainingDateDescUploadDateDesc(user.getId(), "run")
+                .orElseGet(() -> completedTrainingRepository
+                        .findTopByUserIdOrderByTrainingDateDescUploadDateDesc(user.getId())
+                        .orElse(null));
 
         DashboardDto.LastRunDto lastRun = buildLastRun(lastCompleted, dailyByDate);
 
@@ -181,11 +183,11 @@ public class DashboardService {
 
         double z4Min = activityMetrics != null && activityMetrics.getZ4Min() != null
                 ? activityMetrics.getZ4Min()
-                : 0.0;
+                : zoneMinutesFromSeconds(completedTraining.getTimeInHrZone4Seconds());
 
         double z5Min = activityMetrics != null && activityMetrics.getZ5Min() != null
                 ? activityMetrics.getZ5Min()
-                : 0.0;
+                : zoneMinutesFromSeconds(completedTraining.getTimeInHrZone5Seconds());
 
         List<String> coachBullets = List.of();
         DailyMetrics daily = dailyByDate.get(completedTraining.getTrainingDate());
@@ -219,5 +221,12 @@ public class DashboardService {
             }
         }
         return sum / values.size();
+    }
+
+    private double zoneMinutesFromSeconds(Integer seconds) {
+        if (seconds == null || seconds <= 0) {
+            return 0.0;
+        }
+        return seconds / 60.0;
     }
 }
