@@ -14,6 +14,8 @@ services:
       STRAVA_REDIRECT_URI: http://localhost/api/strava/callback
       STRAVA_FRONTEND_URL: http://localhost
       UPLOAD_PATH: /app/uploads
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_USERNAME: ${MAIL_USERNAME}
     ports:
       - "8081:8080"
 
