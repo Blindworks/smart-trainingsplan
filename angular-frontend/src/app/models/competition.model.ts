@@ -248,6 +248,23 @@ export interface BloodPressure {
   notes?: string;
 }
 
+export interface SleepData {
+  id?: number;
+  recordedAt: string;              // "YYYY-MM-DD"
+  sleepScore?: number;             // Schlaf-Score
+  sleepScore7Days?: number;        // Sleep Score 7 Tage
+  restingHeartRate?: number;       // Ruheherzfrequenz (bpm)
+  bodyBattery?: number;            // Body Battery
+  spO2?: number;                   // Pulsoximeter (%)
+  breathingRate?: number;          // Atemfrequenz (Atemzüge/min)
+  hrvStatus?: string;              // HFV-Status
+  sleepQuality?: string;           // Qualität (z.B. "Gut", "Fair", "Schlecht")
+  sleepDurationMinutes?: number;   // Schlafdauer in Minuten
+  sleepNeedMinutes?: number;       // Schlafbedürfnis in Minuten
+  bedtime?: string;                // Schlafenszeit "HH:mm"
+  wakeTime?: string;               // Aufstehzeit "HH:mm"
+}
+
 export interface PaceZone {
   zone: number;                       // 1–5
   name: string;                       // z.B. "Schwelle"
