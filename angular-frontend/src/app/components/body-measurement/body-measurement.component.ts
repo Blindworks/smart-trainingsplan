@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -13,7 +14,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { ApiService } from '../../services/api.service';
-import { BodyMeasurement, BloodPressure } from '../../models/competition.model';
+import { BodyMeasurement, BloodPressure, SleepData } from '../../models/competition.model';
 
 interface TrendPoint {
   x: number;
@@ -44,6 +45,7 @@ interface TrendSeries {
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatDatepickerModule,
@@ -58,7 +60,7 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
   bodyViewMode: 'values' | 'graph' = 'values';
   bpViewMode: 'values' | 'graph' = 'values';
 
-  // Körpermessungen
+  // Kï¿½rpermessungen
   measurements: BodyMeasurement[] = [];
   bodyTrendSeries: TrendSeries[] = [];
   loading = true;
@@ -75,6 +77,21 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
   editingBpId: number | null = null;
   bpForm!: FormGroup;
 
+  // Import
+  showImportPanel = false;
+  importType: 'sleep' | null = null;
+  importFile: File | null = null;
+  importing = false;
+
+  // Schlafdaten
+  sleepDataList: SleepData[] = [];
+  sleepTrendSeries: TrendSeries[] = [];
+  sleepLoading = true;
+  sleepSaving = false;
+  sleepViewMode: 'values' | 'graph' = 'values';
+  editingSleepId: number | null = null;
+  sleepForm!: FormGroup;
+
   constructor(
     private apiService: ApiService,
     private snackBar: MatSnackBar,
@@ -84,8 +101,10 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.buildForm();
     this.buildBpForm();
+    this.buildSleepForm();
     this.loadMeasurements();
     this.loadBloodPressures();
+    this.loadSleepData();
   }
 
   ngOnDestroy(): void {
@@ -93,7 +112,7 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Körpermessungen: Form
+  // Kï¿½rpermessungen: Form
 
   private buildForm(): void {
     this.form = this.fb.group({
@@ -122,13 +141,14 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.loading = false;
-          this.snackBar.open('Fehler beim Laden der Messungen', 'Schließen', { duration: 3000 });
+          this.snackBar.open('Fehler beim Laden der Messungen', 'Schlieï¿½en', { duration: 3000 });
         }
       });
   }
 
   openNewForm(): void {
     this.editingBpId = null;
+    this.editingSleepId = null;
     this.editingId = -1;
     this.form.reset({
       measuredAt: this.todayIso(),
@@ -146,6 +166,7 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
 
   openEditForm(measurement: BodyMeasurement): void {
     this.editingBpId = null;
+    this.editingSleepId = null;
     this.editingId = measurement.id ?? -1;
     this.form.setValue({
       measuredAt: measurement.measuredAt,
@@ -195,27 +216,27 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
       next: () => {
         this.saving = false;
         this.editingId = null;
-        this.snackBar.open(isNew ? 'Messung gespeichert' : 'Messung aktualisiert', 'Schließen', { duration: 3000 });
+        this.snackBar.open(isNew ? 'Messung gespeichert' : 'Messung aktualisiert', 'Schlieï¿½en', { duration: 3000 });
         this.loadMeasurements();
       },
       error: () => {
         this.saving = false;
-        this.snackBar.open('Fehler beim Speichern', 'Schließen', { duration: 3000 });
+        this.snackBar.open('Fehler beim Speichern', 'Schlieï¿½en', { duration: 3000 });
       }
     });
   }
 
   deleteMeasurement(measurement: BodyMeasurement): void {
     if (!measurement.id) return;
-    if (!confirm(`Messung vom ${this.formatDate(measurement.measuredAt)} wirklich löschen?`)) return;
+    if (!confirm(`Messung vom ${this.formatDate(measurement.measuredAt)} wirklich lï¿½schen?`)) return;
     this.apiService.deleteBodyMeasurement(measurement.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.snackBar.open('Messung gelöscht', 'Schließen', { duration: 3000 });
+          this.snackBar.open('Messung gelï¿½scht', 'Schlieï¿½en', { duration: 3000 });
           this.loadMeasurements();
         },
-        error: () => this.snackBar.open('Fehler beim Löschen', 'Schließen', { duration: 3000 })
+        error: () => this.snackBar.open('Fehler beim Lï¿½schen', 'Schlieï¿½en', { duration: 3000 })
       });
   }
 
@@ -247,13 +268,14 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.bpLoading = false;
-          this.snackBar.open('Fehler beim Laden der Blutdruckwerte', 'Schließen', { duration: 3000 });
+          this.snackBar.open('Fehler beim Laden der Blutdruckwerte', 'Schlieï¿½en', { duration: 3000 });
         }
       });
   }
 
   openNewBpForm(): void {
     this.editingId = null;
+    this.editingSleepId = null;
     this.editingBpId = -1;
     this.bpForm.reset({
       measuredAt: this.todayIso(),
@@ -266,6 +288,7 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
 
   openEditBpForm(bp: BloodPressure): void {
     this.editingId = null;
+    this.editingSleepId = null;
     this.editingBpId = bp.id ?? -1;
     this.bpForm.setValue({
       measuredAt: bp.measuredAt,
@@ -305,27 +328,27 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
       next: () => {
         this.bpSaving = false;
         this.editingBpId = null;
-        this.snackBar.open(isNew ? 'Blutdruckwert gespeichert' : 'Blutdruckwert aktualisiert', 'Schließen', { duration: 3000 });
+        this.snackBar.open(isNew ? 'Blutdruckwert gespeichert' : 'Blutdruckwert aktualisiert', 'Schlieï¿½en', { duration: 3000 });
         this.loadBloodPressures();
       },
       error: () => {
         this.bpSaving = false;
-        this.snackBar.open('Fehler beim Speichern', 'Schließen', { duration: 3000 });
+        this.snackBar.open('Fehler beim Speichern', 'Schlieï¿½en', { duration: 3000 });
       }
     });
   }
 
   deleteBp(bp: BloodPressure): void {
     if (!bp.id) return;
-    if (!confirm(`Blutdruckwert vom ${this.formatDate(bp.measuredAt)} wirklich löschen?`)) return;
+    if (!confirm(`Blutdruckwert vom ${this.formatDate(bp.measuredAt)} wirklich lï¿½schen?`)) return;
     this.apiService.deleteBloodPressure(bp.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.snackBar.open('Blutdruckwert gelöscht', 'Schließen', { duration: 3000 });
+          this.snackBar.open('Blutdruckwert gelï¿½scht', 'Schlieï¿½en', { duration: 3000 });
           this.loadBloodPressures();
         },
-        error: () => this.snackBar.open('Fehler beim Löschen', 'Schließen', { duration: 3000 })
+        error: () => this.snackBar.open('Fehler beim Lï¿½schen', 'Schlieï¿½en', { duration: 3000 })
       });
   }
 
@@ -333,11 +356,204 @@ export class BodyMeasurementComponent implements OnInit, OnDestroy {
     return this.editingBpId === bp.id;
   }
 
+  // Schlafdaten: Form
+
+  private buildSleepForm(): void {
+    this.sleepForm = this.fb.group({
+      recordedAt: [this.todayIso(), Validators.required],
+      sleepScore: [null, [Validators.min(0), Validators.max(100)]],
+      sleepScore7Days: [null, [Validators.min(0), Validators.max(100)]],
+      restingHeartRate: [null, [Validators.min(0), Validators.max(300)]],
+      bodyBattery: [null, [Validators.min(0), Validators.max(100)]],
+      spO2: [null, [Validators.min(0), Validators.max(100)]],
+      breathingRate: [null, [Validators.min(0)]],
+      hrvStatus: [null],
+      sleepQuality: [null],
+      sleepDurationMinutes: [null, [Validators.min(0)]],
+      sleepNeedMinutes: [null, [Validators.min(0)]],
+      bedtime: [null, [Validators.pattern('^([01]?[0-9]|2[0-3]):[0-5][0-9]$')]],
+      wakeTime: [null, [Validators.pattern('^([01]?[0-9]|2[0-3]):[0-5][0-9]$')]],
+    });
+  }
+
+  loadSleepData(): void {
+    this.sleepLoading = true;
+    this.apiService.getSleepData()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.sleepDataList = data;
+          this.buildSleepTrendSeries();
+          this.sleepLoading = false;
+        },
+        error: () => {
+          this.sleepLoading = false;
+          this.snackBar.open('Fehler beim Laden der Schlafdaten', 'SchlieÃŸen', { duration: 3000 });
+        }
+      });
+  }
+
+  openNewSleepForm(): void {
+    this.editingId = null;
+    this.editingBpId = null;
+    this.editingSleepId = -1;
+    this.sleepForm.reset({ recordedAt: this.todayIso() });
+  }
+
+  openEditSleepForm(entry: SleepData): void {
+    this.editingId = null;
+    this.editingBpId = null;
+    this.editingSleepId = entry.id ?? -1;
+    this.sleepForm.setValue({
+      recordedAt: entry.recordedAt,
+      sleepScore: entry.sleepScore ?? null,
+      sleepScore7Days: entry.sleepScore7Days ?? null,
+      restingHeartRate: entry.restingHeartRate ?? null,
+      bodyBattery: entry.bodyBattery ?? null,
+      spO2: entry.spO2 ?? null,
+      breathingRate: entry.breathingRate ?? null,
+      hrvStatus: entry.hrvStatus ?? null,
+      sleepQuality: entry.sleepQuality ?? null,
+      sleepDurationMinutes: entry.sleepDurationMinutes ?? null,
+      sleepNeedMinutes: entry.sleepNeedMinutes ?? null,
+      bedtime: entry.bedtime ?? null,
+      wakeTime: entry.wakeTime ?? null,
+    });
+  }
+
+  cancelSleepForm(): void {
+    this.editingSleepId = null;
+    this.sleepForm.reset();
+  }
+
+  saveSleep(): void {
+    if (this.sleepForm.invalid) { this.sleepForm.markAllAsTouched(); return; }
+
+    const raw = this.sleepForm.getRawValue();
+    const payload: SleepData = {
+      recordedAt: this.toIsoDate(raw.recordedAt),
+      sleepScore: this.toNumber(raw.sleepScore),
+      sleepScore7Days: this.toNumber(raw.sleepScore7Days),
+      restingHeartRate: this.toNumber(raw.restingHeartRate),
+      bodyBattery: this.toNumber(raw.bodyBattery),
+      spO2: this.toNumber(raw.spO2),
+      breathingRate: this.toNumber(raw.breathingRate),
+      hrvStatus: raw.hrvStatus || undefined,
+      sleepQuality: raw.sleepQuality || undefined,
+      sleepDurationMinutes: this.toNumber(raw.sleepDurationMinutes),
+      sleepNeedMinutes: this.toNumber(raw.sleepNeedMinutes),
+      bedtime: raw.bedtime || undefined,
+      wakeTime: raw.wakeTime || undefined,
+    };
+
+    this.sleepSaving = true;
+    const isNew = this.editingSleepId === -1;
+    const request$ = isNew
+      ? this.apiService.createSleepData(payload)
+      : this.apiService.updateSleepData(this.editingSleepId!, payload);
+
+    request$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.sleepSaving = false;
+        this.editingSleepId = null;
+        this.snackBar.open(isNew ? 'Schlafdaten gespeichert' : 'Schlafdaten aktualisiert', 'SchlieÃŸen', { duration: 3000 });
+        this.loadSleepData();
+      },
+      error: () => {
+        this.sleepSaving = false;
+        this.snackBar.open('Fehler beim Speichern', 'SchlieÃŸen', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteSleepEntry(entry: SleepData): void {
+    if (!entry.id) return;
+    if (!confirm(`Schlafdaten vom ${this.formatDate(entry.recordedAt)} wirklich lÃ¶schen?`)) return;
+    this.apiService.deleteSleepData(entry.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Schlafdaten gelÃ¶scht', 'SchlieÃŸen', { duration: 3000 });
+          this.loadSleepData();
+        },
+        error: () => this.snackBar.open('Fehler beim LÃ¶schen', 'SchlieÃŸen', { duration: 3000 })
+      });
+  }
+
+  isEditingSleep(entry: SleepData): boolean {
+    return this.editingSleepId === entry.id;
+  }
+
+  // Import
+
+  toggleImportPanel(): void {
+    this.showImportPanel = !this.showImportPanel;
+    if (!this.showImportPanel) {
+      this.importType = null;
+      this.importFile = null;
+    }
+  }
+
+  onImportFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.importFile = input.files?.[0] ?? null;
+  }
+
+  runImport(): void {
+    if (!this.importFile || !this.importType) return;
+    this.importing = true;
+
+    const request$ = this.importType === 'sleep'
+      ? this.apiService.importSleepCsvFromGarmin(this.importFile)
+      : null;
+
+    if (!request$) return;
+
+    request$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (result) => {
+        this.importing = false;
+        this.importFile = null;
+        this.showImportPanel = false;
+        this.importType = null;
+        const msg = `${result.imported} EintrÃ¤ge importiert` +
+          (result.skipped > 0 ? `, ${result.skipped} Ã¼bersprungen` : '');
+        this.snackBar.open(msg, 'SchlieÃŸen', { duration: 5000 });
+        this.loadSleepData();
+      },
+      error: () => {
+        this.importing = false;
+        this.snackBar.open('Fehler beim Import', 'SchlieÃŸen', { duration: 3000 });
+      }
+    });
+  }
+
+  formatDuration(minutes: number | undefined): string {
+    if (minutes === undefined || minutes === null) return '';
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return h > 0 ? `${h}h ${m}min` : `${m}min`;
+  }
+
+  private buildSleepTrendSeries(): void {
+    // Map recordedAt â†’ measuredAt so createTrendSeries can work with these entries
+    const sorted = [...this.sleepDataList]
+      .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt))
+      .map(s => ({ ...s, measuredAt: s.recordedAt }));
+    this.sleepTrendSeries = [
+      this.createTrendSeries(sorted, 'Schlaf-Score', '', '#5c6bc0', (s) => s.sleepScore),
+      this.createTrendSeries(sorted, 'Score 7 Tage', '', '#9575cd', (s) => s.sleepScore7Days),
+      this.createTrendSeries(sorted, 'Schlafdauer', 'min', '#26a69a', (s) => s.sleepDurationMinutes),
+      this.createTrendSeries(sorted, 'Ruheherzfrequenz', 'bpm', '#ef5350', (s) => s.restingHeartRate),
+      this.createTrendSeries(sorted, 'Body Battery', '', '#ff9800', (s) => s.bodyBattery),
+      this.createTrendSeries(sorted, 'SpOâ‚‚', '%', '#42a5f5', (s) => s.spO2),
+    ].filter((series) => series.points.length > 0);
+  }
+
   private buildBodyTrendSeries(): void {
     const sorted = [...this.measurements].sort((a, b) => a.measuredAt.localeCompare(b.measuredAt));
     this.bodyTrendSeries = [
       this.createTrendSeries(sorted, 'Gewicht', 'kg', '#2d7bff', (m) => m.weightKg),
-      this.createTrendSeries(sorted, 'Körperfett', '%', '#ff9800', (m) => m.fatPercentage),
+      this.createTrendSeries(sorted, 'Kï¿½rperfett', '%', '#ff9800', (m) => m.fatPercentage),
       this.createTrendSeries(sorted, 'Wasser', '%', '#00bcd4', (m) => m.waterPercentage),
       this.createTrendSeries(sorted, 'Muskelmasse', 'kg', '#00c853', (m) => m.muscleMassKg),
       this.createTrendSeries(sorted, 'BMI', '', '#7e57c2', (m) => m.bmi),

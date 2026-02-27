@@ -3,16 +3,58 @@
   <div class="page-header">
     <div class="page-header-inner">
       <div class="page-title-group">
-        <span class="page-label">KÖRPERDATEN</span>
+        <span class="page-label">Kï¿½RPERDATEN</span>
         <h1 class="page-title">Messungen</h1>
       </div>
+    </div>
+  </div>
+
+  <!-- Import Panel -->
+  <div class="import-panel" [class.import-panel--open]="showImportPanel">
+    <button class="import-panel__toggle" (click)="toggleImportPanel()" type="button">
+      <div class="import-panel__toggle-left">
+        <mat-icon>upload_file</mat-icon>
+        <span>Daten importieren</span>
+      </div>
+      <mat-icon class="import-panel__chevron" [class.import-panel__chevron--open]="showImportPanel">expand_more</mat-icon>
+    </button>
+
+    <div class="import-panel__body" *ngIf="showImportPanel">
+      <div class="import-row">
+        <mat-form-field appearance="outline" class="import-type-field">
+          <mat-label>Datentyp</mat-label>
+          <mat-select [(value)]="importType" (selectionChange)="importFile = null">
+            <mat-option value="sleep">Schlafdaten (Garmin CSV)</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <label class="import-file-btn" [class.import-file-btn--selected]="!!importFile" *ngIf="importType">
+          <mat-icon>{{ importFile ? 'check_circle' : 'attach_file' }}</mat-icon>
+          <span>{{ importFile ? importFile.name : 'CSV-Datei wÃ¤hlen' }}</span>
+          <input type="file" accept=".csv" (change)="onImportFileSelected($event)" style="display:none">
+        </label>
+
+        <button class="save-btn import-submit-btn"
+                *ngIf="importType"
+                (click)="runImport()"
+                [disabled]="!importFile || importing">
+          <mat-spinner *ngIf="importing" diameter="16" class="btn-spinner"></mat-spinner>
+          <mat-icon *ngIf="!importing">cloud_upload</mat-icon>
+          <span>{{ importing ? 'Importiere...' : 'Importieren' }}</span>
+        </button>
+      </div>
+
+      <p class="import-hint" *ngIf="importType === 'sleep'">
+        <mat-icon class="import-hint__icon">info_outline</mat-icon>
+        Garmin Connect â†’ Gesundheit â†’ Schlaf â†’ Export CSV. Bestehende EintrÃ¤ge mit gleichem Datum werden aktualisiert.
+      </p>
     </div>
   </div>
 
   <div class="section-header">
     <div class="section-title-group">
       <mat-icon class="section-icon">scale</mat-icon>
-      <h2 class="section-title">Körpermessungen</h2>
+      <h2 class="section-title">Kï¿½rpermessungen</h2>
     </div>
     <div class="section-actions">
       <div class="view-toggle" *ngIf="editingId === null && editingBpId === null">
@@ -28,7 +70,7 @@
       <button class="add-btn"
               *ngIf="editingId === null && editingBpId === null"
               (click)="openNewForm()"
-              title="Neue Körpermessung erfassen">
+              title="Neue Kï¿½rpermessung erfassen">
         <mat-icon>add</mat-icon>
         <span>Neue Messung</span>
       </button>
@@ -85,7 +127,7 @@
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Körperfett (%)</mat-label>
+          <mat-label>Kï¿½rperfett (%)</mat-label>
           <input matInput type="number" min="0" max="100" step="0.1"
                  formControlName="fatPercentage" placeholder="z. B. 18.5">
           <span matTextSuffix>%</span>
@@ -179,7 +221,7 @@
     </div>
     <h2>Noch keine Messungen</h2>
     <p>
-      Erfasse deine erste Körpermessung, um deinen Fortschritt über die Zeit zu verfolgen.
+      Erfasse deine erste Kï¿½rpermessung, um deinen Fortschritt ï¿½ber die Zeit zu verfolgen.
     </p>
     <button class="add-btn" (click)="openNewForm()">
       <mat-icon>add</mat-icon>
@@ -200,7 +242,7 @@
           <button class="icon-action-btn" (click)="openEditForm(m)" title="Bearbeiten">
             <mat-icon>edit</mat-icon>
           </button>
-          <button class="icon-action-btn icon-action-btn--danger" (click)="deleteMeasurement(m)" title="Löschen">
+          <button class="icon-action-btn icon-action-btn--danger" (click)="deleteMeasurement(m)" title="Lï¿½schen">
             <mat-icon>delete_outline</mat-icon>
           </button>
         </div>
@@ -215,7 +257,7 @@
         <div class="metric-chip metric-chip--fat" *ngIf="m.fatPercentage !== undefined && m.fatPercentage !== null">
           <span class="metric-chip__value">{{ m.fatPercentage | number:'1.1-1' }}</span>
           <span class="metric-chip__unit">%</span>
-          <span class="metric-chip__label">Körperfett</span>
+          <span class="metric-chip__label">Kï¿½rperfett</span>
         </div>
         <div class="metric-chip metric-chip--water" *ngIf="m.waterPercentage !== undefined && m.waterPercentage !== null">
           <span class="metric-chip__value">{{ m.waterPercentage | number:'1.1-1' }}</span>
@@ -284,7 +326,7 @@
     </article>
 
     <div class="trend-empty" *ngIf="bodyTrendSeries.length === 0">
-      Für die Graph-Ansicht sind noch keine numerischen Messwerte vorhanden.
+      Fï¿½r die Graph-Ansicht sind noch keine numerischen Messwerte vorhanden.
     </div>
   </div>
 
@@ -437,7 +479,7 @@
           <button class="icon-action-btn" (click)="openEditBpForm(bp)" title="Bearbeiten">
             <mat-icon>edit</mat-icon>
           </button>
-          <button class="icon-action-btn icon-action-btn--danger" (click)="deleteBp(bp)" title="Löschen">
+          <button class="icon-action-btn icon-action-btn--danger" (click)="deleteBp(bp)" title="Lï¿½schen">
             <mat-icon>delete_outline</mat-icon>
           </button>
         </div>
@@ -491,7 +533,330 @@
     </article>
 
     <div class="trend-empty" *ngIf="bpTrendSeries.length === 0">
-      Für die Graph-Ansicht sind noch keine numerischen Blutdruckwerte vorhanden.
+      FÃ¼r die Graph-Ansicht sind noch keine numerischen Blutdruckwerte vorhanden.
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- Schlafdaten -->
+  <div class="section-header">
+    <div class="section-title-group">
+      <mat-icon class="section-icon">bedtime</mat-icon>
+      <h2 class="section-title">Schlafdaten</h2>
+    </div>
+    <div class="section-actions">
+      <div class="view-toggle" *ngIf="editingSleepId === null && editingId === null && editingBpId === null">
+        <button type="button" [class.active]="sleepViewMode === 'values'" (click)="sleepViewMode = 'values'">
+          <mat-icon>view_list</mat-icon>
+          <span>Werte</span>
+        </button>
+        <button type="button" [class.active]="sleepViewMode === 'graph'" (click)="sleepViewMode = 'graph'">
+          <mat-icon>show_chart</mat-icon>
+          <span>Graph</span>
+        </button>
+      </div>
+      <button class="add-btn"
+              *ngIf="editingSleepId === null && editingId === null && editingBpId === null"
+              (click)="openNewSleepForm()"
+              title="Neue Schlafdaten erfassen">
+        <mat-icon>add</mat-icon>
+        <span>Neue Erfassung</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="form-panel" *ngIf="editingSleepId !== null">
+    <div class="form-panel__header">
+      <div class="form-panel__title-row">
+        <div class="form-icon">
+          <mat-icon>bedtime</mat-icon>
+        </div>
+        <h2 class="form-panel__title">
+          {{ editingSleepId === -1 ? 'Neue Schlafdaten' : 'Schlafdaten bearbeiten' }}
+        </h2>
+      </div>
+      <button class="icon-action-btn" (click)="cancelSleepForm()" title="Abbrechen">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="sleepForm" (ngSubmit)="saveSleep()" class="measurement-form" novalidate>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Datum</mat-label>
+          <input matInput
+                 [matDatepicker]="sleepPicker"
+                 formControlName="recordedAt"
+                 placeholder="TT.MM.JJJJ">
+          <mat-datepicker-toggle matIconSuffix [for]="sleepPicker"></mat-datepicker-toggle>
+          <mat-datepicker #sleepPicker></mat-datepicker>
+          <mat-error *ngIf="sleepForm.get('recordedAt')?.hasError('required')">
+            Datum ist ein Pflichtfeld
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Score</mat-label>
+          <input matInput type="number" min="0" max="100" step="1"
+                 formControlName="sleepScore" placeholder="z. B. 78">
+          <mat-error *ngIf="sleepForm.get('sleepScore')?.hasError('min') || sleepForm.get('sleepScore')?.hasError('max')">
+            Muss zwischen 0 und 100 liegen
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Sleep Score 7 Tage</mat-label>
+          <input matInput type="number" min="0" max="100" step="1"
+                 formControlName="sleepScore7Days" placeholder="z. B. 75">
+          <mat-error *ngIf="sleepForm.get('sleepScore7Days')?.hasError('min') || sleepForm.get('sleepScore7Days')?.hasError('max')">
+            Muss zwischen 0 und 100 liegen
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Ruheherzfrequenz (bpm)</mat-label>
+          <input matInput type="number" min="0" max="300" step="1"
+                 formControlName="restingHeartRate" placeholder="z. B. 52">
+          <span matTextSuffix>bpm</span>
+          <mat-error *ngIf="sleepForm.get('restingHeartRate')?.hasError('min') || sleepForm.get('restingHeartRate')?.hasError('max')">
+            Muss zwischen 0 und 300 liegen
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Body Battery</mat-label>
+          <input matInput type="number" min="0" max="100" step="1"
+                 formControlName="bodyBattery" placeholder="z. B. 85">
+          <mat-error *ngIf="sleepForm.get('bodyBattery')?.hasError('min') || sleepForm.get('bodyBattery')?.hasError('max')">
+            Muss zwischen 0 und 100 liegen
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Pulsoximeter (%)</mat-label>
+          <input matInput type="number" min="0" max="100" step="0.1"
+                 formControlName="spO2" placeholder="z. B. 96.5">
+          <span matTextSuffix>%</span>
+          <mat-error *ngIf="sleepForm.get('spO2')?.hasError('min') || sleepForm.get('spO2')?.hasError('max')">
+            Muss zwischen 0 und 100 liegen
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Atmung (AtemzÃ¼ge/min)</mat-label>
+          <input matInput type="number" min="0" step="0.1"
+                 formControlName="breathingRate" placeholder="z. B. 15.2">
+          <span matTextSuffix>AzÃ¼/min</span>
+          <mat-error *ngIf="sleepForm.get('breathingRate')?.hasError('min')">
+            Muss positiv sein
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>HFV-Status</mat-label>
+          <input matInput type="text" formControlName="hrvStatus"
+                 placeholder="z. B. Ausgeglichen">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>QualitÃ¤t</mat-label>
+          <input matInput type="text" formControlName="sleepQuality"
+                 placeholder="z. B. Gut">
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Dauer (Minuten)</mat-label>
+          <input matInput type="number" min="0" step="1"
+                 formControlName="sleepDurationMinutes" placeholder="z. B. 450">
+          <span matTextSuffix>min</span>
+          <mat-error *ngIf="sleepForm.get('sleepDurationMinutes')?.hasError('min')">
+            Muss positiv sein
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>SchlafbedÃ¼rfnis (Minuten)</mat-label>
+          <input matInput type="number" min="0" step="1"
+                 formControlName="sleepNeedMinutes" placeholder="z. B. 480">
+          <span matTextSuffix>min</span>
+          <mat-error *ngIf="sleepForm.get('sleepNeedMinutes')?.hasError('min')">
+            Muss positiv sein
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Schlafenszeit</mat-label>
+          <input matInput type="text" formControlName="bedtime"
+                 placeholder="HH:mm z. B. 23:00">
+          <mat-error *ngIf="sleepForm.get('bedtime')?.hasError('pattern')">
+            Format: HH:mm (z. B. 23:00)
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Aufstehzeit</mat-label>
+          <input matInput type="text" formControlName="wakeTime"
+                 placeholder="HH:mm z. B. 06:30">
+          <mat-error *ngIf="sleepForm.get('wakeTime')?.hasError('pattern')">
+            Format: HH:mm (z. B. 06:30)
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" (click)="cancelSleepForm()" [disabled]="sleepSaving">
+          Abbrechen
+        </button>
+        <button type="submit" class="save-btn" [disabled]="sleepSaving">
+          <mat-spinner *ngIf="sleepSaving" diameter="16" class="btn-spinner"></mat-spinner>
+          <mat-icon *ngIf="!sleepSaving">check</mat-icon>
+          <span>{{ sleepSaving ? 'Speichern...' : 'Speichern' }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="loading-state" *ngIf="sleepLoading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Schlafdaten werden geladen...</span>
+  </div>
+
+  <div class="empty-state" *ngIf="!sleepLoading && sleepDataList.length === 0 && editingSleepId === null">
+    <div class="empty-icon">
+      <mat-icon>bedtime</mat-icon>
+    </div>
+    <h2>Noch keine Schlafdaten</h2>
+    <p>
+      Erfasse deine ersten Schlafdaten, um deinen Schlaf Ã¼ber die Zeit zu verfolgen.
+    </p>
+    <button class="add-btn" (click)="openNewSleepForm()">
+      <mat-icon>add</mat-icon>
+      <span>Erste Schlafdaten erfassen</span>
+    </button>
+  </div>
+
+  <div class="measurement-list" *ngIf="!sleepLoading && sleepDataList.length > 0 && sleepViewMode === 'values'">
+    <article class="measurement-card"
+             *ngFor="let s of sleepDataList"
+             [class.measurement-card--editing]="isEditingSleep(s)">
+      <div class="measurement-card__header">
+        <div class="date-badge">
+          <mat-icon class="date-icon">calendar_today</mat-icon>
+          <span class="date-text">{{ formatDate(s.recordedAt) }}</span>
+        </div>
+        <div class="card-actions" *ngIf="editingSleepId === null && editingId === null && editingBpId === null">
+          <button class="icon-action-btn" (click)="openEditSleepForm(s)" title="Bearbeiten">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button class="icon-action-btn icon-action-btn--danger" (click)="deleteSleepEntry(s)" title="LÃ¶schen">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-chip metric-chip--sleep" *ngIf="s.sleepScore !== undefined && s.sleepScore !== null">
+          <span class="metric-chip__value">{{ s.sleepScore }}</span>
+          <span class="metric-chip__unit"></span>
+          <span class="metric-chip__label">Score</span>
+        </div>
+        <div class="metric-chip metric-chip--sleep7" *ngIf="s.sleepScore7Days !== undefined && s.sleepScore7Days !== null">
+          <span class="metric-chip__value">{{ s.sleepScore7Days }}</span>
+          <span class="metric-chip__unit"></span>
+          <span class="metric-chip__label">Score 7T</span>
+        </div>
+        <div class="metric-chip metric-chip--duration" *ngIf="s.sleepDurationMinutes !== undefined && s.sleepDurationMinutes !== null">
+          <span class="metric-chip__value">{{ formatDuration(s.sleepDurationMinutes) }}</span>
+          <span class="metric-chip__unit"></span>
+          <span class="metric-chip__label">Dauer</span>
+        </div>
+        <div class="metric-chip metric-chip--battery" *ngIf="s.bodyBattery !== undefined && s.bodyBattery !== null">
+          <span class="metric-chip__value">{{ s.bodyBattery }}</span>
+          <span class="metric-chip__unit"></span>
+          <span class="metric-chip__label">Body Battery</span>
+        </div>
+      </div>
+
+      <div class="metrics-row metrics-row--secondary"
+           *ngIf="(s.restingHeartRate !== undefined && s.restingHeartRate !== null)
+               || (s.spO2 !== undefined && s.spO2 !== null)
+               || (s.breathingRate !== undefined && s.breathingRate !== null)
+               || (s.hrvStatus)
+               || (s.sleepQuality)
+               || (s.bedtime)
+               || (s.wakeTime)
+               || (s.sleepNeedMinutes !== undefined && s.sleepNeedMinutes !== null)">
+        <div class="meta-item" *ngIf="s.restingHeartRate !== undefined && s.restingHeartRate !== null">
+          <span class="meta-item__label">Ruhe-HF</span>
+          <span class="meta-item__value">{{ s.restingHeartRate }} bpm</span>
+        </div>
+        <div class="meta-item" *ngIf="s.spO2 !== undefined && s.spO2 !== null">
+          <span class="meta-item__label">SpOâ‚‚</span>
+          <span class="meta-item__value">{{ s.spO2 | number:'1.1-1' }} %</span>
+        </div>
+        <div class="meta-item" *ngIf="s.breathingRate !== undefined && s.breathingRate !== null">
+          <span class="meta-item__label">Atmung</span>
+          <span class="meta-item__value">{{ s.breathingRate | number:'1.1-1' }} AzÃ¼/min</span>
+        </div>
+        <div class="meta-item" *ngIf="s.hrvStatus">
+          <span class="meta-item__label">HFV-Status</span>
+          <span class="meta-item__value">{{ s.hrvStatus }}</span>
+        </div>
+        <div class="meta-item" *ngIf="s.sleepQuality">
+          <span class="meta-item__label">QualitÃ¤t</span>
+          <span class="meta-item__value">{{ s.sleepQuality }}</span>
+        </div>
+        <div class="meta-item" *ngIf="s.sleepNeedMinutes !== undefined && s.sleepNeedMinutes !== null">
+          <span class="meta-item__label">SchlafbedÃ¼rfnis</span>
+          <span class="meta-item__value">{{ formatDuration(s.sleepNeedMinutes) }}</span>
+        </div>
+        <div class="meta-item" *ngIf="s.bedtime">
+          <span class="meta-item__label">Schlafenszeit</span>
+          <span class="meta-item__value">{{ s.bedtime }}</span>
+        </div>
+        <div class="meta-item" *ngIf="s.wakeTime">
+          <span class="meta-item__label">Aufstehzeit</span>
+          <span class="meta-item__value">{{ s.wakeTime }}</span>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="trend-grid" *ngIf="!sleepLoading && sleepDataList.length > 0 && sleepViewMode === 'graph'">
+    <article class="trend-card" *ngFor="let series of sleepTrendSeries">
+      <div class="trend-card__header">
+        <span class="trend-title">{{ series.label }}</span>
+        <span class="trend-latest">{{ series.latestLabel }} {{ series.unit }}</span>
+      </div>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="trend-chart">
+        <polyline [attr.points]="series.polylinePoints" [attr.stroke]="series.color"></polyline>
+        <circle *ngFor="let point of series.points"
+                [attr.cx]="point.x"
+                [attr.cy]="point.y"
+                [attr.fill]="series.color"
+                r="1.6"></circle>
+      </svg>
+      <div class="trend-meta">
+        <span>{{ series.minLabel }} {{ series.unit }} min</span>
+        <span>{{ series.maxLabel }} {{ series.unit }} max</span>
+      </div>
+      <div class="trend-dates">
+        <span>{{ series.startDateLabel }}</span>
+        <span>{{ series.endDateLabel }}</span>
+      </div>
+    </article>
+
+    <div class="trend-empty" *ngIf="sleepTrendSeries.length === 0">
+      FÃ¼r die Graph-Ansicht sind noch keine numerischen Schlafdaten vorhanden.
     </div>
   </div>
 

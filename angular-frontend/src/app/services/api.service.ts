@@ -17,6 +17,7 @@ import {
   BodyMetric,
   BodyMeasurement,
   BloodPressure,
+  SleepData,
   ActivityMetrics,
   DailyMetrics,
   DecouplingHistoryPoint,
@@ -325,5 +326,32 @@ export class ApiService {
 
   deleteBloodPressure(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/blood-pressure/${id}`);
+  }
+
+  // Sleep Data API
+  getSleepData(): Observable<SleepData[]> {
+    return this.http.get<SleepData[]>(`${this.baseUrl}/sleep-data`);
+  }
+
+  getLatestSleepData(): Observable<SleepData> {
+    return this.http.get<SleepData>(`${this.baseUrl}/sleep-data/latest`);
+  }
+
+  createSleepData(sleepData: SleepData): Observable<SleepData> {
+    return this.http.post<SleepData>(`${this.baseUrl}/sleep-data`, sleepData);
+  }
+
+  updateSleepData(id: number, sleepData: SleepData): Observable<SleepData> {
+    return this.http.put<SleepData>(`${this.baseUrl}/sleep-data/${id}`, sleepData);
+  }
+
+  deleteSleepData(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/sleep-data/${id}`);
+  }
+
+  importSleepCsvFromGarmin(file: File): Observable<{ imported: number; skipped: number }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ imported: number; skipped: number }>(`${this.baseUrl}/sleep-data/import`, formData);
   }
 }

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="029-create-sleep-data" author="dev">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="sleep_data"/></not>
+        </preConditions>
+
+        <createTable tableName="sleep_data">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_sleep_data_user"
+                             references="users(id)"/>
+            </column>
+            <column name="recorded_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sleep_score" type="INT"/>
+            <column name="sleep_score_7_days" type="INT"/>
+            <column name="resting_heart_rate" type="INT"/>
+            <column name="body_battery" type="INT"/>
+            <column name="spo2" type="DOUBLE"/>
+            <column name="breathing_rate" type="DOUBLE"/>
+            <column name="hrv_status" type="VARCHAR(50)"/>
+            <column name="sleep_quality" type="VARCHAR(50)"/>
+            <column name="sleep_duration_minutes" type="INT"/>
+            <column name="sleep_need_minutes" type="INT"/>
+            <column name="bedtime" type="TIME"/>
+            <column name="wake_time" type="TIME"/>
+        </createTable>
+
+        <createIndex tableName="sleep_data"
+                     indexName="idx_sleep_data_user_date">
+            <column name="user_id"/>
+            <column name="recorded_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
