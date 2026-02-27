@@ -25,6 +25,15 @@ export class NavigationComponent {
     return this.authService.isAdmin();
   }
 
+  getUsername(): string {
+    return this.authService.getCurrentUsername() ?? 'Profil';
+  }
+
+  getInitial(): string {
+    const name = this.authService.getCurrentUsername();
+    return name ? name.charAt(0).toUpperCase() : 'P';
+  }
+
   logout(): void {
     this.authService.logout();
   }

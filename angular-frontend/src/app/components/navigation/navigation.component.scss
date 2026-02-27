@@ -134,18 +134,62 @@
   }
 }
 
-// ─── Profile Icon ─────────────────────────────────────────────────────────────
+// ─── Profile Pill ─────────────────────────────────────────────────────────────
 
-.nav-profile {
-  margin-left: auto;
-  padding: 6px 10px;
+.nav-profile-pill {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 14px 4px 4px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.18s ease;
   flex-shrink: 0;
+  margin-left: auto;
 
-  mat-icon {
-    font-size: 22px;
-    width: 22px;
-    height: 22px;
+  &:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(45, 123, 255, 0.45);
+    color: var(--text-primary);
   }
+
+  &.active {
+    border-color: rgba(45, 123, 255, 0.5);
+    background: rgba(45, 123, 255, 0.1);
+    color: var(--text-primary);
+  }
+}
+
+.profile-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00E5FF 0%, #2D7BFF 50%, #7A5CFF 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-initial {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.profile-name {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 // ─── Status Pill ──────────────────────────────────────────────────────────────

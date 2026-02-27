@@ -64,9 +64,12 @@
       }
     </div>
 
-    <!-- Profile Link -->
-    <a class="nav-link nav-profile" routerLink="/profile" routerLinkActive="active">
-      <mat-icon>account_circle</mat-icon>
+    <!-- Profile Pill -->
+    <a class="nav-profile-pill" routerLink="/profile" routerLinkActive="active">
+      <div class="profile-avatar">
+        <span class="avatar-initial">{{ getInitial() }}</span>
+      </div>
+      <span class="profile-name">{{ getUsername() }}</span>
     </a>
 
     <!-- Logout Button -->
