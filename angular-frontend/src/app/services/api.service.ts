@@ -202,9 +202,9 @@ export class ApiService {
     return this.http.delete<void>(`${this.baseUrl}/strava/disconnect`);
   }
 
-  getVo2MaxEstimate(distanceKm: number, movingTimeSeconds: number, sport: string): Observable<{ vo2max: number }> {
-    return this.http.post<{ vo2max: number }>(`${this.baseUrl}/vo2max/estimate/training`, {
-      distanceKm, movingTimeSeconds, sport
+  getVo2MaxEstimate(distanceKm: number, movingTimeSeconds: number, sport: string, avgHeartRate?: number | null): Observable<{ vo2max: number; vo2maxHRCorrected?: number | null }> {
+    return this.http.post<{ vo2max: number; vo2maxHRCorrected?: number | null }>(`${this.baseUrl}/vo2max/estimate/training`, {
+      distanceKm, movingTimeSeconds, sport, avgHeartRate: avgHeartRate ?? null
     });
   }
 

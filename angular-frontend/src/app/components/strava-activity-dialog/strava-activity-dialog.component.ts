@@ -36,6 +36,7 @@ export interface CompletedTrainingDialogData {
 export class StravaActivityDialogComponent implements OnInit {
   completed: CompletedTraining;
   vo2Max: number | null = null;
+  vo2MaxHRCorrected: number | null = null;
   vo2MaxLoading = false;
   activityMetrics: ActivityMetrics | null = null;
   metricsComputing = false;
@@ -55,11 +56,13 @@ export class StravaActivityDialogComponent implements OnInit {
       this.apiService.getVo2MaxEstimate(
         this.completed.distanceKm,
         this.completed.durationSeconds,
-        this.completed.sport ?? ''
+        this.completed.sport ?? '',
+        this.completed.averageHeartRate
       ).pipe(
         catchError(() => of(null))
       ).subscribe(result => {
         this.vo2Max = result?.vo2max ?? null;
+        this.vo2MaxHRCorrected = result?.vo2maxHRCorrected ?? null;
         this.vo2MaxLoading = false;
       });
     }

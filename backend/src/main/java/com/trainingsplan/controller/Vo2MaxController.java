@@ -47,7 +47,20 @@ public class Vo2MaxController {
             ));
         }
 
-        return ResponseEntity.ok(Map.of("vo2max", vo2Max.get()));
+        Integer userMaxHR = null;
+        com.trainingsplan.entity.User currentUser = securityUtils.getCurrentUser();
+        if (currentUser != null) {
+            userMaxHR = currentUser.getMaxHeartRate();
+        }
+        Optional<Double> vo2MaxHR = (userMaxHR != null && request.getAvgHeartRate() != null)
+                ? vo2MaxService.calculateHRCorrected(distanceMeters, request.getMovingTimeSeconds(),
+                        request.getAvgHeartRate(), userMaxHR)
+                : Optional.empty();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("vo2max", vo2Max.get());
+        response.put("vo2maxHRCorrected", vo2MaxHR.orElse(null));
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/estimate")
@@ -122,6 +135,7 @@ public class Vo2MaxController {
         private Double distanceKm;
         private Integer movingTimeSeconds;
         private String sport;
+        private Integer avgHeartRate;
 
         public Double getDistanceKm() { return distanceKm; }
         public void setDistanceKm(Double distanceKm) { this.distanceKm = distanceKm; }
@@ -129,5 +143,7 @@ public class Vo2MaxController {
         public void setMovingTimeSeconds(Integer movingTimeSeconds) { this.movingTimeSeconds = movingTimeSeconds; }
         public String getSport() { return sport; }
         public void setSport(String sport) { this.sport = sport; }
+        public Integer getAvgHeartRate() { return avgHeartRate; }
+        public void setAvgHeartRate(Integer avgHeartRate) { this.avgHeartRate = avgHeartRate; }
     }
 }

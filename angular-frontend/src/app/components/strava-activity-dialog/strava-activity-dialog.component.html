@@ -148,7 +148,7 @@
             <div class="info-item info-item--vo2max">
               <mat-icon class="info-icon info-icon--vo2max">trending_up</mat-icon>
               <div class="info-content">
-                <span class="info-label">VO2max</span>
+                <span class="info-label">VO2max (Pace-basiert)</span>
                 <span class="info-value vo2max-value" [style.color]="getVo2MaxColor(vo2Max)">
                   {{ vo2Max | number:'1.1-1' }} ml/kg/min
                 </span>
@@ -163,12 +163,36 @@
                 </span>
               </div>
             </div>
+            <div class="info-item info-item--vo2max" *ngIf="vo2MaxHRCorrected !== null">
+              <mat-icon class="info-icon info-icon--vo2max">favorite</mat-icon>
+              <div class="info-content">
+                <span class="info-label">VO2max (HF-korrigiert)</span>
+                <span class="info-value vo2max-value" [style.color]="getVo2MaxColor(vo2MaxHRCorrected)">
+                  {{ vo2MaxHRCorrected | number:'1.1-1' }} ml/kg/min
+                </span>
+              </div>
+            </div>
+            <div class="info-item info-item--vo2max" *ngIf="vo2MaxHRCorrected !== null">
+              <mat-icon class="info-icon info-icon--vo2max">grade</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Einordnung (HF-korr.)</span>
+                <span class="info-value" [style.color]="getVo2MaxColor(vo2MaxHRCorrected)">
+                  {{ getVo2MaxCategory(vo2MaxHRCorrected) }}
+                </span>
+              </div>
+            </div>
           </div>
           <p class="vo2max-hint" *ngIf="vo2Max === null">
             VO2max konnte nicht berechnet werden. Distanz oder Zeit fehlt.
           </p>
           <p class="vo2max-method">
-            Schätzung nach Daniels/Gilbert VDOT-Methode aus Distanz und Zeit.
+            Pace-basiert: Daniels/Gilbert VDOT-Methode (Distanz &amp; Zeit).
+            <ng-container *ngIf="vo2MaxHRCorrected !== null">
+              HF-korrigiert: Herzfrequenz-Anteil an vVO2max.
+            </ng-container>
+            <ng-container *ngIf="vo2MaxHRCorrected === null && vo2Max !== null">
+              HF-korrigierte Schätzung erfordert Ø-HF-Daten und Max-HF im Profil.
+            </ng-container>
           </p>
         </div>
         <ng-template #loadingSpinner>
