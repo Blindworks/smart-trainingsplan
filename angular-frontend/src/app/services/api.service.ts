@@ -19,7 +19,8 @@ import {
   BloodPressure,
   ActivityMetrics,
   DailyMetrics,
-  DecouplingHistoryPoint
+  DecouplingHistoryPoint,
+  PaceZones
 } from '../models/competition.model';
 import { StravaStatus, StravaActivity } from '../models/strava.model';
 import { DashboardDto } from '../models/dashboard.model';
@@ -270,6 +271,18 @@ export class ApiService {
 
   getProfileImage(id: number): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/users/${id}/profile-image`, { responseType: 'blob' });
+  }
+
+  getPaceZones(): Observable<PaceZones> {
+    return this.http.get<PaceZones>(`${this.baseUrl}/users/me/pace-zones`);
+  }
+
+  setPaceZoneReference(referenceDistanceM: number, referenceTimeSeconds: number, referenceLabel: string): Observable<PaceZones> {
+    return this.http.put<PaceZones>(`${this.baseUrl}/users/me/pace-zones`, {
+      referenceDistanceM,
+      referenceTimeSeconds,
+      referenceLabel
+    });
   }
 
   // Body Measurement API

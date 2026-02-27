@@ -3,6 +3,7 @@ package com.trainingsplan.controller;
 import com.trainingsplan.dto.ProfileCompletionDto;
 import com.trainingsplan.entity.User;
 import com.trainingsplan.security.SecurityUtils;
+import com.trainingsplan.service.PaceZoneService;
 import com.trainingsplan.service.UserProfileValidationService;
 import com.trainingsplan.service.UserService;
 import org.springframework.core.io.Resource;
@@ -23,15 +24,24 @@ public class UserController {
     private final UserService userService;
     private final SecurityUtils securityUtils;
     private final UserProfileValidationService userProfileValidationService;
+    private final PaceZoneService paceZoneService;
 
     public UserController(UserService userService, SecurityUtils securityUtils,
-                          UserProfileValidationService userProfileValidationService) {
+                          UserProfileValidationService userProfileValidationService,
+                          PaceZoneService paceZoneService) {
         this.userService = userService;
         this.securityUtils = securityUtils;
         this.userProfileValidationService = userProfileValidationService;
+        this.paceZoneService = paceZoneService;
     }
 
     public record CreateUserRequest(String username, String email) {}
+
+    public record SetPaceZoneReferenceRequest(
+            Double referenceDistanceM,
+            Integer referenceTimeSeconds,
+            String referenceLabel
+    ) {}
 
     public record UpdateUserRequest(
             String username,
@@ -98,6 +108,53 @@ public class UserController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/me/pace-zones")
+    public ResponseEntity<PaceZoneService.PaceZonesDto> getMyPaceZones() {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        if (user.getThresholdPaceSecPerKm() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        var zones = paceZoneService.calculateZones(user.getThresholdPaceSecPerKm());
+        var dto = new PaceZoneService.PaceZonesDto(
+                user.getPaceRefDistanceM(),
+                user.getPaceRefTimeSeconds(),
+                user.getPaceRefLabel(),
+                user.getThresholdPaceSecPerKm(),
+                zones
+        );
+        return ResponseEntity.ok(dto);
+    }
+
+    @PutMapping("/me/pace-zones")
+    public ResponseEntity<PaceZoneService.PaceZonesDto> setMyPaceZones(
+            @RequestBody SetPaceZoneReferenceRequest request) {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        if (request.referenceDistanceM() == null || request.referenceTimeSeconds() == null
+                || request.referenceDistanceM() <= 0 || request.referenceTimeSeconds() <= 0) {
+            return ResponseEntity.badRequest().build();
+        }
+        int thresholdPace = paceZoneService.calculateThresholdPace(
+                request.referenceDistanceM(), request.referenceTimeSeconds());
+        userService.updatePaceZoneReference(user.getId(),
+                request.referenceDistanceM(), request.referenceTimeSeconds(),
+                request.referenceLabel(), thresholdPace);
+        var zones = paceZoneService.calculateZones(thresholdPace);
+        var dto = new PaceZoneService.PaceZonesDto(
+                request.referenceDistanceM(),
+                request.referenceTimeSeconds(),
+                request.referenceLabel(),
+                thresholdPace,
+                zones
+        );
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping(path = "/{id}/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

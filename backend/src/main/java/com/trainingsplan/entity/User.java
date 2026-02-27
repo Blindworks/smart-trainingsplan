@@ -77,6 +77,22 @@ public class User implements UserDetails {
     @Column(name = "profile_image", length = 255)
     private String profileImageFilename;
 
+    /** Reference race distance in meters for pace zone calculation. */
+    @Column(name = "pace_ref_distance_m")
+    private Double paceRefDistanceM;
+
+    /** Reference race time in seconds for pace zone calculation. */
+    @Column(name = "pace_ref_time_seconds")
+    private Integer paceRefTimeSeconds;
+
+    /** Human-readable label for the reference race, e.g. "10K" or "Halbmarathon". */
+    @Column(name = "pace_ref_label", length = 50)
+    private String paceRefLabel;
+
+    /** Calculated lactate threshold pace in seconds per km. */
+    @Column(name = "threshold_pace_sec_per_km")
+    private Integer thresholdPaceSecPerKm;
+
     @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
     private StravaToken stravaToken;
@@ -267,5 +283,37 @@ public class User implements UserDetails {
 
     public void setProfileImageFilename(String profileImageFilename) {
         this.profileImageFilename = profileImageFilename;
+    }
+
+    public Double getPaceRefDistanceM() {
+        return paceRefDistanceM;
+    }
+
+    public void setPaceRefDistanceM(Double paceRefDistanceM) {
+        this.paceRefDistanceM = paceRefDistanceM;
+    }
+
+    public Integer getPaceRefTimeSeconds() {
+        return paceRefTimeSeconds;
+    }
+
+    public void setPaceRefTimeSeconds(Integer paceRefTimeSeconds) {
+        this.paceRefTimeSeconds = paceRefTimeSeconds;
+    }
+
+    public String getPaceRefLabel() {
+        return paceRefLabel;
+    }
+
+    public void setPaceRefLabel(String paceRefLabel) {
+        this.paceRefLabel = paceRefLabel;
+    }
+
+    public Integer getThresholdPaceSecPerKm() {
+        return thresholdPaceSecPerKm;
+    }
+
+    public void setThresholdPaceSecPerKm(Integer thresholdPaceSecPerKm) {
+        this.thresholdPaceSecPerKm = thresholdPaceSecPerKm;
     }
 }

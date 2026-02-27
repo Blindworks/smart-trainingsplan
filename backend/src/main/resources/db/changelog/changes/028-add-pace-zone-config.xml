@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="028-add-pace-zone-config" author="dev">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="users" columnName="pace_ref_distance_m"/></not>
+        </preConditions>
+        <addColumn tableName="users">
+            <column name="pace_ref_distance_m" type="DOUBLE" remarks="Reference race distance in meters for pace zone calculation"/>
+            <column name="pace_ref_time_seconds" type="INT" remarks="Reference race time in seconds for pace zone calculation"/>
+            <column name="pace_ref_label" type="VARCHAR(50)" remarks="Human-readable label for the reference race (e.g. 10K, Halbmarathon)"/>
+            <column name="threshold_pace_sec_per_km" type="INT" remarks="Calculated lactate threshold pace in seconds per km"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

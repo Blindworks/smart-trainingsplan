@@ -15,7 +15,7 @@ import { takeUntil, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 import { ApiService } from '../../services/api.service';
-import { Competition, User } from '../../models/competition.model';
+import { Competition, User, PaceZones } from '../../models/competition.model';
 import { StravaStatus, StravaActivity } from '../../models/strava.model';
 
 @Component({
@@ -69,6 +69,25 @@ export class ProfileComponent implements OnInit, OnDestroy {
   profileImageUploading = false;
   profileImageMessage = '';
 
+  // Pace zones
+  paceZones: PaceZones | null = null;
+  paceZoneLoading = false;
+  paceZoneSaving = false;
+  paceZoneEditMode = false;
+  paceRefDistanceM = 10000;
+  paceRefLabel = '10K';
+  paceRefHours = 0;
+  paceRefMinutes = 45;
+  paceRefSeconds = 0;
+
+  readonly PRESET_DISTANCES = [
+    { label: '1 Meile (1,6 km)', distanceM: 1609 },
+    { label: '5K', distanceM: 5000 },
+    { label: '10K', distanceM: 10000 },
+    { label: 'Halbmarathon', distanceM: 21097 },
+    { label: 'Marathon', distanceM: 42195 },
+  ];
+
   constructor(
     private apiService: ApiService,
     private snackBar: MatSnackBar
@@ -78,6 +97,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.loadStats();
     this.loadStravaStatus();
     this.loadUser();
+    this.loadPaceZones();
   }
 
   ngOnDestroy(): void {
@@ -339,5 +359,87 @@ export class ProfileComponent implements OnInit, OnDestroy {
       URL.revokeObjectURL(this.profileImageObjectUrl);
       this.profileImageObjectUrl = null;
     }
+  }
+
+  // ─── Pace Zones ───────────────────────────────────────────────
+
+  loadPaceZones(): void {
+    this.paceZoneLoading = true;
+    this.apiService.getPaceZones()
+      .pipe(takeUntil(this.destroy$), catchError(() => of(null)))
+      .subscribe(zones => {
+        this.paceZones = zones;
+        if (zones) {
+          this.prefillPaceZoneForm(zones);
+        }
+        this.paceZoneLoading = false;
+      });
+  }
+
+  private prefillPaceZoneForm(zones: PaceZones): void {
+    const preset = this.PRESET_DISTANCES.find(p => p.distanceM === zones.referenceDistanceM);
+    if (preset) {
+      this.paceRefDistanceM = preset.distanceM;
+      this.paceRefLabel = preset.label;
+    } else if (zones.referenceDistanceM) {
+      this.paceRefDistanceM = zones.referenceDistanceM;
+      this.paceRefLabel = zones.referenceLabel ?? `${(zones.referenceDistanceM / 1000).toFixed(1)} km`;
+    }
+    if (zones.referenceTimeSeconds) {
+      const t = zones.referenceTimeSeconds;
+      this.paceRefHours = Math.floor(t / 3600);
+      this.paceRefMinutes = Math.floor((t % 3600) / 60);
+      this.paceRefSeconds = t % 60;
+    }
+  }
+
+  onPaceDistanceChange(distanceM: number): void {
+    this.paceRefDistanceM = distanceM;
+    const preset = this.PRESET_DISTANCES.find(p => p.distanceM === distanceM);
+    this.paceRefLabel = preset ? preset.label : `${(distanceM / 1000).toFixed(1)} km`;
+  }
+
+  savePaceZones(): void {
+    const totalSeconds = (this.paceRefHours || 0) * 3600
+      + (this.paceRefMinutes || 0) * 60
+      + (this.paceRefSeconds || 0);
+    if (!this.paceRefDistanceM || totalSeconds <= 0) {
+      this.snackBar.open('Bitte Strecke und Zeit eingeben', 'Schließen', { duration: 3000 });
+      return;
+    }
+    this.paceZoneSaving = true;
+    this.apiService.setPaceZoneReference(this.paceRefDistanceM, totalSeconds, this.paceRefLabel)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: zones => {
+          this.paceZones = zones;
+          this.paceZoneEditMode = false;
+          this.paceZoneSaving = false;
+          this.snackBar.open('Tempobereiche gespeichert', 'Schließen', { duration: 3000 });
+        },
+        error: () => {
+          this.snackBar.open('Fehler beim Speichern der Tempobereiche', 'Schließen', { duration: 3000 });
+          this.paceZoneSaving = false;
+        }
+      });
+  }
+
+  formatPaceFromSeconds(secPerKm: number | null): string {
+    if (secPerKm == null) return '∞';
+    const m = Math.floor(secPerKm / 60);
+    const s = secPerKm % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  getPaceZoneColor(zone: number): string {
+    const colors: Record<number, string> = {
+      1: '#64B5F6', // blue-light
+      2: '#4CAF50', // green
+      3: '#FFC107', // amber
+      4: '#FF7043', // deep-orange
+      5: '#E53935', // red
+      6: '#9C27B0', // purple
+    };
+    return colors[zone] ?? '#888';
   }
 }

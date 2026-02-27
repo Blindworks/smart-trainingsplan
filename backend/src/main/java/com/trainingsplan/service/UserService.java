@@ -71,6 +71,16 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User updatePaceZoneReference(Long userId, Double distanceM, Integer timeSeconds,
+                                        String label, Integer thresholdPace) {
+        User user = findById(userId);
+        user.setPaceRefDistanceM(distanceM);
+        user.setPaceRefTimeSeconds(timeSeconds);
+        user.setPaceRefLabel(label);
+        user.setThresholdPaceSecPerKm(thresholdPace);
+        return userRepository.save(user);
+    }
+
     public void uploadProfileImage(Long targetUserId, MultipartFile file) {
         User currentUser = requireAuthenticatedUser();
         if (!currentUser.getId().equals(targetUserId)) {

@@ -31,5 +31,6 @@
     <include file="db/changelog/changes/025-add-user-status.xml"/>
     <include file="db/changelog/changes/026-add-email-verification-code.xml"/>
     <include file="db/changelog/changes/027-add-user-profile-image.xml"/>
+    <include file="db/changelog/changes/028-add-pace-zone-config.xml"/>
 
 </databaseChangeLog>

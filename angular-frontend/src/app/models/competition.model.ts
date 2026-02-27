@@ -247,3 +247,19 @@ export interface BloodPressure {
   pulseAtMeasurement?: number;  // Puls bei Messung (bpm)
   notes?: string;
 }
+
+export interface PaceZone {
+  zone: number;                       // 1–5
+  name: string;                       // z.B. "Schwelle"
+  description: string;
+  fastestPaceSecPerKm: number | null; // untere Grenze (schneller), null bei Zone 5
+  slowestPaceSecPerKm: number | null; // obere Grenze (langsamer), null bei Zone 1
+}
+
+export interface PaceZones {
+  referenceDistanceM: number | null;
+  referenceTimeSeconds: number | null;
+  referenceLabel: string | null;
+  thresholdPaceSecPerKm: number;
+  zones: PaceZone[];
+}

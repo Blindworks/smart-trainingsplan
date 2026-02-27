@@ -198,6 +198,109 @@
       </div>
     </div>
 
+    <!-- Tempobereiche Section -->
+    <div class="section">
+      <h2 class="section-title">
+        <mat-icon>speed</mat-icon>
+        Tempobereiche
+      </h2>
+
+      <div class="pace-zone-card" *ngIf="!paceZoneLoading">
+
+        <!-- Keine Daten + Edit-Modus geschlossen -->
+        <div *ngIf="!paceZones && !paceZoneEditMode" class="pace-zone-empty">
+          <mat-icon>directions_run</mat-icon>
+          <p>Noch keine Tempobereiche konfiguriert. Gib eine Referenzleistung ein, um deine Zonen zu berechnen.</p>
+          <button mat-flat-button class="pacr-btn-primary" (click)="paceZoneEditMode = true">
+            <mat-icon>add</mat-icon>
+            Tempobereiche einrichten
+          </button>
+        </div>
+
+        <!-- Zonen anzeigen -->
+        <div *ngIf="paceZones && !paceZoneEditMode">
+          <div class="pace-zone-ref-info">
+            <span class="pace-ref-label">Referenz: {{ paceZones.referenceLabel }}</span>
+            <span class="pace-threshold">Schwellentempo: <strong>{{ formatPaceFromSeconds(paceZones.thresholdPaceSecPerKm) }} min/km</strong></span>
+          </div>
+
+          <div class="pace-zones-list">
+            <div class="pace-zone-row" *ngFor="let zone of paceZones.zones">
+              <div class="zone-badge" [style.background]="getPaceZoneColor(zone.zone)">Z{{ zone.zone }}</div>
+              <div class="zone-info">
+                <span class="zone-name">{{ zone.name }}</span>
+                <span class="zone-desc">{{ zone.description }}</span>
+              </div>
+              <div class="zone-range">
+                <span *ngIf="zone.fastestPaceSecPerKm && zone.slowestPaceSecPerKm">
+                  {{ formatPaceFromSeconds(zone.fastestPaceSecPerKm) }} – {{ formatPaceFromSeconds(zone.slowestPaceSecPerKm) }} min/km
+                </span>
+                <span *ngIf="zone.fastestPaceSecPerKm && !zone.slowestPaceSecPerKm">
+                  &gt; {{ formatPaceFromSeconds(zone.fastestPaceSecPerKm) }} min/km
+                </span>
+                <span *ngIf="!zone.fastestPaceSecPerKm && zone.slowestPaceSecPerKm">
+                  &lt; {{ formatPaceFromSeconds(zone.slowestPaceSecPerKm) }} min/km
+                </span>
+              </div>
+              <div class="zone-bar-wrap">
+                <div class="zone-bar" [style.background]="getPaceZoneColor(zone.zone)" [style.width.%]="zone.zone * 20"></div>
+              </div>
+            </div>
+          </div>
+
+          <button mat-stroked-button class="pace-edit-btn" (click)="paceZoneEditMode = true">
+            <mat-icon>edit</mat-icon>
+            Referenzleistung ändern
+          </button>
+        </div>
+
+        <!-- Eingabeformular -->
+        <div *ngIf="paceZoneEditMode" class="pace-zone-form">
+          <p class="pace-form-hint">Gib deine beste Leistung bei einer Referenzstrecke ein. Die Tempobereiche werden nach der Jack-Daniels-VDOT-Methode berechnet.</p>
+
+          <div class="pace-form-row">
+            <mat-form-field appearance="outline" class="pace-field-distance">
+              <mat-label>Strecke</mat-label>
+              <mat-select [(ngModel)]="paceRefDistanceM" (ngModelChange)="onPaceDistanceChange($event)">
+                <mat-option *ngFor="let p of PRESET_DISTANCES" [value]="p.distanceM">{{ p.label }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <div class="pace-time-inputs">
+              <mat-form-field appearance="outline" class="pace-time-field">
+                <mat-label>h</mat-label>
+                <input matInput [(ngModel)]="paceRefHours" type="number" min="0" max="9" placeholder="0">
+              </mat-form-field>
+              <span class="pace-time-sep">:</span>
+              <mat-form-field appearance="outline" class="pace-time-field">
+                <mat-label>min</mat-label>
+                <input matInput [(ngModel)]="paceRefMinutes" type="number" min="0" max="59" placeholder="45">
+              </mat-form-field>
+              <span class="pace-time-sep">:</span>
+              <mat-form-field appearance="outline" class="pace-time-field">
+                <mat-label>sec</mat-label>
+                <input matInput [(ngModel)]="paceRefSeconds" type="number" min="0" max="59" placeholder="00">
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="pace-form-actions">
+            <button mat-flat-button class="pacr-btn-primary" (click)="savePaceZones()" [disabled]="paceZoneSaving">
+              <mat-spinner *ngIf="paceZoneSaving" diameter="16"></mat-spinner>
+              <mat-icon *ngIf="!paceZoneSaving">calculate</mat-icon>
+              Berechnen &amp; Speichern
+            </button>
+            <button mat-stroked-button (click)="paceZoneEditMode = false" [disabled]="paceZoneSaving">Abbrechen</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="loading-state" *ngIf="paceZoneLoading" style="height: 80px;">
+        <mat-spinner diameter="28"></mat-spinner>
+      </div>
+    </div>
+
     <!-- Strava Section -->
     <div class="section">
       <h2 class="section-title">
