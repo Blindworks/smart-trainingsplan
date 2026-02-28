@@ -37,14 +37,7 @@ export class AdminRaceEditDialogComponent {
   saving = false;
   errorMessage = '';
   isNew: boolean;
-
-  form = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(3)]],
-    date: [null as Date | null, Validators.required],
-    type: [''],
-    location: [''],
-    description: ['']
-  });
+  form!: ReturnType<FormBuilder['group']>;
 
   constructor(
     private fb: FormBuilder,
@@ -53,6 +46,13 @@ export class AdminRaceEditDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: AdminRaceEditDialogData
   ) {
     this.isNew = data.race === null;
+    this.form = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(3)]],
+      date: [null as Date | null, Validators.required],
+      type: [''],
+      location: [''],
+      description: ['']
+    });
     if (data.race) {
       this.form.patchValue({
         name: data.race.name,
