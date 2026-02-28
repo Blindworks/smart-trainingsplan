@@ -8,12 +8,27 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
 
 import { ApiService } from '../../services/api.service';
 import { Competition } from '../../models/competition.model';
 
 export interface AdminRaceEditDialogData {
   race: Competition | null;
+}
+
+interface NominatimResult {
+  display_name: string;
+  address: {
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    country?: string;
+  };
 }
 
 @Component({
@@ -28,7 +43,8 @@ export interface AdminRaceEditDialogData {
     MatButtonModule,
     MatProgressSpinnerModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatAutocompleteModule
   ],
   templateUrl: './admin-race-edit-dialog.component.html',
   styleUrl: './admin-race-edit-dialog.component.scss'
@@ -38,9 +54,11 @@ export class AdminRaceEditDialogComponent {
   errorMessage = '';
   isNew: boolean;
   form!: ReturnType<FormBuilder['group']>;
+  citySuggestions$!: Observable<string[]>;
 
   constructor(
     private fb: FormBuilder,
+    private http: HttpClient,
     private dialogRef: MatDialogRef<AdminRaceEditDialogComponent>,
     private apiService: ApiService,
     @Inject(MAT_DIALOG_DATA) public data: AdminRaceEditDialogData
@@ -62,6 +80,25 @@ export class AdminRaceEditDialogComponent {
         description: data.race.description ?? ''
       });
     }
+
+    this.citySuggestions$ = this.form.get('location')!.valueChanges.pipe(
+      startWith(''),
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(value => {
+        if (!value || value.length < 2) return of([]);
+        return this.http.get<NominatimResult[]>(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&format=json&limit=5&addressdetails=1&featureType=city`
+        ).pipe(
+          map(results => results.map(r => {
+            const city = r.address.city || r.address.town || r.address.municipality || r.address.village || '';
+            const country = r.address.country || '';
+            return city && country ? `${city}, ${country}` : r.display_name;
+          })),
+          catchError(() => of([]))
+        );
+      })
+    );
   }
 
   onCancel(): void {

@@ -35,5 +35,6 @@
     <include file="db/changelog/changes/029-add-sleep-data.xml"/>
     <include file="db/changelog/changes/030-competition-registrations.xml"/>
     <include file="db/changelog/changes/031-move-ranking-to-registration.xml"/>
+    <include file="db/changelog/changes/032-add-competition-location.xml"/>
 
 </databaseChangeLog>

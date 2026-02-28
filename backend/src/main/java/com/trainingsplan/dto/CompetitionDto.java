@@ -11,6 +11,7 @@ public class CompetitionDto {
     private LocalDate date;
     private String description;
     private String type;
+    private String location;
     private String ranking;
     private boolean registered;
     private Long registrationId;
@@ -23,6 +24,7 @@ public class CompetitionDto {
         this.date = competition.getDate();
         this.description = competition.getDescription();
         this.type = competition.getType();
+        this.location = competition.getLocation();
         if (registration != null) {
             this.registered = true;
             this.registrationId = registration.getId();
@@ -37,6 +39,7 @@ public class CompetitionDto {
     public LocalDate getDate() { return date; }
     public String getDescription() { return description; }
     public String getType() { return type; }
+    public String getLocation() { return location; }
     public String getRanking() { return ranking; }
     public boolean isRegistered() { return registered; }
     public Long getRegistrationId() { return registrationId; }

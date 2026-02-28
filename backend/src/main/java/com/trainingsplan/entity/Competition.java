@@ -30,6 +30,9 @@ public class Competition {
     @Column(name = "type", length = 255)
     private String type;
 
+    @Column(name = "location", length = 255)
+    private String location;
+
     @OneToMany(mappedBy = "competition", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<TrainingWeek> trainingWeeks = new ArrayList<>();
@@ -52,6 +55,8 @@ public class Competition {
     public void setDescription(String description) { this.description = description; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
     public List<TrainingWeek> getTrainingWeeks() { return trainingWeeks; }
     public void setTrainingWeeks(List<TrainingWeek> trainingWeeks) { this.trainingWeeks = trainingWeeks; }
 }

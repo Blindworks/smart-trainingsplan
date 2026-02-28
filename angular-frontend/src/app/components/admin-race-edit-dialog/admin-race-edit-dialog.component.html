@@ -24,7 +24,13 @@
 
     <mat-form-field appearance="outline" class="field">
       <mat-label>Ort</mat-label>
-      <input matInput formControlName="location" placeholder="z.B. Berlin, Deutschland" />
+      <input matInput formControlName="location" placeholder="z.B. Berlin, Deutschland"
+             [matAutocomplete]="cityAuto" />
+      <mat-autocomplete #cityAuto="matAutocomplete">
+        @for (city of citySuggestions$ | async; track city) {
+          <mat-option [value]="city">{{ city }}</mat-option>
+        }
+      </mat-autocomplete>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="field full-width">
