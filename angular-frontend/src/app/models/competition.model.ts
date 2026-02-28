@@ -10,6 +10,9 @@ export interface Competition {
   trainingPlanName?: string;
   createdAt?: string;
   updatedAt?: string;
+  // Registration info (from backend DTO)
+  registered?: boolean;
+  registrationId?: number;
   // Legacy field for compatibility
   targetDate?: string;
 }

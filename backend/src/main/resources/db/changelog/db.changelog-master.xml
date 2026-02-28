@@ -33,5 +33,7 @@
     <include file="db/changelog/changes/027-add-user-profile-image.xml"/>
     <include file="db/changelog/changes/028-add-pace-zone-config.xml"/>
     <include file="db/changelog/changes/029-add-sleep-data.xml"/>
+    <include file="db/changelog/changes/030-competition-registrations.xml"/>
+    <include file="db/changelog/changes/031-move-ranking-to-registration.xml"/>
 
 </databaseChangeLog>

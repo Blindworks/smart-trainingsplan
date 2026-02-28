@@ -2,15 +2,18 @@ package com.trainingsplan.service;
 
 import com.trainingsplan.dto.TrainingPlanDto;
 import com.trainingsplan.entity.Competition;
+import com.trainingsplan.entity.CompetitionRegistration;
 import com.trainingsplan.entity.Training;
 import com.trainingsplan.entity.TrainingDescription;
 import com.trainingsplan.entity.TrainingPlan;
 import com.trainingsplan.entity.TrainingWeek;
+import com.trainingsplan.repository.CompetitionRegistrationRepository;
 import com.trainingsplan.repository.CompetitionRepository;
 import com.trainingsplan.repository.TrainingDescriptionRepository;
 import com.trainingsplan.repository.TrainingPlanRepository;
 import com.trainingsplan.repository.TrainingRepository;
 import com.trainingsplan.repository.TrainingWeekRepository;
+import com.trainingsplan.security.SecurityUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -45,6 +48,12 @@ public class TrainingPlanService {
     @Autowired
     private TrainingDescriptionRepository trainingDescriptionRepository;
 
+    @Autowired
+    private CompetitionRegistrationRepository registrationRepository;
+
+    @Autowired
+    private SecurityUtils securityUtils;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // -------------------------------------------------------------------------
@@ -75,16 +84,15 @@ public class TrainingPlanService {
         Competition competition = competitionRepository.findById(competitionId)
                 .orElseThrow(() -> new RuntimeException("Competition not found: " + competitionId));
 
-        clearExistingTrainings(competition);
+        clearExistingTrainings(competition, null);
 
         String jsonContent = new String(file.getBytes());
         TrainingPlan trainingPlan = new TrainingPlan(name, description, jsonContent);
         trainingPlan.setTrainingCount(countTrainingsInJson(jsonContent));
-
         TrainingPlan savedPlan = trainingPlanRepository.save(trainingPlan);
 
-        competition.setTrainingPlan(savedPlan);
-        competitionRepository.save(competition);
+        // Store plan on the user's registration
+        updateRegistrationPlan(competition, savedPlan);
 
         parseAndCreateTrainings(savedPlan, competition, jsonContent);
         return savedPlan;
@@ -129,17 +137,15 @@ public class TrainingPlanService {
     public TrainingPlanDto assignPlanToCompetition(Long planId, Long competitionId) throws Exception {
         TrainingPlan sourcePlan = trainingPlanRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Training plan not found: " + planId));
-
         Competition competition = competitionRepository.findById(competitionId)
                 .orElseThrow(() -> new RuntimeException("Competition not found: " + competitionId));
 
-        clearExistingTrainings(competition);
+        clearExistingTrainings(competition, null);
 
         String jsonContent = sourcePlan.getJsonContent();
         String effectiveJson = prepareJsonForCompetition(jsonContent, competition.getDate());
 
-        competition.setTrainingPlan(sourcePlan);
-        competitionRepository.save(competition);
+        updateRegistrationPlan(competition, sourcePlan);
 
         parseAndCreateTrainings(sourcePlan, competition, effectiveJson);
         return new TrainingPlanDto(sourcePlan);
@@ -441,24 +447,36 @@ public class TrainingPlanService {
         return weeks.isEmpty() ? null : weeks.get(0);
     }
 
+    private void updateRegistrationPlan(Competition competition, TrainingPlan plan) {
+        var user = securityUtils.getCurrentUser();
+        if (user == null) return;
+        CompetitionRegistration reg = registrationRepository
+                .findByCompetitionIdAndUserId(competition.getId(), user.getId())
+                .orElseGet(() -> {
+                    CompetitionRegistration newReg = new CompetitionRegistration(competition, user);
+                    return registrationRepository.save(newReg);
+                });
+        reg.setTrainingPlan(plan);
+        registrationRepository.save(reg);
+    }
+
     /**
      * Deletes all Training records belonging to a competition before a new plan
      * is assigned, preventing duplicate entries in the calendar view.
      *
      * Covers two cases:
      *  1. Trainings linked via TrainingWeek → Competition (all plan formats).
-     *  2. Trainings linked only via TrainingPlan but without a TrainingWeek
+     *  2. Orphan trainings linked only via TrainingPlan but without a TrainingWeek
      *     (old-format upload when no TrainingWeek existed for the date).
      */
-    private void clearExistingTrainings(Competition competition) {
+    private void clearExistingTrainings(Competition competition, TrainingPlan previousPlan) {
         List<Training> viaWeek = trainingRepository.findByCompetitionId(competition.getId());
         if (!viaWeek.isEmpty()) {
             trainingRepository.deleteAll(viaWeek);
         }
-
-        if (competition.getTrainingPlan() != null) {
+        if (previousPlan != null) {
             List<Training> orphans = trainingRepository
-                    .findByTrainingPlanIdAndTrainingWeekIsNull(competition.getTrainingPlan().getId());
+                    .findByTrainingPlanIdAndTrainingWeekIsNull(previousPlan.getId());
             if (!orphans.isEmpty()) {
                 trainingRepository.deleteAll(orphans);
             }

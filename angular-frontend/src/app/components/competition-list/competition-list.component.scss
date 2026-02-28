@@ -294,7 +294,86 @@
   }
 }
 
+// ─── Registration State Modifiers ─────────────────────────────────────────────
+
+.card-accent-bar--registered {
+  background: var(--color-success, #4caf50) !important;
+}
+
+.card-badge--registered {
+  background: rgba(76, 175, 80, 0.12) !important;
+  color: #4caf50 !important;
+  border: 1px solid rgba(76, 175, 80, 0.3) !important;
+}
+
 // ─── Responsive ───────────────────────────────────────────────────────────────
+
+// ─── Ranking Inline Edit ───────────────────────────────────────────────────────
+
+.card-ranking {
+  margin-top: 10px;
+}
+
+.ranking-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.82rem;
+  opacity: 0.75;
+  transition: opacity 0.15s, border-color 0.15s;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  .ranking-edit-icon { opacity: 0; }
+
+  &:hover {
+    opacity: 1;
+    border-color: rgba(255, 255, 255, 0.4);
+    .ranking-edit-icon { opacity: 0.6; }
+  }
+}
+
+.ranking-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ranking-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: inherit;
+  font-size: 0.82rem;
+  outline: none;
+
+  &:focus { border-color: rgba(255, 255, 255, 0.6); }
+  &::placeholder { opacity: 0.5; }
+}
+
+.ranking-save-btn,
+.ranking-cancel-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: inherit;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.15s;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { opacity: 1; }
+}
 
 @media (max-width: 600px) {
   .competitions-page {

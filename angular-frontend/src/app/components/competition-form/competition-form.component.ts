@@ -48,7 +48,6 @@ export class CompetitionFormComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(3)]],
       targetDate: ['', Validators.required],
       type: [''],
-      ranking: [''],
       location: [''],
       description: ['']
     });
@@ -71,7 +70,6 @@ export class CompetitionFormComponent implements OnInit {
           name: competition.name,
           targetDate: new Date(competition.date || competition.targetDate || new Date()),
           type: competition.type,
-          ranking: competition.ranking,
           location: competition.location,
           description: competition.description
         });
@@ -93,7 +91,6 @@ export class CompetitionFormComponent implements OnInit {
         date: formData.targetDate.toISOString().split('T')[0],
         targetDate: formData.targetDate.toISOString().split('T')[0],
         type: formData.type,
-        ranking: formData.ranking,
         location: formData.location,
         description: formData.description
       };

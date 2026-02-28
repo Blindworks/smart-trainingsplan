@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Create competition_registrations table -->
+    <changeSet id="030-1" author="migration">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="competition_registrations"/></not>
+        </preConditions>
+        <createTable tableName="competition_registrations">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="competition_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_reg_competition" references="competitions(id)"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_reg_user" references="users(id)"/>
+            </column>
+            <column name="training_plan_id" type="BIGINT">
+                <constraints nullable="true" foreignKeyName="fk_reg_training_plan" references="training_plans(id)"/>
+            </column>
+            <column name="registered_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="competition_registrations" columnNames="competition_id, user_id" constraintName="uq_competition_user_registration"/>
+    </changeSet>
+
+    <!-- Migrate existing competition data into registrations -->
+    <changeSet id="030-2" author="migration">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="competitions" columnName="user_id"/>
+        </preConditions>
+        <sql>
+            INSERT INTO competition_registrations (competition_id, user_id, training_plan_id)
+            SELECT id, user_id, training_plan_id
+            FROM competitions
+            WHERE user_id IS NOT NULL
+            ON DUPLICATE KEY UPDATE training_plan_id = VALUES(training_plan_id)
+        </sql>
+    </changeSet>
+
+    <!-- Drop user_id from competitions -->
+    <changeSet id="030-3" author="migration">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="competitions" columnName="user_id"/>
+        </preConditions>
+        <dropForeignKeyConstraint baseTableName="competitions" constraintName="fk_competition_user"/>
+        <dropColumn tableName="competitions" columnName="user_id"/>
+    </changeSet>
+
+    <!-- Drop training_plan_id from competitions (dynamic FK name handling) -->
+    <changeSet id="030-4" author="migration">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="competitions" columnName="training_plan_id"/>
+        </preConditions>
+        <sql>DROP PROCEDURE IF EXISTS liq_drop_comp_plan_fk</sql>
+        <sql endDelimiter="//">
+CREATE PROCEDURE liq_drop_comp_plan_fk()
+BEGIN
+    DECLARE v_fk VARCHAR(255) DEFAULT NULL;
+    SELECT CONSTRAINT_NAME INTO v_fk
+    FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'competitions'
+      AND COLUMN_NAME = 'training_plan_id'
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1;
+    IF v_fk IS NOT NULL THEN
+        SET @drop_sql = CONCAT('ALTER TABLE competitions DROP FOREIGN KEY `', v_fk, '`');
+        PREPARE drop_stmt FROM @drop_sql;
+        EXECUTE drop_stmt;
+        DEALLOCATE PREPARE drop_stmt;
+    END IF;
+END//
+        </sql>
+        <sql>CALL liq_drop_comp_plan_fk()</sql>
+        <sql>DROP PROCEDURE IF EXISTS liq_drop_comp_plan_fk</sql>
+        <dropColumn tableName="competitions" columnName="training_plan_id"/>
+    </changeSet>
+
+</databaseChangeLog>

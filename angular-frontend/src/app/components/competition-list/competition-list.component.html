@@ -14,9 +14,9 @@
     </div>
   </div>
 
-  <!-- Competitions Section Label -->
+  <!-- Section Label -->
   <div class="section-label" *ngIf="!loading && competitions.length > 0">
-    <span>Deine Races</span>
+    <span>Alle Wettkämpfe</span>
   </div>
 
   <!-- Loading -->
@@ -29,7 +29,7 @@
   <div class="competitions-grid" *ngIf="!loading && competitions.length > 0">
     <div class="competition-card" *ngFor="let competition of competitions">
 
-      <div class="card-accent-bar"></div>
+      <div class="card-accent-bar" [class.card-accent-bar--registered]="competition.registered"></div>
 
       <div class="card-body">
         <div class="card-meta">
@@ -38,6 +38,10 @@
                 *ngIf="getDaysUntil(competition.date || competition.targetDate) !== null"
                 [class.card-countdown--soon]="getDaysUntil(competition.date || competition.targetDate)! <= 14">
             {{ getDaysUntil(competition.date || competition.targetDate) }} Tage
+          </span>
+          <span class="card-badge card-badge--registered" *ngIf="competition.registered">
+            <mat-icon>how_to_reg</mat-icon>
+            Angemeldet
           </span>
           <span class="card-badge" *ngIf="competition.type">
             <mat-icon>flag</mat-icon>
@@ -61,16 +65,47 @@
           <mat-icon>route</mat-icon>
           <span>{{ competition.trainingPlanName || 'Trainingsplan zugewiesen' }}</span>
         </div>
+
+        <!-- Ranking inline edit (nur für angemeldete User) -->
+        <div class="card-ranking" *ngIf="competition.registered">
+          <ng-container *ngIf="editingRankingId !== competition.id">
+            <button class="ranking-display" (click)="startEditRanking(competition)">
+              <mat-icon>military_tech</mat-icon>
+              <span>{{ competition.ranking || 'Platzierung eintragen' }}</span>
+              <mat-icon class="ranking-edit-icon">edit</mat-icon>
+            </button>
+          </ng-container>
+          <ng-container *ngIf="editingRankingId === competition.id">
+            <div class="ranking-edit-row">
+              <input class="ranking-input" [(ngModel)]="rankingInput" placeholder="z.B. Saisonhighlight, 3. Platz AK"
+                     (keydown.enter)="saveRanking(competition)" (keydown.escape)="cancelEditRanking()">
+              <button class="ranking-save-btn" (click)="saveRanking(competition)">
+                <mat-icon>check</mat-icon>
+              </button>
+              <button class="ranking-cancel-btn" (click)="cancelEditRanking()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </ng-container>
+        </div>
       </div>
 
       <div class="card-actions">
+        <button class="action-link" *ngIf="!competition.registered" (click)="register(competition)">
+          <mat-icon>person_add</mat-icon>
+          Anmelden
+        </button>
+        <button class="action-link danger" *ngIf="competition.registered" (click)="unregister(competition)">
+          <mat-icon>person_remove</mat-icon>
+          Abmelden
+        </button>
+        <a class="action-link" *ngIf="competition.registered && !competition.trainingPlanId" [routerLink]="['/competitions', competition.id, 'upload']">
+          <mat-icon>upload_file</mat-icon>
+          Upload Plan
+        </a>
         <a class="action-link" [routerLink]="['/competitions', competition.id, 'edit']">
           <mat-icon>edit</mat-icon>
           Edit
-        </a>
-        <a class="action-link" *ngIf="!competition.trainingPlanId" [routerLink]="['/competitions', competition.id, 'upload']">
-          <mat-icon>upload_file</mat-icon>
-          Upload Plan
         </a>
         <button class="action-link danger" (click)="deleteCompetition(competition.id!)">
           <mat-icon>delete_outline</mat-icon>

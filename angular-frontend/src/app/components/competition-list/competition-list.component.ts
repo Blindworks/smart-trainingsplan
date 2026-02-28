@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 
@@ -14,10 +17,13 @@ import { Competition } from '../../models/competition.model';
   selector: 'app-competition-list',
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
+    MatInputModule,
+    MatFormFieldModule,
     MatProgressSpinnerModule,
     MatSnackBarModule
   ],
@@ -27,6 +33,8 @@ import { Competition } from '../../models/competition.model';
 export class CompetitionListComponent implements OnInit {
   competitions: Competition[] = [];
   loading = false;
+  editingRankingId: number | null = null;
+  rankingInput = '';
 
   constructor(
     private apiService: ApiService,
@@ -52,6 +60,57 @@ export class CompetitionListComponent implements OnInit {
       error: () => {
         this.snackBar.open('Fehler beim Laden der Wettkämpfe', 'Schließen', { duration: 3000 });
         this.loading = false;
+      }
+    });
+  }
+
+  register(competition: Competition): void {
+    if (!competition.id) return;
+    this.apiService.registerForCompetition(competition.id).subscribe({
+      next: () => {
+        this.snackBar.open('Erfolgreich angemeldet!', 'Schließen', { duration: 3000 });
+        this.loadCompetitions();
+      },
+      error: () => {
+        this.snackBar.open('Fehler bei der Anmeldung', 'Schließen', { duration: 3000 });
+      }
+    });
+  }
+
+  unregister(competition: Competition): void {
+    if (!competition.id) return;
+    this.apiService.unregisterFromCompetition(competition.id).subscribe({
+      next: () => {
+        this.snackBar.open('Abmeldung erfolgreich', 'Schließen', { duration: 3000 });
+        this.loadCompetitions();
+      },
+      error: () => {
+        this.snackBar.open('Fehler bei der Abmeldung', 'Schließen', { duration: 3000 });
+      }
+    });
+  }
+
+  startEditRanking(competition: Competition): void {
+    this.editingRankingId = competition.id!;
+    this.rankingInput = competition.ranking || '';
+  }
+
+  cancelEditRanking(): void {
+    this.editingRankingId = null;
+    this.rankingInput = '';
+  }
+
+  saveRanking(competition: Competition): void {
+    if (!competition.id) return;
+    this.apiService.updateCompetitionRegistration(competition.id, this.rankingInput).subscribe({
+      next: () => {
+        competition.ranking = this.rankingInput;
+        this.editingRankingId = null;
+        this.rankingInput = '';
+        this.snackBar.open('Ranking gespeichert', 'Schließen', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Fehler beim Speichern des Rankings', 'Schließen', { duration: 3000 });
       }
     });
   }

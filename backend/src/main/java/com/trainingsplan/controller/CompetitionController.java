@@ -1,6 +1,8 @@
 package com.trainingsplan.controller;
 
+import com.trainingsplan.dto.CompetitionDto;
 import com.trainingsplan.entity.Competition;
+import com.trainingsplan.entity.CompetitionRegistration;
 import com.trainingsplan.service.CompetitionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/competitions")
@@ -17,52 +20,68 @@ public class CompetitionController {
     private CompetitionService competitionService;
 
     @GetMapping
-    public ResponseEntity<List<Competition>> getAllCompetitions() {
+    public ResponseEntity<List<CompetitionDto>> getAllCompetitions() {
         return ResponseEntity.ok(competitionService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Competition> getCompetitionById(@PathVariable Long id) {
-        Competition competition = competitionService.findById(id);
-        if (competition != null) {
-            return ResponseEntity.ok(competition);
-        }
+    public ResponseEntity<CompetitionDto> getCompetitionById(@PathVariable Long id) {
+        CompetitionDto dto = competitionService.findById(id);
+        if (dto != null) return ResponseEntity.ok(dto);
         return ResponseEntity.notFound().build();
     }
 
     @PostMapping
-    public ResponseEntity<Competition> createCompetition(@Valid @RequestBody Competition competition) {
-        Competition savedCompetition = competitionService.save(competition);
-        return ResponseEntity.ok(savedCompetition);
+    public ResponseEntity<CompetitionDto> createCompetition(@Valid @RequestBody Competition competition) {
+        return ResponseEntity.ok(competitionService.save(competition));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Competition> updateCompetition(@PathVariable Long id, 
-                                                        @Valid @RequestBody Competition competition) {
-        Competition existingCompetition = competitionService.findById(id);
-        if (existingCompetition != null) {
-            competition.setId(id);
-            Competition updatedCompetition = competitionService.save(competition);
-            return ResponseEntity.ok(updatedCompetition);
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<CompetitionDto> updateCompetition(@PathVariable Long id,
+                                                            @Valid @RequestBody Competition competition) {
+        if (competitionService.findEntityById(id) == null) return ResponseEntity.notFound().build();
+        competition.setId(id);
+        return ResponseEntity.ok(competitionService.save(competition));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCompetition(@PathVariable Long id) {
-        if (competitionService.findById(id) != null) {
-            competitionService.deleteById(id);
-            return ResponseEntity.noContent().build();
+        if (competitionService.findEntityById(id) == null) return ResponseEntity.notFound().build();
+        competitionService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/register")
+    public ResponseEntity<CompetitionRegistration> registerForCompetition(@PathVariable Long id) {
+        try {
+            CompetitionRegistration reg = competitionService.register(id);
+            return ResponseEntity.ok(reg);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/{id}/register")
+    public ResponseEntity<CompetitionRegistration> updateRegistration(@PathVariable Long id,
+                                                                      @RequestBody Map<String, String> body) {
+        try {
+            CompetitionRegistration reg = competitionService.updateRegistration(id, body.get("ranking"));
+            return ResponseEntity.ok(reg);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/{id}/register")
+    public ResponseEntity<Void> unregisterFromCompetition(@PathVariable Long id) {
+        competitionService.unregister(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{competitionId}/generate-weeks")
-    public ResponseEntity<Competition> generateTrainingWeeks(@PathVariable Long competitionId) {
-        Competition competition = competitionService.generateTrainingWeeks(competitionId);
-        if (competition != null) {
-            return ResponseEntity.ok(competition);
-        }
+    public ResponseEntity<CompetitionDto> generateTrainingWeeks(@PathVariable Long competitionId) {
+        CompetitionDto dto = competitionService.generateTrainingWeeks(competitionId);
+        if (dto != null) return ResponseEntity.ok(dto);
         return ResponseEntity.notFound().build();
     }
 }

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Add ranking column to competition_registrations -->
+    <changeSet id="031-1" author="migration">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="competition_registrations" columnName="ranking"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="competition_registrations">
+            <column name="ranking" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- Migrate ranking data from competitions to registrations (if ranking column still exists on competitions) -->
+    <changeSet id="031-2" author="migration">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="competitions" columnName="ranking"/>
+        </preConditions>
+        <sql>
+            UPDATE competition_registrations cr
+            JOIN competitions c ON cr.competition_id = c.id
+            SET cr.ranking = c.ranking
+            WHERE c.ranking IS NOT NULL
+        </sql>
+    </changeSet>
+
+    <!-- Drop ranking from competitions -->
+    <changeSet id="031-3" author="migration">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="competitions" columnName="ranking"/>
+        </preConditions>
+        <dropColumn tableName="competitions" columnName="ranking"/>
+    </changeSet>
+
+</databaseChangeLog>
