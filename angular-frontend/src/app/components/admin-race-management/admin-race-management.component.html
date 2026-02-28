@@ -36,11 +36,11 @@
             <span>{{ race.type || '–' }}</span>
             <span>{{ race.location || '–' }}</span>
             <span class="actions-cell">
-              <button class="action-btn action-btn--edit" (click)="openEditDialog(race)">
+              <button class="pacr-btn-ghost row-btn" (click)="openEditDialog(race)">
                 <mat-icon>edit</mat-icon>
-                <span>Bearbeiten</span>
+                Bearbeiten
               </button>
-              <button class="action-btn action-btn--delete" (click)="deleteRace(race)">
+              <button class="pacr-btn-ghost row-btn" (click)="deleteRace(race)" title="Löschen">
                 <mat-icon>delete_outline</mat-icon>
               </button>
             </span>

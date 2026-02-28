@@ -79,53 +79,26 @@
   overflow: visible !important;
 }
 
-.action-btn {
+.row-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   height: 32px;
   padding: 0 10px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background: transparent;
   cursor: pointer;
   font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-family: inherit;
   white-space: nowrap;
   flex-shrink: 0;
 
   mat-icon {
-    font-size: 15px;
-    width: 15px;
-    height: 15px;
-  }
-
-  &--edit {
-    color: var(--accent-blue, #2D7BFF);
-    border-color: rgba(45, 123, 255, 0.25);
-
-    &:hover {
-      background: rgba(45, 123, 255, 0.12);
-      border-color: rgba(45, 123, 255, 0.5);
-    }
-  }
-
-  &--delete {
-    color: rgba(255, 82, 82, 0.75);
-    border-color: rgba(255, 82, 82, 0.2);
-    padding: 0 8px;
-
-    span { display: none; }
-
-    &:hover {
-      color: #ff5252;
-      background: rgba(255, 82, 82, 0.1);
-      border-color: rgba(255, 82, 82, 0.45);
-    }
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
   }
 }
+
 
 @media (max-width: 900px) {
   .row {
