@@ -33,6 +33,13 @@ export const routes: Routes = [
         .then(m => m.AdminUserManagementComponent)
   },
   {
+    path: 'admin/races',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./components/admin-race-management/admin-race-management.component')
+        .then(m => m.AdminRaceManagementComponent)
+  },
+  {
     path: 'admin',
     canActivate: [adminGuard],
     loadComponent: () =>
