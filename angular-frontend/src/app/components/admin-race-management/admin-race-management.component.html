@@ -36,12 +36,12 @@
             <span>{{ race.type || '–' }}</span>
             <span>{{ race.location || '–' }}</span>
             <span class="actions-cell">
-              <button mat-stroked-button color="primary" (click)="openEditDialog(race)">
+              <button class="action-btn action-btn--edit" (click)="openEditDialog(race)">
                 <mat-icon>edit</mat-icon>
-                Bearbeiten
+                <span>Bearbeiten</span>
               </button>
-              <button mat-stroked-button color="warn" (click)="deleteRace(race)">
-                <mat-icon>delete</mat-icon>
+              <button class="action-btn action-btn--delete" (click)="deleteRace(race)">
+                <mat-icon>delete_outline</mat-icon>
               </button>
             </span>
           </div>
