@@ -6,9 +6,8 @@
 - Java 21, Spring Boot 3.2.0, MariaDB (H2 for tests)
 
 ## Entity Relationships (updated 2026-02)
-- Competition has ManyToOne TrainingPlan (competition.training_plan_id FK, nullable)
-- Competition has ManyToOne User (user_id FK, nullable, @JsonIgnore)
-- Competition has OneToMany TrainingWeek
+- Competition has OneToMany TrainingWeek; NO user_id, NO training_plan_id (removed in migration 030)
+- CompetitionRegistration: junction table (competition_registrations); ManyToOne Competition + ManyToOne User (both non-null, unique together); ManyToOne TrainingPlan (nullable); registered_at TIMESTAMP
 - TrainingWeek has OneToMany Training (via training_week_id FK)
 - Training has ManyToOne TrainingPlan (training_plan_id FK — always points to the template plan)
 - Training has ManyToOne TrainingDescription (optional, rich text)
@@ -17,15 +16,21 @@
 - User has OneToOne StravaToken (mappedBy="user", cascade ALL, optional)
 - User implements UserDetails (Spring Security); password stored as passwordHash (@JsonIgnore)
 
-## Architecture: All TrainingPlans are templates (2026-02 refactor)
-- TrainingPlan has NO competition_id and NO is_template columns
-- Competition holds the FK: competition.training_plan_id (nullable @ManyToOne @JsonIgnore)
-- Training.training_plan_id still points to the plan (the template)
-- assignPlanToCompetition: sets competition.trainingPlan = sourcePlan, no new plan created
-- TrainingPlan has NO getTrainings() — use TrainingRepository.findByTrainingPlan_Id(planId)
+## Architecture: Competition Registrations (2026-02 refactor, migration 030)
+- All users see ALL competitions (Competition entity has no user FK)
+- Per-user plan assignment is stored in CompetitionRegistration.training_plan_id
+- CompetitionService.findAll() returns List<CompetitionDto> with registered=true/false per current user
+- CompetitionService.findById() returns CompetitionDto (not raw entity); findEntityById() for internal use
+- CompetitionService.save() returns CompetitionDto (not raw entity)
+- CompetitionService.register(competitionId) creates or returns existing registration for current user
+- CompetitionService.unregister(competitionId) deletes the registration for current user
+- TrainingPlanService.updateRegistrationPlan(competition, plan) — finds/creates registration, sets plan
+- TrainingPlanService.clearExistingTrainings(competition, previousPlan) — previousPlan=null skips orphan cleanup
+- All TrainingPlans are templates; no competition_id or is_template columns exist on training_plans
 - Liquibase 002: drops is_template + competition_id from training_plans, adds training_plan_id to competitions
-- TrainingPlanRepository has only findByNameContainingIgnoreCase() (no competition/template queries)
-- parseAndCreateTrainings() takes an explicit Competition parameter (not via trainingPlan.getCompetition())
+- Liquibase 030: creates competition_registrations, migrates old data, drops user_id + training_plan_id from competitions
+- TrainingPlanRepository has only findByNameContainingIgnoreCase()
+- parseAndCreateTrainings() takes an explicit Competition parameter
 
 ## Established Patterns
 - DTOs: plain classes with getters/setters (not Records — team lead spec uses plain classes); Auth DTOs are Records (AuthRequest, RegisterRequest, AuthResponse)
@@ -41,8 +46,6 @@
 - JWT: jjwt 0.12.6; secret in app.jwt.secret; expiry in app.jwt.expiration-ms (86400000 = 24h)
 - security/ package: JwtService, JwtAuthenticationFilter, UserDetailsServiceImpl, SecurityUtils
 - SecurityUtils.getCurrentUser() returns User from SecurityContext; null if not authenticated
-- CompetitionService.findAll() scoped by userId if authenticated, falls back to findAll() for tests
-- CompetitionService.save() sets user if null (guards against re-saves)
 - CompletedTrainingService sets user before save in uploadAndParseFitFile()
 - Liquibase 005: adds password_hash to users, user_id to competitions and completed_trainings
 - Auth endpoints: POST /api/auth/register, POST /api/auth/login
@@ -50,7 +53,10 @@
 
 ## Key Files
 - `entity/TrainingPlan.java` — id, name, description, uploadDate, jsonContent, trainingCount only
-- `entity/Competition.java` — ManyToOne TrainingPlan (training_plan_id FK)
+- `entity/Competition.java` — id, name, date, description, type, ranking, OneToMany trainingWeeks ONLY (no user/plan FK)
+- `entity/CompetitionRegistration.java` — junction: competition + user (unique), optional trainingPlan, registeredAt
+- `repository/CompetitionRegistrationRepository.java` — findByCompetitionIdAndUserId(), findByUserId(), existsByCompetitionIdAndUserId()
+- `dto/CompetitionDto.java` — id, name, date, description, type, ranking, registered, registrationId, trainingPlanId, trainingPlanName
 - `entity/User.java` — id, username (unique), email (unique), createdAt, OneToOne StravaToken
 - `entity/StravaToken.java` — OAuth token storage; ManyToOne User (user_id FK, nullable)
 - `repository/UserRepository.java` — findByEmail(), findByUsername()
