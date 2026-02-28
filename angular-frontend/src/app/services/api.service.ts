@@ -35,6 +35,10 @@ export class ApiService {
   constructor(private http: HttpClient) { }
 
   // Competition API
+  getCompetitionTypes(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/competitions/types`);
+  }
+
   getAllCompetitions(): Observable<Competition[]> {
     return this.http.get<Competition[]>(`${this.baseUrl}/competitions`);
   }

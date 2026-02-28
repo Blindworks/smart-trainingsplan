@@ -2,6 +2,7 @@ package com.trainingsplan.dto;
 
 import com.trainingsplan.entity.Competition;
 import com.trainingsplan.entity.CompetitionRegistration;
+import com.trainingsplan.entity.CompetitionType;
 
 import java.time.LocalDate;
 
@@ -10,7 +11,7 @@ public class CompetitionDto {
     private String name;
     private LocalDate date;
     private String description;
-    private String type;
+    private CompetitionType type;
     private String location;
     private String ranking;
     private boolean registered;
@@ -38,7 +39,7 @@ public class CompetitionDto {
     public String getName() { return name; }
     public LocalDate getDate() { return date; }
     public String getDescription() { return description; }
-    public String getType() { return type; }
+    public CompetitionType getType() { return type; }
     public String getLocation() { return location; }
     public String getRanking() { return ranking; }
     public boolean isRegistered() { return registered; }

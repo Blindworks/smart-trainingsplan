@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatSelectModule } from '@angular/material/select';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
@@ -44,7 +45,8 @@ interface NominatimResult {
     MatProgressSpinnerModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatSelectModule
   ],
   templateUrl: './admin-race-edit-dialog.component.html',
   styleUrl: './admin-race-edit-dialog.component.scss'
@@ -53,6 +55,7 @@ export class AdminRaceEditDialogComponent {
   saving = false;
   errorMessage = '';
   isNew: boolean;
+  competitionTypes: string[] = [];
   form!: ReturnType<FormBuilder['group']>;
   citySuggestions$!: Observable<string[]>;
 
@@ -80,6 +83,8 @@ export class AdminRaceEditDialogComponent {
         description: data.race.description ?? ''
       });
     }
+
+    this.apiService.getCompetitionTypes().subscribe(types => this.competitionTypes = types);
 
     this.citySuggestions$ = this.form.get('location')!.valueChanges.pipe(
       startWith(''),

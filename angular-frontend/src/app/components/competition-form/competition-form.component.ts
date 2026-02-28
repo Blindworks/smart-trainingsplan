@@ -10,6 +10,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
 
 import { ApiService } from '../../services/api.service';
 import { Competition } from '../../models/competition.model';
@@ -26,7 +27,8 @@ import { Competition } from '../../models/competition.model';
     MatDatepickerModule,
     MatNativeDateModule,
     MatSnackBarModule,
-    MatIconModule
+    MatIconModule,
+    MatSelectModule
   ],
   templateUrl: './competition-form.component.html',
   styleUrl: './competition-form.component.scss'
@@ -36,6 +38,7 @@ export class CompetitionFormComponent implements OnInit {
   isEditing = false;
   competitionId: number | null = null;
   loading = false;
+  competitionTypes: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -54,6 +57,7 @@ export class CompetitionFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.apiService.getCompetitionTypes().subscribe(types => this.competitionTypes = types);
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.competitionId = +id;

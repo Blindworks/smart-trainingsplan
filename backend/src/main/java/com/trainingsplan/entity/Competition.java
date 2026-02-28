@@ -27,8 +27,9 @@ public class Competition {
     @Column(length = 1000)
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", length = 255)
-    private String type;
+    private CompetitionType type;
 
     @Column(name = "location", length = 255)
     private String location;
@@ -53,8 +54,8 @@ public class Competition {
     public void setDate(LocalDate date) { this.date = date; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public CompetitionType getType() { return type; }
+    public void setType(CompetitionType type) { this.type = type; }
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
     public List<TrainingWeek> getTrainingWeeks() { return trainingWeeks; }

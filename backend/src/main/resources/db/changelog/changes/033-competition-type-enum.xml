@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="033-1" author="liquibase">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="competitions"/>
+        </preConditions>
+        <!-- Nullify any type values that are not valid CompetitionType enum names -->
+        <sql>
+            UPDATE competitions
+            SET type = NULL
+            WHERE type IS NOT NULL
+              AND type NOT IN ('FIVE_K','TEN_K','HALF_MARATHON','MARATHON','FIFTY_K','HUNDRED_K','BACKYARD_ULTRA','OTHER')
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

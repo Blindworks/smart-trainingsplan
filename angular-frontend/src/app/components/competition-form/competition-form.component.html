@@ -44,7 +44,12 @@
         <div class="form-field">
           <mat-form-field appearance="outline">
             <mat-label>Wettkampf-Typ</mat-label>
-            <input matInput formControlName="type" placeholder="z.B. Marathon, Halbmarathon, Backyard Ultra">
+            <mat-select formControlName="type">
+              <mat-option [value]="null">-- kein Typ --</mat-option>
+              @for (ct of competitionTypes; track ct) {
+                <mat-option [value]="ct">{{ ct }}</mat-option>
+              }
+            </mat-select>
           </mat-form-field>
         </div>
 

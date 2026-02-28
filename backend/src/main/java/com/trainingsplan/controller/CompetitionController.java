@@ -3,6 +3,7 @@ package com.trainingsplan.controller;
 import com.trainingsplan.dto.CompetitionDto;
 import com.trainingsplan.entity.Competition;
 import com.trainingsplan.entity.CompetitionRegistration;
+import com.trainingsplan.entity.CompetitionType;
 import com.trainingsplan.service.CompetitionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,14 @@ public class CompetitionController {
 
     @Autowired
     private CompetitionService competitionService;
+
+    @GetMapping("/types")
+    public ResponseEntity<List<String>> getCompetitionTypes() {
+        List<String> types = java.util.Arrays.stream(CompetitionType.values())
+                .map(CompetitionType::getDisplayName)
+                .toList();
+        return ResponseEntity.ok(types);
+    }
 
     @GetMapping
     public ResponseEntity<List<CompetitionDto>> getAllCompetitions() {
