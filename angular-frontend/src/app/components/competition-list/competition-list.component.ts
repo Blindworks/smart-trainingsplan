@@ -13,7 +13,6 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiService } from '../../services/api.service';
-import { AuthService } from '../../services/auth.service';
 import { Competition } from '../../models/competition.model';
 import { RegistrationDialogComponent } from '../registration-dialog/registration-dialog.component';
 
@@ -42,16 +41,11 @@ export class CompetitionListComponent implements OnInit {
   editingRankingId: number | null = null;
   rankingInput = '';
 
-  isAdmin = false;
-
   constructor(
     private apiService: ApiService,
-    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-  ) {
-    this.isAdmin = this.authService.isAdmin();
-  }
+  ) {}
 
   ngOnInit(): void {
     this.loadCompetitions();
@@ -138,20 +132,6 @@ export class CompetitionListComponent implements OnInit {
         this.snackBar.open('Fehler beim Speichern des Rankings', 'Schließen', { duration: 3000 });
       }
     });
-  }
-
-  deleteCompetition(id: number): void {
-    if (confirm('Möchten Sie diesen Wettkampf wirklich löschen?')) {
-      this.apiService.deleteCompetition(id).subscribe({
-        next: () => {
-          this.snackBar.open('Wettkampf gelöscht', 'Schließen', { duration: 3000 });
-          this.loadCompetitions();
-        },
-        error: () => {
-          this.snackBar.open('Fehler beim Löschen', 'Schließen', { duration: 3000 });
-        }
-      });
-    }
   }
 
   formatDate(dateString: string | undefined): string {

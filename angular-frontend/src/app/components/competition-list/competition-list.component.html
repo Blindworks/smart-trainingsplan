@@ -118,14 +118,6 @@
           <mat-icon>upload_file</mat-icon>
           Upload Plan
         </a>
-        <a class="action-link" *ngIf="isAdmin" [routerLink]="['/competitions', competition.id, 'edit']">
-          <mat-icon>edit</mat-icon>
-          Edit
-        </a>
-        <button class="action-link danger" *ngIf="isAdmin" (click)="deleteCompetition(competition.id!)">
-          <mat-icon>delete_outline</mat-icon>
-          Delete
-        </button>
       </div>
     </div>
   </div>
