@@ -2,6 +2,7 @@ package com.trainingsplan.controller;
 
 import com.trainingsplan.entity.BodyMetric;
 import com.trainingsplan.service.BodyMetricService;
+import com.trainingsplan.service.RaceTimePredictionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,10 +14,13 @@ import java.util.Map;
 @RequestMapping("/api/body-metrics")
 public class BodyMetricController {
 
-    private final BodyMetricService bodyMetricService;
+    private final BodyMetricService          bodyMetricService;
+    private final RaceTimePredictionService  raceTimePredictionService;
 
-    public BodyMetricController(BodyMetricService bodyMetricService) {
-        this.bodyMetricService = bodyMetricService;
+    public BodyMetricController(BodyMetricService bodyMetricService,
+                                RaceTimePredictionService raceTimePredictionService) {
+        this.bodyMetricService         = bodyMetricService;
+        this.raceTimePredictionService = raceTimePredictionService;
     }
 
     /**
@@ -34,6 +38,35 @@ public class BodyMetricController {
                 .map(this::toDto)
                 .toList();
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Returns context-aware race time predictions for the current user.
+     * Combines latest VO2Max with recent training volume, long-run data and ACWR.
+     * Response includes per-distance base and adjusted times, plus training context.
+     */
+    @GetMapping("/race-predictions-current")
+    public ResponseEntity<Map<String, Object>> getCurrentRacePredictions() {
+        Map<String, Object> result = raceTimePredictionService.computeForCurrentUser();
+        if (result.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Returns the full VO2Max history for the current user, enriched with
+     * race-time predictions for standard distances.
+     * Response example:
+     * [
+     *   { "date": "2025-01-15", "vo2max": 52.3,
+     *     "predictions": { "1km": "3:45", "5km": "20:30", "10km": "42:15",
+     *                      "Halbmarathon": "1:32:10", "Marathon": "3:12:30" } }
+     * ]
+     */
+    @GetMapping("/vo2max-history")
+    public ResponseEntity<List<Map<String, Object>>> getVo2MaxHistory() {
+        return ResponseEntity.ok(bodyMetricService.getVo2MaxHistoryForCurrentUser());
     }
 
     /**

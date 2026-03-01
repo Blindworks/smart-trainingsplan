@@ -5,7 +5,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiService } from '../../services/api.service';
-import { BodyMetric, DailyMetrics, DecouplingHistoryPoint } from '../../models/competition.model';
+import { BodyMetric, DailyMetrics, DecouplingHistoryPoint, Vo2MaxHistoryPoint, CurrentRaceTimePredictions } from '../../models/competition.model';
 import { catchError, of } from 'rxjs';
 
 interface BarChartPoint {
@@ -23,6 +23,17 @@ interface ChartStats {
   avg: number;
   max: number;
   sessions: number;
+}
+
+interface RaceTimeChartPoint {
+  x: number;
+  y: number;
+  date: string;
+  label: string;
+  timeFormatted: string;
+  timeSeconds: number;
+  showLabel: boolean;
+  vo2max: number;
 }
 
 @Component({
@@ -91,6 +102,30 @@ export class BodyStatusComponent implements OnInit {
   readinessChartStats = { avg: 0, sessions: 0 };
   readinessHoveredIndex: number | null = null;
 
+  // Context-aware (multi-factor) race predictions
+  currentRacePredictions: CurrentRaceTimePredictions | null = null;
+
+  // Race time predictions (history chart)
+  vo2maxHistory: Vo2MaxHistoryPoint[] = [];
+  selectedDistance = '5km';
+  /** Raw measurement dots — used for hover interaction */
+  raceTimeChartPoints: RaceTimeChartPoint[] = [];
+  /** Smoothed trend line path (moving average) */
+  raceTimeLinePath = '';
+  /** Fill area below the trend line */
+  raceTimeFillPath = '';
+  raceTimeHoveredIndex: number | null = null;
+  raceTimeCurrentPrediction: string | null = null;
+  raceTimeBestPrediction: string | null = null;
+  raceTrendDirection: 'BESSER' | 'STABIL' | 'SCHLECHTER' | null = null;
+  readonly distanceOptions = [
+    { key: '1km',         label: '1 km',       color: '#42a5f5' },
+    { key: '5km',         label: '5 km',        color: '#66bb6a' },
+    { key: '10km',        label: '10 km',       color: '#ffca28' },
+    { key: 'Halbmarathon',label: 'Halbm.',      color: '#ff7043' },
+    { key: 'Marathon',    label: 'Marathon',    color: '#ef5350' },
+  ];
+
   constructor(
     private apiService: ApiService,
     private snackBar: MatSnackBar
@@ -100,6 +135,8 @@ export class BodyStatusComponent implements OnInit {
     this.loadMetrics();
     this.loadDailyHistory();
     this.loadDecouplingHistory();
+    this.loadVo2MaxHistory();
+    this.loadCurrentRacePredictions();
   }
 
   loadMetrics(): void {
@@ -726,5 +763,211 @@ export class BodyStatusComponent implements OnInit {
       gender: 'Geschlecht'
     };
     return map[field] ?? field;
+  }
+
+  // ─── Context-aware Race Predictions ─────────────────────────────────────────
+
+  loadCurrentRacePredictions(): void {
+    this.apiService.getCurrentRacePredictions().pipe(
+      catchError(() => of(null))
+    ).subscribe(data => {
+      this.currentRacePredictions = data;
+    });
+  }
+
+  getAdjustmentColor(pct: number): string {
+    if (pct === 0) return '#4caf50';
+    if (pct <= 3)  return '#8bc34a';
+    if (pct <= 8)  return '#ffca28';
+    if (pct <= 15) return '#ff7043';
+    return '#ef5350';
+  }
+
+  getConfidenceColor(c: string): string {
+    switch (c) {
+      case 'HOCH':   return '#4caf50';
+      case 'MITTEL': return '#ffca28';
+      default:       return '#ff7043';
+    }
+  }
+
+  getConfidenceIcon(c: string): string {
+    switch (c) {
+      case 'HOCH':   return 'verified';
+      case 'MITTEL': return 'info';
+      default:       return 'warning';
+    }
+  }
+
+  getPredictionDistanceColor(key: string): string {
+    return this.distanceOptions.find(d => d.key === key)?.color ?? 'var(--accent-blue)';
+  }
+
+  // ─── Race Time Predictions (history) ────────────────────────────────────────
+
+  loadVo2MaxHistory(): void {
+    this.apiService.getVo2MaxHistory().pipe(
+      catchError(() => of([]))
+    ).subscribe((history: Vo2MaxHistoryPoint[]) => {
+      this.vo2maxHistory = history;
+      this.buildRaceTimeChart();
+    });
+  }
+
+  selectDistance(key: string): void {
+    this.selectedDistance = key;
+    this.buildRaceTimeChart();
+  }
+
+  get selectedDistanceColor(): string {
+    return this.distanceOptions.find(d => d.key === this.selectedDistance)?.color ?? '#66bb6a';
+  }
+
+  get raceTimeChartHasData(): boolean {
+    return this.raceTimeChartPoints.length >= 2;
+  }
+
+  get raceTimeSinglePoint(): boolean {
+    return this.vo2maxHistory.length === 1 && this.raceTimeCurrentPrediction !== null;
+  }
+
+  getTrendIcon(): string {
+    switch (this.raceTrendDirection) {
+      case 'BESSER':      return 'trending_up';
+      case 'SCHLECHTER':  return 'trending_down';
+      case 'STABIL':      return 'trending_flat';
+      default:            return '';
+    }
+  }
+
+  getTrendColor(): string {
+    switch (this.raceTrendDirection) {
+      case 'BESSER':      return '#4caf50';
+      case 'SCHLECHTER':  return '#ef5350';
+      default:            return 'var(--text-secondary)';
+    }
+  }
+
+  private buildRaceTimeChart(): void {
+    const key = this.selectedDistance;
+    const filtered = this.vo2maxHistory.filter(h => h.predictions[key] != null);
+
+    const reset = () => {
+      this.raceTimeChartPoints = [];
+      this.raceTimeLinePath = '';
+      this.raceTimeFillPath = '';
+      this.raceTrendDirection = null;
+    };
+
+    if (filtered.length === 0) {
+      reset();
+      this.raceTimeCurrentPrediction = null;
+      this.raceTimeBestPrediction = null;
+      return;
+    }
+
+    const allSeconds = filtered.map(h => this.parseRaceTime(h.predictions[key]!));
+    this.raceTimeCurrentPrediction = this.formatRaceTime(allSeconds[allSeconds.length - 1]);
+    this.raceTimeBestPrediction    = this.formatRaceTime(Math.min(...allSeconds));
+
+    if (filtered.length < 2) { reset(); return; }
+
+    // ── SVG coordinate system: viewBox "0 0 400 90" ─────────────────────────
+    const SVG_W = 400, SVG_H = 90;
+    const padL = 5, padR = 5, padT = 6, padB = 24;
+    const chartW = SVG_W - padL - padR;
+    const chartH = SVG_H - padT - padB;
+    const n = filtered.length;
+
+    const minT = Math.min(...allSeconds);
+    const maxT = Math.max(...allSeconds);
+    const margin = (maxT - minT) * 0.12 || 30; // at least 30 s margin
+    const dispMin = minT - margin;
+    const dispMax = maxT + margin;
+    const dispRange = dispMax - dispMin;
+
+    const toY = (sec: number) =>
+      Math.max(padT, Math.min(padT + chartH,
+        padT + (1 - (sec - dispMin) / dispRange) * chartH));
+    const toX = (i: number) =>
+      padL + (n > 1 ? (i / (n - 1)) * chartW : chartW / 2);
+
+    const stepInterval = Math.max(1, Math.floor(n / 7));
+
+    // ── Raw dots (individual measurements, for hover) ────────────────────────
+    this.raceTimeChartPoints = filtered.map((h, i) => {
+      const sec   = allSeconds[i];
+      const parts = h.date.split('-');
+      const label = parts.length === 3
+        ? `${parts[2]}.${parts[1]}.${parts[0].slice(2)}`
+        : h.date;
+      return {
+        x: toX(i),
+        y: toY(sec),
+        date: h.date,
+        label,
+        timeFormatted: this.formatRaceTime(sec),
+        timeSeconds: sec,
+        showLabel: i === 0 || i === n - 1 || i % stepInterval === 0,
+        vo2max: h.vo2max,
+      };
+    });
+
+    // ── Smoothed trend line (centered moving average) ────────────────────────
+    // Use a window that grows with data size, min 3 for any smoothing at all
+    const windowSize = n < 3 ? 1 : Math.min(7, Math.max(3, Math.ceil(n / 5)));
+    const trendSeconds = this.computeMovingAverage(allSeconds, windowSize);
+
+    const trendPts = trendSeconds.map((sec, i) => ({ x: toX(i), y: toY(sec) }));
+
+    this.raceTimeLinePath = trendPts
+      .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
+      .join(' ');
+
+    const bottom = padT + chartH;
+    const last = trendPts[trendPts.length - 1];
+    const first = trendPts[0];
+    this.raceTimeFillPath =
+      `${this.raceTimeLinePath} L${last.x.toFixed(1)},${bottom} L${first.x.toFixed(1)},${bottom} Z`;
+
+    // ── Trend direction ──────────────────────────────────────────────────────
+    // Compare mean of first third vs last third (in seconds; fewer = faster = better)
+    if (n >= 4) {
+      const third = Math.max(2, Math.floor(n / 3));
+      const earlyAvg = allSeconds.slice(0, third).reduce((a, b) => a + b, 0) / third;
+      const lateAvg  = allSeconds.slice(n - third).reduce((a, b) => a + b, 0) / third;
+      const changePct = (lateAvg - earlyAvg) / earlyAvg;
+      if      (changePct < -0.02) this.raceTrendDirection = 'BESSER';     // ≥ 2 % faster
+      else if (changePct >  0.02) this.raceTrendDirection = 'SCHLECHTER'; // ≥ 2 % slower
+      else                        this.raceTrendDirection = 'STABIL';
+    } else {
+      this.raceTrendDirection = null;
+    }
+  }
+
+  /** Centered moving average with the given window size. */
+  private computeMovingAverage(values: number[], windowSize: number): number[] {
+    const half = Math.floor(windowSize / 2);
+    return values.map((_, i) => {
+      const start = Math.max(0, i - half);
+      const end   = Math.min(values.length - 1, i + half);
+      const slice = values.slice(start, end + 1);
+      return slice.reduce((a, b) => a + b, 0) / slice.length;
+    });
+  }
+
+  private parseRaceTime(timeStr: string): number {
+    const parts = timeStr.split(':').map(Number);
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return 0;
+  }
+
+  formatRaceTime(totalSeconds: number): string {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = Math.round(totalSeconds % 60);
+    if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${m}:${String(s).padStart(2, '0')}`;
   }
 }

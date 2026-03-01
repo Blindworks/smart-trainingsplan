@@ -230,6 +230,38 @@ export interface BodyMetric {
   sourceActivityId?: number;
 }
 
+export interface RaceDistancePrediction {
+  distance: string;       // "1km" | "5km" | "10km" | "Halbmarathon" | "Marathon"
+  baseTime: string;       // VDOT-Basisvorhersage, z.B. "3:45"
+  adjustedTime: string;   // kontextbereinigt, z.B. "3:52"
+  adjustmentPct: number;  // Aufschlag in %, z.B. 3
+}
+
+export interface CurrentRaceTimePredictions {
+  vo2max: number;
+  vo2maxDate?: string;
+  avgWeeklyKm: number;
+  maxLongRunKm: number;
+  runsPerWeek: number;
+  acwr?: number;
+  readinessScore?: number;
+  confidence: 'HOCH' | 'MITTEL' | 'NIEDRIG';
+  predictions: RaceDistancePrediction[];
+}
+
+export interface Vo2MaxHistoryPoint {
+  date: string;    // "YYYY-MM-DD"
+  vo2max: number;  // ml/kg/min
+  predictions: {
+    '1km'?: string;
+    '5km'?: string;
+    '10km'?: string;
+    'Halbmarathon'?: string;
+    'Marathon'?: string;
+    [key: string]: string | undefined;
+  };
+}
+
 export interface BodyMeasurement {
   id?: number;
   measuredAt: string;        // "YYYY-MM-DD"

@@ -84,6 +84,27 @@ public class BodyMetricService {
     }
 
     /**
+     * Returns all VO2Max measurements for the current user ordered chronologically,
+     * each enriched with race-time predictions for standard distances.
+     */
+    public List<Map<String, Object>> getVo2MaxHistoryForCurrentUser() {
+        Long userId = securityUtils.getCurrentUserId();
+        if (userId == null) return Collections.emptyList();
+
+        List<BodyMetric> metrics = bodyMetricRepository
+                .findByUserIdAndMetricTypeOrderByRecordedAtDesc(userId, "VO2MAX");
+        Collections.reverse(metrics); // ascending (chronological) order
+
+        return metrics.stream().map(m -> {
+            Map<String, Object> point = new LinkedHashMap<>();
+            point.put("date", m.getRecordedAt() != null ? m.getRecordedAt().toString() : null);
+            point.put("vo2max", m.getValue());
+            point.put("predictions", vo2MaxService.predictRaceTimes(m.getValue()));
+            return point;
+        }).toList();
+    }
+
+    /**
      * Recalculates all body metrics for the current user from their existing
      * CompletedTraining records. Also claims activities that have no user assigned
      * (uploaded before authentication was introduced). Deletes previous metrics first.

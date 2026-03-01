@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -118,6 +120,73 @@ public class Vo2MaxService {
 
     private String normalize(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Returns the predicted time in total seconds for a single distance.
+     * Convenience wrapper used by {@link RaceTimePredictionService}.
+     */
+    public int predictTimeSeconds(double vo2max, double distanceMeters) {
+        return (int) Math.round(predictTimeMinutes(vo2max, distanceMeters) * 60.0);
+    }
+
+    /**
+     * Predicts race times for standard distances from a VO2Max value.
+     * Inverts the Daniels/Gilbert VDOT formula via binary search.
+     *
+     * @return ordered map: distance label → formatted time (e.g. "1km" → "3:45")
+     */
+    public Map<String, String> predictRaceTimes(double vo2max) {
+        Map<String, String> result = new LinkedHashMap<>();
+        String[] labels    = {"1km", "5km", "10km", "Halbmarathon", "Marathon"};
+        double[] distances = {1_000.0, 5_000.0, 10_000.0, 21_097.5, 42_195.0};
+        for (int i = 0; i < labels.length; i++) {
+            double tMin = predictTimeMinutes(vo2max, distances[i]);
+            result.put(labels[i], formatTimeMinutes(tMin));
+        }
+        return result;
+    }
+
+    /**
+     * Finds the time (in minutes) to cover {@code distanceMeters} at the pace
+     * implied by the given VO2Max, using binary search to invert the VDOT formula.
+     *
+     * <p>Solves: VO2max = vo2AtPace(d / t) / fraction(t)  for  t.
+     */
+    private double predictTimeMinutes(double vo2max, double distanceMeters) {
+        double lo = 0.5;   // 30 s — unrealistically fast, safe lower bound
+        double hi = 600.0; // 10 h — safe upper bound
+        for (int i = 0; i < 200; i++) {
+            double mid = (lo + hi) * 0.5;
+            double pace = distanceMeters / mid; // m/min
+            double vo2AtThisPace = vo2AtPace(pace);
+            if (vo2AtThisPace <= 0.0) {
+                // Formula returns negative at very slow paces → go faster
+                hi = mid;
+                continue;
+            }
+            double fraction = 0.8
+                    + (0.1894393 * Math.exp(-0.012778 * mid))
+                    + (0.2989558 * Math.exp(-0.1932605 * mid));
+            double requiredVo2Max = vo2AtThisPace / fraction;
+            if (requiredVo2Max > vo2max) {
+                lo = mid; // pace requires more VO2 than available → need more time
+            } else {
+                hi = mid; // pace is within capacity → can go faster
+            }
+        }
+        return (lo + hi) * 0.5;
+    }
+
+    private String formatTimeMinutes(double minutes) {
+        int totalSeconds = (int) Math.round(minutes * 60.0);
+        int h = totalSeconds / 3600;
+        int m = (totalSeconds % 3600) / 60;
+        int s = totalSeconds % 60;
+        if (h > 0) {
+            return String.format("%d:%02d:%02d", h, m, s);
+        }
+        return String.format("%d:%02d", m, s);
     }
 
     private double round(double value, int scale) {

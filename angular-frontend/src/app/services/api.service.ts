@@ -15,6 +15,8 @@ import {
   ProfileCompletion,
   BodyStatusVo2Max,
   BodyMetric,
+  Vo2MaxHistoryPoint,
+  CurrentRaceTimePredictions,
   BodyMeasurement,
   BloodPressure,
   SleepData,
@@ -231,6 +233,14 @@ export class ApiService {
 
   getBodyMetrics(): Observable<BodyMetric[]> {
     return this.http.get<BodyMetric[]>(`${this.baseUrl}/body-metrics/current`);
+  }
+
+  getCurrentRacePredictions(): Observable<CurrentRaceTimePredictions | null> {
+    return this.http.get<CurrentRaceTimePredictions>(`${this.baseUrl}/body-metrics/race-predictions-current`);
+  }
+
+  getVo2MaxHistory(): Observable<Vo2MaxHistoryPoint[]> {
+    return this.http.get<Vo2MaxHistoryPoint[]>(`${this.baseUrl}/body-metrics/vo2max-history`);
   }
 
   recalculateBodyMetrics(): Observable<{ message: string; activitiesProcessed: number }> {

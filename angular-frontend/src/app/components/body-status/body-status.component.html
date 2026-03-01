@@ -651,6 +651,226 @@
     </div>
   </div>
 
+  <!-- Context-aware Race Predictions (multi-factor) -->
+  <div class="history-chart-card race-pred-card" *ngIf="!loading && currentRacePredictions">
+
+    <!-- Header -->
+    <div class="history-chart-header">
+      <div class="history-chart-title-group">
+        <div class="history-chart-icon" style="background: rgba(76,175,80,0.12); color: #4caf50;">
+          <mat-icon>emoji_events</mat-icon>
+        </div>
+        <div>
+          <h2>Wettkampf-Zeitvorhersage</h2>
+          <p>VO₂max + Trainingsbelastung + Wochenvolumen</p>
+        </div>
+      </div>
+      <!-- Confidence indicator -->
+      <div class="confidence-badge"
+           [style.background]="getConfidenceColor(currentRacePredictions!.confidence) + '22'"
+           [style.color]="getConfidenceColor(currentRacePredictions!.confidence)"
+           [style.border-color]="getConfidenceColor(currentRacePredictions!.confidence) + '55'">
+        <mat-icon>{{ getConfidenceIcon(currentRacePredictions!.confidence) }}</mat-icon>
+        Konfidenz: {{ currentRacePredictions!.confidence }}
+      </div>
+    </div>
+
+    <!-- Per-distance prediction cards -->
+    <div class="race-pred-grid">
+      <div class="race-pred-item"
+           *ngFor="let p of currentRacePredictions!.predictions">
+        <div class="race-pred-distance"
+             [style.color]="getPredictionDistanceColor(p.distance)">
+          {{ p.distance }}
+        </div>
+        <div class="race-pred-time"
+             [style.color]="getPredictionDistanceColor(p.distance)">
+          {{ p.adjustedTime }}
+        </div>
+        <div class="race-pred-base" *ngIf="p.adjustmentPct > 0">
+          VDOT: {{ p.baseTime }}
+        </div>
+        <div class="race-pred-adj"
+             *ngIf="p.adjustmentPct > 0"
+             [style.color]="getAdjustmentColor(p.adjustmentPct)">
+          +{{ p.adjustmentPct }}%
+        </div>
+        <div class="race-pred-adj race-pred-adj--optimal"
+             *ngIf="p.adjustmentPct === 0">
+          Optimal
+        </div>
+      </div>
+    </div>
+
+    <!-- Training context summary -->
+    <div class="race-context-bar">
+      <div class="race-context-item">
+        <mat-icon>favorite</mat-icon>
+        <span>VO₂max&nbsp;<strong>{{ currentRacePredictions!.vo2max | number:'1.1-1' }}</strong></span>
+      </div>
+      <div class="race-context-item">
+        <mat-icon>route</mat-icon>
+        <span>&#216;&nbsp;Wochenkm&nbsp;<strong>{{ currentRacePredictions!.avgWeeklyKm | number:'1.0-1' }}&nbsp;km</strong></span>
+      </div>
+      <div class="race-context-item">
+        <mat-icon>straighten</mat-icon>
+        <span>Langer Lauf&nbsp;<strong>{{ currentRacePredictions!.maxLongRunKm | number:'1.0-1' }}&nbsp;km</strong></span>
+      </div>
+      <div class="race-context-item">
+        <mat-icon>calendar_today</mat-icon>
+        <span>L&auml;ufe/Woche&nbsp;<strong>{{ currentRacePredictions!.runsPerWeek | number:'1.1-1' }}</strong></span>
+      </div>
+      <div class="race-context-item" *ngIf="currentRacePredictions!.acwr != null">
+        <mat-icon>monitoring</mat-icon>
+        <span>ACWR&nbsp;<strong>{{ currentRacePredictions!.acwr | number:'1.2-2' }}</strong></span>
+      </div>
+    </div>
+
+    <!-- Methodology note -->
+    <p class="race-method-note">
+      <mat-icon>info</mat-icon>
+      Basiswert aus VDOT-Formel (Daniels). Aufschl&auml;ge bei unzureichendem Trainingsvolumen,
+      fehlendem langem Lauf oder erh&ouml;htem ACWR (Erm&uuml;dung).
+      Datengrundlage: letzte 4&ndash;6 Wochen.
+    </p>
+  </div>
+
+  <!-- Race Time Prediction Chart (history) -->
+  <div class="history-chart-card" *ngIf="!loading && vo2maxHistory.length > 0">
+    <div class="history-chart-header">
+      <div class="history-chart-title-group">
+        <div class="history-chart-icon" style="background: rgba(76,175,80,0.12); color: #4caf50;">
+          <mat-icon>timer</mat-icon>
+        </div>
+        <div>
+          <h2>VO₂max-Trend &amp; Prognose</h2>
+          <p>Gleitender Mittelwert aller Messungen &mdash; Punkte = einzelne L&auml;ufe</p>
+        </div>
+      </div>
+      <div class="history-chart-stats">
+        <div class="history-stat">
+          <span class="history-stat-value" [style.color]="selectedDistanceColor">
+            {{ raceTimeCurrentPrediction ?? '&#8211;' }}
+          </span>
+          <span class="history-stat-label">Aktuell</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value" [style.color]="selectedDistanceColor">
+            {{ raceTimeBestPrediction ?? '&#8211;' }}
+          </span>
+          <span class="history-stat-label">Beste</span>
+        </div>
+        <!-- Trend direction badge -->
+        <div class="history-stat" *ngIf="raceTrendDirection">
+          <span class="trend-badge"
+                [style.color]="getTrendColor()">
+            <mat-icon>{{ getTrendIcon() }}</mat-icon>
+            {{ raceTrendDirection }}
+          </span>
+          <span class="history-stat-label">Trend</span>
+        </div>
+        <div class="history-stat">
+          <span class="history-stat-value">{{ vo2maxHistory.length }}</span>
+          <span class="history-stat-label">L&auml;ufe</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Distance selector -->
+    <div class="race-distance-selector">
+      <button *ngFor="let d of distanceOptions"
+              class="race-dist-btn"
+              [class.race-dist-btn--active]="selectedDistance === d.key"
+              [style.--dist-color]="d.color"
+              (click)="selectDistance(d.key)">
+        {{ d.label }}
+      </button>
+    </div>
+
+    <!-- SVG Line chart -->
+    <div class="race-time-chart-wrapper" *ngIf="raceTimeChartHasData">
+      <svg viewBox="0 0 400 90" class="race-time-svg" preserveAspectRatio="none" overflow="visible">
+
+        <!-- Horizontal grid lines -->
+        <line x1="5" y1="6"  x2="395" y2="6"  stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+        <line x1="5" y1="22" x2="395" y2="22" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+        <line x1="5" y1="38" x2="395" y2="38" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+        <line x1="5" y1="54" x2="395" y2="54" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+        <line x1="5" y1="66" x2="395" y2="66" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+
+        <!-- Vertical crosshair at hovered raw dot -->
+        <line *ngIf="raceTimeHoveredIndex != null"
+              [attr.x1]="raceTimeChartPoints[raceTimeHoveredIndex].x"
+              [attr.x2]="raceTimeChartPoints[raceTimeHoveredIndex].x"
+              y1="6" y2="66"
+              stroke="rgba(255,255,255,0.18)"
+              stroke-width="0.5"
+              stroke-dasharray="2,2" />
+
+        <!-- Fill area under TREND line -->
+        <path [attr.d]="raceTimeFillPath"
+              [attr.fill]="selectedDistanceColor"
+              fill-opacity="0.08"
+              stroke="none" />
+
+        <!-- TREND line (smoothed moving average — bold) -->
+        <path [attr.d]="raceTimeLinePath"
+              [attr.stroke]="selectedDistanceColor"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round" />
+
+        <!-- Raw measurement dots (individual runs — small, semi-transparent) -->
+        <!-- X-axis date labels alongside -->
+        <ng-container *ngFor="let p of raceTimeChartPoints; let i = index">
+          <text *ngIf="p.showLabel"
+                [attr.x]="p.x"
+                y="85"
+                text-anchor="middle"
+                class="race-chart-label">{{ p.label }}</text>
+          <!-- Raw dot: smaller, slightly transparent, hover enlarges it -->
+          <circle [attr.cx]="p.x"
+                  [attr.cy]="p.y"
+                  [attr.r]="raceTimeHoveredIndex === i ? 4 : 2"
+                  [attr.fill]="selectedDistanceColor"
+                  [attr.fill-opacity]="raceTimeHoveredIndex === i ? 1 : 0.55"
+                  stroke="rgba(0,0,0,0.35)"
+                  stroke-width="0.7"
+                  class="race-chart-dot"
+                  (mouseenter)="raceTimeHoveredIndex = i"
+                  (mouseleave)="raceTimeHoveredIndex = null" />
+        </ng-container>
+      </svg>
+
+      <!-- Hover info bar (fixed height, no layout shift) -->
+      <div class="race-hover-bar" [class.race-hover-bar--visible]="raceTimeHoveredIndex != null">
+        <ng-container *ngIf="raceTimeHoveredIndex != null">
+          <span class="race-hover-date">{{ raceTimeChartPoints[raceTimeHoveredIndex].label }}</span>
+          <span class="race-hover-time" [style.color]="selectedDistanceColor">
+            {{ raceTimeChartPoints[raceTimeHoveredIndex].timeFormatted }}
+          </span>
+          <span class="race-hover-vo2">
+            VO₂max&nbsp;{{ raceTimeChartPoints[raceTimeHoveredIndex].vo2max | number:'1.1-1' }}
+          </span>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Single-point hint -->
+    <p class="race-single-hint" *ngIf="!raceTimeChartHasData && raceTimeCurrentPrediction">
+      Erst eine Messung vorhanden &mdash; weitere FIT-Aktivit&auml;ten hochladen, um den Verlauf zu sehen.
+    </p>
+
+    <!-- Distance legend -->
+    <div class="history-legend">
+      <div class="history-legend-item" *ngFor="let d of distanceOptions">
+        <span class="history-legend-dot" [style.background]="d.color"></span>
+        <span>{{ d.label }}</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Empty state -->
   <div class="empty-state" *ngIf="!loading && metrics.length === 0 && todayStrain == null">
     <div class="empty-icon">
