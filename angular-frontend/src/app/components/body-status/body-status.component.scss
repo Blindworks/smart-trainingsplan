@@ -757,11 +757,24 @@
 
 // ─── Race Time Prediction Chart ─────────────────────────────────────────────
 
+.race-selectors-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
 .race-distance-selector {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+}
+
+.race-time-selector {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
 }
 
 .race-dist-btn {

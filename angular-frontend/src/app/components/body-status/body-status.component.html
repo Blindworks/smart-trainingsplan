@@ -776,15 +776,26 @@
       </div>
     </div>
 
-    <!-- Distance selector -->
-    <div class="race-distance-selector">
-      <button *ngFor="let d of distanceOptions"
-              class="race-dist-btn"
-              [class.race-dist-btn--active]="selectedDistance === d.key"
-              [style.--dist-color]="d.color"
-              (click)="selectDistance(d.key)">
-        {{ d.label }}
-      </button>
+    <!-- Selectors row: distance left, time range right -->
+    <div class="race-selectors-row">
+      <div class="race-distance-selector">
+        <button *ngFor="let d of distanceOptions"
+                class="race-dist-btn"
+                [class.race-dist-btn--active]="selectedDistance === d.key"
+                [style.--dist-color]="d.color"
+                (click)="selectDistance(d.key)">
+          {{ d.label }}
+        </button>
+      </div>
+      <div class="race-time-selector">
+        <button *ngFor="let t of timeRangeOptions"
+                class="race-dist-btn"
+                [class.race-dist-btn--active]="selectedTimeRange === t.key"
+                [style.--dist-color]="'#64b5f6'"
+                (click)="selectTimeRange(t.key)">
+          {{ t.label }}
+        </button>
+      </div>
     </div>
 
     <!-- SVG Line chart -->

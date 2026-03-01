@@ -118,12 +118,19 @@ export class BodyStatusComponent implements OnInit {
   raceTimeCurrentPrediction: string | null = null;
   raceTimeBestPrediction: string | null = null;
   raceTrendDirection: 'BESSER' | 'STABIL' | 'SCHLECHTER' | null = null;
+  selectedTimeRange = '1Y';
   readonly distanceOptions = [
     { key: '1km',         label: '1 km',       color: '#42a5f5' },
     { key: '5km',         label: '5 km',        color: '#66bb6a' },
     { key: '10km',        label: '10 km',       color: '#ffca28' },
     { key: 'Halbmarathon',label: 'Halbm.',      color: '#ff7043' },
     { key: 'Marathon',    label: 'Marathon',    color: '#ef5350' },
+  ];
+  readonly timeRangeOptions = [
+    { key: '1W', label: '1 W' },
+    { key: '1M', label: '1 M' },
+    { key: '6M', label: '6 M' },
+    { key: '1Y', label: '1 J' },
   ];
 
   constructor(
@@ -819,6 +826,11 @@ export class BodyStatusComponent implements OnInit {
     this.buildRaceTimeChart();
   }
 
+  selectTimeRange(key: string): void {
+    this.selectedTimeRange = key;
+    this.buildRaceTimeChart();
+  }
+
   get selectedDistanceColor(): string {
     return this.distanceOptions.find(d => d.key === this.selectedDistance)?.color ?? '#66bb6a';
   }
@@ -850,7 +862,17 @@ export class BodyStatusComponent implements OnInit {
 
   private buildRaceTimeChart(): void {
     const key = this.selectedDistance;
-    const filtered = this.vo2maxHistory.filter(h => h.predictions[key] != null);
+    const cutoff = new Date();
+    switch (this.selectedTimeRange) {
+      case '1W': cutoff.setDate(cutoff.getDate() - 7);           break;
+      case '1M': cutoff.setMonth(cutoff.getMonth() - 1);         break;
+      case '6M': cutoff.setMonth(cutoff.getMonth() - 6);         break;
+      default:   cutoff.setFullYear(cutoff.getFullYear() - 1);   break; // 1Y
+    }
+    const cutoffStr = this.formatDateLocal(cutoff);
+    const filtered = this.vo2maxHistory.filter(
+      h => h.predictions[key] != null && h.date >= cutoffStr
+    );
 
     const reset = () => {
       this.raceTimeChartPoints = [];
