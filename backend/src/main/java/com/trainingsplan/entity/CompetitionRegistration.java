@@ -33,6 +33,12 @@ public class CompetitionRegistration {
     @Column(name = "ranking", length = 255)
     private String ranking;
 
+    @Column(name = "target_time", length = 8)
+    private String targetTime;
+
+    @Column(name = "registered_with_organizer", nullable = false)
+    private boolean registeredWithOrganizer = false;
+
     @Column(name = "registered_at", nullable = false)
     private LocalDateTime registeredAt = LocalDateTime.now();
 
@@ -57,6 +63,12 @@ public class CompetitionRegistration {
 
     public String getRanking() { return ranking; }
     public void setRanking(String ranking) { this.ranking = ranking; }
+
+    public String getTargetTime() { return targetTime; }
+    public void setTargetTime(String targetTime) { this.targetTime = targetTime; }
+
+    public boolean isRegisteredWithOrganizer() { return registeredWithOrganizer; }
+    public void setRegisteredWithOrganizer(boolean registeredWithOrganizer) { this.registeredWithOrganizer = registeredWithOrganizer; }
 
     public LocalDateTime getRegisteredAt() { return registeredAt; }
     public void setRegisteredAt(LocalDateTime registeredAt) { this.registeredAt = registeredAt; }

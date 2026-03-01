@@ -14,6 +14,8 @@ public class CompetitionDto {
     private CompetitionType type;
     private String location;
     private String ranking;
+    private String targetTime;
+    private boolean registeredWithOrganizer;
     private boolean registered;
     private Long registrationId;
     private Long trainingPlanId;
@@ -30,6 +32,8 @@ public class CompetitionDto {
             this.registered = true;
             this.registrationId = registration.getId();
             this.ranking = registration.getRanking();
+            this.targetTime = registration.getTargetTime();
+            this.registeredWithOrganizer = registration.isRegisteredWithOrganizer();
             this.trainingPlanId = registration.getTrainingPlanId();
             this.trainingPlanName = registration.getTrainingPlanName();
         }
@@ -42,6 +46,8 @@ public class CompetitionDto {
     public CompetitionType getType() { return type; }
     public String getLocation() { return location; }
     public String getRanking() { return ranking; }
+    public String getTargetTime() { return targetTime; }
+    public boolean isRegisteredWithOrganizer() { return registeredWithOrganizer; }
     public boolean isRegistered() { return registered; }
     public Long getRegistrationId() { return registrationId; }
     public Long getTrainingPlanId() { return trainingPlanId; }

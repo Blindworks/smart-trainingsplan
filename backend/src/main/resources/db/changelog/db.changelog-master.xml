@@ -37,5 +37,6 @@
     <include file="db/changelog/changes/031-move-ranking-to-registration.xml"/>
     <include file="db/changelog/changes/032-add-competition-location.xml"/>
     <include file="db/changelog/changes/033-competition-type-enum.xml"/>
+    <include file="db/changelog/changes/034-add-registration-details.xml"/>
 
 </databaseChangeLog>

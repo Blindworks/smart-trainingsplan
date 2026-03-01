@@ -13,6 +13,8 @@ export interface Competition {
   // Registration info (from backend DTO)
   registered?: boolean;
   registrationId?: number;
+  targetTime?: string;
+  registeredWithOrganizer?: boolean;
   // Legacy field for compatibility
   targetDate?: string;
 }

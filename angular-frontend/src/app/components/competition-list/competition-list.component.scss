@@ -296,8 +296,30 @@
 
 // ─── Registration State Modifiers ─────────────────────────────────────────────
 
+.card-accent-bar--planned {
+  background: #ffa726 !important;
+}
+
 .card-accent-bar--registered {
-  background: var(--color-success, #4caf50) !important;
+  background: #4caf50 !important;
+}
+
+.card-badge--planned {
+  background: rgba(255, 167, 38, 0.12) !important;
+  color: #e65100 !important;
+  border: 1px solid rgba(255, 167, 38, 0.4) !important;
+  border-radius: 20px !important;
+  padding: 2px 10px 2px 6px !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
+
+  mat-icon {
+    color: #e65100 !important;
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+  }
 }
 
 .card-badge--registered {
@@ -312,6 +334,23 @@
 
   mat-icon {
     color: #4caf50 !important;
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+  }
+}
+
+.card-badge--time {
+  background: rgba(156, 39, 176, 0.1) !important;
+  color: #7b1fa2 !important;
+  border: 1px solid rgba(156, 39, 176, 0.3) !important;
+  border-radius: 20px !important;
+  padding: 2px 10px 2px 6px !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+
+  mat-icon {
+    color: #7b1fa2 !important;
     font-size: 14px !important;
     width: 14px !important;
     height: 14px !important;

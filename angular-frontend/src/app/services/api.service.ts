@@ -63,16 +63,16 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/competitions/${id}/generate-weeks`, {});
   }
 
-  registerForCompetition(id: number): Observable<any> {
-    return this.http.post(`${this.baseUrl}/competitions/${id}/register`, {});
+  registerForCompetition(id: number, data?: { targetTime?: string; registeredWithOrganizer?: boolean; ranking?: string }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/competitions/${id}/register`, data ?? {});
   }
 
   unregisterFromCompetition(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/competitions/${id}/register`);
   }
 
-  updateCompetitionRegistration(id: number, ranking: string): Observable<any> {
-    return this.http.put(`${this.baseUrl}/competitions/${id}/register`, { ranking });
+  updateCompetitionRegistration(id: number, data: { ranking?: string; targetTime?: string; registeredWithOrganizer?: boolean }): Observable<any> {
+    return this.http.put(`${this.baseUrl}/competitions/${id}/register`, data);
   }
 
   // Training Plan API

@@ -76,17 +76,20 @@ public class CompetitionService {
         competitionRepository.deleteById(id);
     }
 
-    public CompetitionRegistration updateRegistration(Long competitionId, String ranking) {
+    public CompetitionRegistration updateRegistration(Long competitionId, String ranking,
+                                                      String targetTime, Boolean registeredWithOrganizer) {
         Long userId = securityUtils.getCurrentUserId();
         if (userId == null) throw new RuntimeException("Not authenticated");
         CompetitionRegistration reg = registrationRepository
                 .findByCompetitionIdAndUserId(competitionId, userId)
                 .orElseThrow(() -> new RuntimeException("Not registered for competition: " + competitionId));
-        reg.setRanking(ranking);
+        if (ranking != null) reg.setRanking(ranking);
+        if (targetTime != null) reg.setTargetTime(targetTime);
+        if (registeredWithOrganizer != null) reg.setRegisteredWithOrganizer(registeredWithOrganizer);
         return registrationRepository.save(reg);
     }
 
-    public CompetitionRegistration register(Long competitionId) {
+    public CompetitionRegistration register(Long competitionId, String targetTime, Boolean registeredWithOrganizer, String ranking) {
         Competition competition = competitionRepository.findById(competitionId)
                 .orElseThrow(() -> new RuntimeException("Competition not found: " + competitionId));
         var user = securityUtils.getCurrentUser();
@@ -95,6 +98,9 @@ public class CompetitionService {
                 .findByCompetitionIdAndUserId(competitionId, user.getId());
         if (existing.isPresent()) return existing.get();
         CompetitionRegistration reg = new CompetitionRegistration(competition, user);
+        if (targetTime != null) reg.setTargetTime(targetTime);
+        if (registeredWithOrganizer != null) reg.setRegisteredWithOrganizer(registeredWithOrganizer);
+        if (ranking != null) reg.setRanking(ranking);
         return registrationRepository.save(reg);
     }
 

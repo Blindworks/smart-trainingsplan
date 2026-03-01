@@ -61,9 +61,13 @@ public class CompetitionController {
     }
 
     @PostMapping("/{id}/register")
-    public ResponseEntity<CompetitionRegistration> registerForCompetition(@PathVariable Long id) {
+    public ResponseEntity<CompetitionRegistration> registerForCompetition(@PathVariable Long id,
+                                                                          @RequestBody(required = false) Map<String, Object> body) {
         try {
-            CompetitionRegistration reg = competitionService.register(id);
+            String targetTime = body != null ? (String) body.get("targetTime") : null;
+            Boolean registeredWithOrganizer = body != null ? (Boolean) body.get("registeredWithOrganizer") : null;
+            String ranking = body != null ? (String) body.get("ranking") : null;
+            CompetitionRegistration reg = competitionService.register(id, targetTime, registeredWithOrganizer, ranking);
             return ResponseEntity.ok(reg);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
@@ -72,9 +76,12 @@ public class CompetitionController {
 
     @PutMapping("/{id}/register")
     public ResponseEntity<CompetitionRegistration> updateRegistration(@PathVariable Long id,
-                                                                      @RequestBody Map<String, String> body) {
+                                                                      @RequestBody Map<String, Object> body) {
         try {
-            CompetitionRegistration reg = competitionService.updateRegistration(id, body.get("ranking"));
+            String ranking = (String) body.get("ranking");
+            String targetTime = (String) body.get("targetTime");
+            Boolean registeredWithOrganizer = (Boolean) body.get("registeredWithOrganizer");
+            CompetitionRegistration reg = competitionService.updateRegistration(id, ranking, targetTime, registeredWithOrganizer);
             return ResponseEntity.ok(reg);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();

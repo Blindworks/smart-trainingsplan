@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="034-add-registration-details" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="competition_registrations" columnName="target_time"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="competition_registrations">
+            <column name="target_time" type="VARCHAR(8)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="034b-add-organizer-registered" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="competition_registrations" columnName="registered_with_organizer"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="competition_registrations">
+            <column name="registered_with_organizer" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

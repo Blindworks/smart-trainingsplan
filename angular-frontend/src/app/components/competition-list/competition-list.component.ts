@@ -9,9 +9,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiService } from '../../services/api.service';
 import { Competition } from '../../models/competition.model';
+import { RegistrationDialogComponent } from '../registration-dialog/registration-dialog.component';
 
 @Component({
   selector: 'app-competition-list',
@@ -25,7 +28,9 @@ import { Competition } from '../../models/competition.model';
     MatInputModule,
     MatFormFieldModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatDialogModule,
+    MatTooltipModule,
   ],
   templateUrl: './competition-list.component.html',
   styleUrl: './competition-list.component.scss'
@@ -38,7 +43,8 @@ export class CompetitionListComponent implements OnInit {
 
   constructor(
     private apiService: ApiService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -64,15 +70,28 @@ export class CompetitionListComponent implements OnInit {
     });
   }
 
-  register(competition: Competition): void {
-    if (!competition.id) return;
-    this.apiService.registerForCompetition(competition.id).subscribe({
-      next: () => {
+  openRegistrationDialog(competition: Competition): void {
+    const ref = this.dialog.open(RegistrationDialogComponent, {
+      data: { competition, isEditing: false },
+      disableClose: true,
+    });
+    ref.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
         this.snackBar.open('Erfolgreich angemeldet!', 'Schließen', { duration: 3000 });
         this.loadCompetitions();
-      },
-      error: () => {
-        this.snackBar.open('Fehler bei der Anmeldung', 'Schließen', { duration: 3000 });
+      }
+    });
+  }
+
+  openEditRegistrationDialog(competition: Competition): void {
+    const ref = this.dialog.open(RegistrationDialogComponent, {
+      data: { competition, isEditing: true },
+      disableClose: true,
+    });
+    ref.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.snackBar.open('Anmeldedaten aktualisiert', 'Schließen', { duration: 3000 });
+        this.loadCompetitions();
       }
     });
   }
@@ -102,7 +121,7 @@ export class CompetitionListComponent implements OnInit {
 
   saveRanking(competition: Competition): void {
     if (!competition.id) return;
-    this.apiService.updateCompetitionRegistration(competition.id, this.rankingInput).subscribe({
+    this.apiService.updateCompetitionRegistration(competition.id, { ranking: this.rankingInput }).subscribe({
       next: () => {
         competition.ranking = this.rankingInput;
         this.editingRankingId = null;

@@ -29,7 +29,9 @@
   <div class="competitions-grid" *ngIf="!loading && competitions.length > 0">
     <div class="competition-card" *ngFor="let competition of competitions">
 
-      <div class="card-accent-bar" [class.card-accent-bar--registered]="competition.registered"></div>
+      <div class="card-accent-bar"
+           [class.card-accent-bar--planned]="competition.registered && !competition.registeredWithOrganizer"
+           [class.card-accent-bar--registered]="competition.registered && competition.registeredWithOrganizer"></div>
 
       <div class="card-body">
         <div class="card-meta">
@@ -39,7 +41,11 @@
                 [class.card-countdown--soon]="getDaysUntil(competition.date || competition.targetDate)! <= 14">
             {{ getDaysUntil(competition.date || competition.targetDate) }} Tage
           </span>
-          <span class="card-badge card-badge--registered" *ngIf="competition.registered">
+          <span class="card-badge card-badge--planned" *ngIf="competition.registered && !competition.registeredWithOrganizer">
+            <mat-icon>bookmark</mat-icon>
+            Teilnahme geplant
+          </span>
+          <span class="card-badge card-badge--registered" *ngIf="competition.registered && competition.registeredWithOrganizer">
             <mat-icon>how_to_reg</mat-icon>
             Angemeldet
           </span>
@@ -50,6 +56,10 @@
           <span class="card-badge" *ngIf="competition.ranking">
             <mat-icon>military_tech</mat-icon>
             {{ competition.ranking }}
+          </span>
+          <span class="card-badge card-badge--time" *ngIf="competition.registered && competition.targetTime">
+            <mat-icon>timer</mat-icon>
+            {{ competition.targetTime }}
           </span>
           <span class="card-badge" *ngIf="competition.location">
             <mat-icon>place</mat-icon>
@@ -91,13 +101,18 @@
       </div>
 
       <div class="card-actions">
-        <button class="action-link" *ngIf="!competition.registered" (click)="register(competition)">
+        <button class="action-link" *ngIf="!competition.registered" (click)="openRegistrationDialog(competition)">
           <mat-icon>person_add</mat-icon>
           Anmelden
         </button>
         <button class="action-link danger" *ngIf="competition.registered" (click)="unregister(competition)">
           <mat-icon>person_remove</mat-icon>
           Abmelden
+        </button>
+        <button class="action-link" *ngIf="competition.registered" (click)="openEditRegistrationDialog(competition)"
+                matTooltip="Zielzeit und Anmeldedaten bearbeiten">
+          <mat-icon>edit_note</mat-icon>
+          Anmeldedaten
         </button>
         <a class="action-link" *ngIf="competition.registered && !competition.trainingPlanId" [routerLink]="['/competitions', competition.id, 'upload']">
           <mat-icon>upload_file</mat-icon>
