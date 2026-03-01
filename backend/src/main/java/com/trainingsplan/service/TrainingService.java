@@ -38,6 +38,10 @@ public class TrainingService {
         return trainingRepository.findByTrainingWeekId(weekId);
     }
 
+    public List<Training> findByTrainingPlanId(Long planId) {
+        return trainingRepository.findByTrainingPlan_Id(planId);
+    }
+
     public List<Training> findByDate(LocalDate date) {
         return trainingRepository.findByTrainingDate(date);
     }

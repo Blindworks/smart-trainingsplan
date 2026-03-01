@@ -40,6 +40,13 @@ export const routes: Routes = [
         .then(m => m.AdminRaceManagementComponent)
   },
   {
+    path: 'admin/training-plans',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./components/admin-training-plan-management/admin-training-plan-management.component')
+        .then(m => m.AdminTrainingPlanManagementComponent)
+  },
+  {
     path: 'admin',
     canActivate: [adminGuard],
     loadComponent: () =>

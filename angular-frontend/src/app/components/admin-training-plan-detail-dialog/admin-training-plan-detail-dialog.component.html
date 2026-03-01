@@ -1,0 +1,65 @@
+<div class="dialog-container" mat-dialog-content>
+
+  <!-- Header -->
+  <div class="dialog-header">
+    <div class="header-icon">
+      <mat-icon>fitness_center</mat-icon>
+    </div>
+    <div class="header-content">
+      <h2 class="plan-title">{{ data.plan.name }}</h2>
+      @if (data.plan.description) {
+        <p class="plan-description">{{ data.plan.description }}</p>
+      }
+    </div>
+    <button mat-icon-button class="close-btn" (click)="dialogRef.close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="dialog-body">
+
+    @if (loading) {
+      <div class="loading-wrap">
+        <mat-spinner diameter="36"></mat-spinner>
+      </div>
+    } @else if (trainings.length === 0) {
+      <div class="empty-state">
+        <mat-icon>inbox</mat-icon>
+        <p>Keine Trainings für diesen Plan gefunden.</p>
+      </div>
+    } @else {
+
+      <div class="count-badge">
+        <mat-icon>list</mat-icon>
+        {{ trainings.length }} Trainings
+      </div>
+
+      <div class="training-table">
+        <div class="t-row t-head">
+          <span>Datum</span>
+          <span>Name</span>
+          <span>Typ</span>
+          <span>Intensität</span>
+          <span>Dauer</span>
+        </div>
+        @for (t of trainings; track t.id) {
+          <div class="t-row">
+            <span class="t-date">{{ formatDate(t.trainingDate) }}</span>
+            <span class="t-name">{{ t.name }}</span>
+            <span><span class="badge badge-type">{{ typeLabel(t.trainingType) }}</span></span>
+            <span><span class="badge" [class]="'badge-' + (t.intensityLevel ?? 'low')">{{ intensityLabel(t.intensityLevel) }}</span></span>
+            <span class="t-duration">{{ t.durationMinutes ? t.durationMinutes + ' min' : '–' }}</span>
+          </div>
+        }
+      </div>
+
+    }
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="dialog-footer" mat-dialog-actions>
+  <button mat-button class="close-action-btn" (click)="dialogRef.close()">Schließen</button>
+</div>

@@ -37,6 +37,11 @@ public class TrainingController {
         return ResponseEntity.ok(trainingService.findByTrainingWeekId(weekId));
     }
 
+    @GetMapping("/plan/{planId}")
+    public ResponseEntity<List<Training>> getTrainingsByPlan(@PathVariable Long planId) {
+        return ResponseEntity.ok(trainingService.findByTrainingPlanId(planId));
+    }
+
     @GetMapping("/date/{date}")
     public ResponseEntity<List<Training>> getTrainingsByDate(@PathVariable String date) {
         LocalDate trainingDate = LocalDate.parse(date);

@@ -129,6 +129,10 @@ export class ApiService {
     return this.http.get<Training[]>(`${this.baseUrl}/trainings/week/${weekId}`);
   }
 
+  getTrainingsByPlan(planId: number): Observable<Training[]> {
+    return this.http.get<Training[]>(`${this.baseUrl}/trainings/plan/${planId}`);
+  }
+
   getTrainingsByDate(date: string): Observable<Training[]> {
     return this.http.get<Training[]>(`${this.baseUrl}/trainings/date/${date}`);
   }
