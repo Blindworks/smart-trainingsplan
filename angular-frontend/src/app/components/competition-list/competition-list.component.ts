@@ -15,6 +15,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../services/api.service';
 import { Competition } from '../../models/competition.model';
 import { RegistrationDialogComponent } from '../registration-dialog/registration-dialog.component';
+import { SelectPlanDialogComponent } from '../select-plan-dialog/select-plan-dialog.component';
 
 @Component({
   selector: 'app-competition-list',
@@ -117,6 +118,19 @@ export class CompetitionListComponent implements OnInit {
   cancelEditRanking(): void {
     this.editingRankingId = null;
     this.rankingInput = '';
+  }
+
+  openSelectPlanDialog(competition: Competition): void {
+    const ref = this.dialog.open(SelectPlanDialogComponent, {
+      data: { competition },
+      disableClose: true,
+    });
+    ref.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.snackBar.open('Plan erfolgreich verknüpft', 'Schließen', { duration: 3000 });
+        this.loadCompetitions();
+      }
+    });
   }
 
   saveRanking(competition: Competition): void {

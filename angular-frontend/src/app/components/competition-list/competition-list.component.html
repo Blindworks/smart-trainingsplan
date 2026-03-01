@@ -118,6 +118,11 @@
           <mat-icon>upload_file</mat-icon>
           Upload Plan
         </a>
+        <button class="action-link" *ngIf="competition.registered && !competition.trainingPlanId" (click)="openSelectPlanDialog(competition)"
+                matTooltip="Bestehenden Trainingsplan verknüpfen">
+          <mat-icon>link</mat-icon>
+          Plan verknüpfen
+        </button>
       </div>
     </div>
   </div>
