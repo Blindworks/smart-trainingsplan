@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,7 +15,24 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './navigation.component.scss'
 })
 export class NavigationComponent {
+  mobileMenuOpen = false;
+
   constructor(private authService: AuthService) {}
+
+  @HostListener('window:resize')
+  onResize(): void {
+    if (window.innerWidth > 1024 && this.mobileMenuOpen) {
+      this.mobileMenuOpen = false;
+    }
+  }
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen = false;
+  }
 
   isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
@@ -35,6 +52,7 @@ export class NavigationComponent {
   }
 
   logout(): void {
+    this.closeMobileMenu();
     this.authService.logout();
   }
 }

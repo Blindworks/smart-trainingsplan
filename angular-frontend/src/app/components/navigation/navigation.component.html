@@ -1,7 +1,6 @@
-ï»¿<nav class="pacr-nav">
+<nav class="pacr-nav" [class.mobile-open]="mobileMenuOpen">
   <div class="nav-inner">
-    <!-- Brand -->
-    <a class="nav-brand" routerLink="/">
+    <a class="nav-brand" routerLink="/" (click)="closeMobileMenu()">
       <div class="brand-icon">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M10 2L18 7V13L10 18L2 13V7L10 2Z" stroke="url(#g)" stroke-width="1.5" fill="none"/>
@@ -18,8 +17,7 @@
       <span class="brand-name">PACR</span>
     </a>
 
-    <!-- Navigation Links -->
-    <div class="nav-links">
+    <div class="nav-links nav-links--desktop">
       <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
         <mat-icon>dashboard</mat-icon>
         <span>Dashboard</span>
@@ -30,7 +28,7 @@
       </a>
       <a class="nav-link" routerLink="/plans" routerLinkActive="active">
         <mat-icon>library_books</mat-icon>
-        <span>PlÃ¤ne</span>
+        <span>Pläne</span>
       </a>
       <a class="nav-link" routerLink="/overview" routerLinkActive="active">
         <mat-icon>grid_view</mat-icon>
@@ -46,7 +44,7 @@
       </a>
       <a class="nav-link" routerLink="/body-measurements" routerLinkActive="active">
         <mat-icon>scale</mat-icon>
-        <span>KÃ¶rperdaten</span>
+        <span>Körperdaten</span>
       </a>
       @if (isAdmin()) {
         <div class="nav-admin-menu">
@@ -65,27 +63,95 @@
             </a>
             <a class="nav-link nav-sub-link" routerLink="/admin/training-plans" routerLinkActive="active">
               <mat-icon>fitness_center</mat-icon>
-              <span>TrainingsplÃ¤ne</span>
+              <span>Trainingspläne</span>
             </a>
           </div>
         </div>
       }
     </div>
 
-    <!-- Profile Pill -->
-    <a class="nav-profile-pill" routerLink="/profile" routerLinkActive="active">
+    <a class="nav-profile-pill nav-profile-pill--desktop" routerLink="/profile" routerLinkActive="active">
       <div class="profile-avatar">
         <span class="avatar-initial">{{ getInitial() }}</span>
       </div>
       <span class="profile-name">{{ getUsername() }}</span>
     </a>
 
-    <!-- Logout Button -->
     @if (isLoggedIn()) {
-      <button mat-icon-button class="nav-logout" (click)="logout()" title="Abmelden">
+      <button mat-icon-button class="nav-logout nav-logout--desktop" (click)="logout()" title="Abmelden">
         <mat-icon>logout</mat-icon>
       </button>
     }
+
+    <button mat-icon-button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-label]="mobileMenuOpen ? 'Menü schließen' : 'Menü öffnen'">
+      <mat-icon>{{ mobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
+    </button>
+  </div>
+
+  <div class="mobile-menu" [class.open]="mobileMenuOpen">
+    <div class="nav-links nav-links--mobile">
+      <a class="nav-link" routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()">
+        <mat-icon>dashboard</mat-icon>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-link" routerLink="/competitions" routerLinkActive="active" (click)="closeMobileMenu()">
+        <mat-icon>emoji_events</mat-icon>
+        <span>Races</span>
+      </a>
+      <a class="nav-link" routerLink="/plans" routerLinkActive="active" (click)="closeMobileMenu()">
+        <mat-icon>library_books</mat-icon>
+        <span>Pläne</span>
+      </a>
+      <a class="nav-link" routerLink="/overview" routerLinkActive="active" (click)="closeMobileMenu()">
+        <mat-icon>grid_view</mat-icon>
+        <span>Training</span>
+      </a>
+      <a class="nav-link" routerLink="/completion" routerLinkActive="active" (click)="closeMobileMenu()">
+        <mat-icon>monitoring</mat-icon>
+        <span>Log</span>
+      </a>
+      <a class="nav-link" routerLink="/body-status" routerLinkActive="active" (click)="closeMobileMenu()">
+        <mat-icon>monitor_heart</mat-icon>
+        <span>Body</span>
+      </a>
+      <a class="nav-link" routerLink="/body-measurements" routerLinkActive="active" (click)="closeMobileMenu()">
+        <mat-icon>scale</mat-icon>
+        <span>Körperdaten</span>
+      </a>
+      @if (isAdmin()) {
+        <a class="nav-link" routerLink="/admin" routerLinkActive="active" (click)="closeMobileMenu()">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <span>Admin</span>
+        </a>
+        <a class="nav-link nav-sub-link" routerLink="/admin/users" routerLinkActive="active" (click)="closeMobileMenu()">
+          <mat-icon>group</mat-icon>
+          <span>Usersverwaltung</span>
+        </a>
+        <a class="nav-link nav-sub-link" routerLink="/admin/races" routerLinkActive="active" (click)="closeMobileMenu()">
+          <mat-icon>emoji_events</mat-icon>
+          <span>Raceverwaltung</span>
+        </a>
+        <a class="nav-link nav-sub-link" routerLink="/admin/training-plans" routerLinkActive="active" (click)="closeMobileMenu()">
+          <mat-icon>fitness_center</mat-icon>
+          <span>Trainingspläne</span>
+        </a>
+      }
+    </div>
+
+    <div class="mobile-menu-footer">
+      <a class="nav-profile-pill" routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">
+        <div class="profile-avatar">
+          <span class="avatar-initial">{{ getInitial() }}</span>
+        </div>
+        <span class="profile-name">{{ getUsername() }}</span>
+      </a>
+
+      @if (isLoggedIn()) {
+        <button mat-stroked-button class="mobile-logout-btn" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          Abmelden
+        </button>
+      }
+    </div>
   </div>
 </nav>
-
