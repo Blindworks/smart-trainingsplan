@@ -61,6 +61,20 @@ export class AdminTrainingPlanManagementComponent implements OnInit {
     });
   }
 
+  openEdit(plan: TrainingPlan): void {
+    const ref = this.dialog.open(AdminTrainingPlanDetailDialogComponent, {
+      width: '860px',
+      maxWidth: '96vw',
+      data: { plan, startInEditMode: true }
+    });
+    ref.afterClosed().subscribe(updated => {
+      if (updated) {
+        const idx = this.plans.findIndex(p => p.id === updated.id);
+        if (idx !== -1) this.plans[idx] = { ...this.plans[idx], ...updated };
+      }
+    });
+  }
+
   deletePlan(plan: TrainingPlan): void {
     if (!plan.id || !confirm(`Trainingsplan "${plan.name}" wirklich löschen?`)) return;
     this.apiService.deleteTrainingPlan(plan.id).subscribe({

@@ -23,6 +23,8 @@ export interface TrainingPlan {
   id?: number;
   name: string;
   description?: string;
+  targetTime?: string;
+  prerequisites?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -31,7 +33,9 @@ export interface Training {
   id?: number;
   name: string;
   trainingDescription?: TrainingDescription;
-  trainingDate: string;
+  trainingDate?: string;
+  weekNumber?: number;
+  dayOfWeek?: string;
   durationMinutes?: number;
   intensityLevel: 'high' | 'medium' | 'low' | 'recovery' | 'rest';
   trainingType: 'speed' | 'endurance' | 'strength' | 'race' | 'interval' | 'recovery' | 'swimming' | 'cycling' | 'general' | 'fartlek';
@@ -49,6 +53,17 @@ export interface Training {
   completed?: boolean;
   feedback?: string;
   rating?: number;
+}
+
+export interface UserTrainingEntry {
+  id: number;
+  trainingDate: string;          // "YYYY-MM-DD"
+  weekNumber: number;
+  completed: boolean;
+  completionStatus?: string;
+  training: Training;            // embedded Training template
+  registrationId?: number;
+  competitionId?: number;
 }
 
 export interface TrainingDescription {
@@ -144,6 +159,8 @@ export interface TrainingPlanDto {
   description?: string;
   trainingCount?: number;
   uploadDate?: string;
+  targetTime?: string;
+  prerequisites?: string;
 }
 
 export interface User {

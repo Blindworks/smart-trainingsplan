@@ -7,6 +7,7 @@ import {
   TrainingPlan,
   TrainingPlanDto,
   Training,
+  UserTrainingEntry,
   TrainingDescription,
   CompletedTraining,
   TrainingFeedback,
@@ -102,6 +103,10 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/training-plans/upload`, formData);
   }
 
+  patchTrainingPlanMetadata(id: number, updates: { name?: string; description?: string; targetTime?: string; prerequisites?: string }): Observable<TrainingPlan> {
+    return this.http.patch<TrainingPlan>(`${this.baseUrl}/training-plans/${id}/metadata`, updates);
+  }
+
   getTemplatePlans(): Observable<TrainingPlanDto[]> {
     return this.http.get<TrainingPlanDto[]>(`${this.baseUrl}/training-plans/templates`);
   }
@@ -166,6 +171,29 @@ export class ApiService {
 
   deleteTraining(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/trainings/${id}`);
+  }
+
+  // User Training Entries API
+  getUserTrainingEntries(registrationId: number): Observable<UserTrainingEntry[]> {
+    return this.http.get<UserTrainingEntry[]>(`${this.baseUrl}/user-training-entries`, {
+      params: { registrationId: registrationId.toString() }
+    });
+  }
+
+  getUserCalendarEntries(from: string, to: string): Observable<UserTrainingEntry[]> {
+    return this.http.get<UserTrainingEntry[]>(`${this.baseUrl}/user-training-entries/calendar`, {
+      params: { from, to }
+    });
+  }
+
+  updateTrainingEntryFeedback(id: number, feedback: TrainingFeedback): Observable<UserTrainingEntry> {
+    return this.http.put<UserTrainingEntry>(`${this.baseUrl}/user-training-entries/${id}/feedback`, feedback);
+  }
+
+  generateUserSchedule(registrationId: number): Observable<UserTrainingEntry[]> {
+    return this.http.post<UserTrainingEntry[]>(`${this.baseUrl}/user-training-entries/generate`, null, {
+      params: { registrationId: registrationId.toString() }
+    });
   }
 
   // FIT File Upload

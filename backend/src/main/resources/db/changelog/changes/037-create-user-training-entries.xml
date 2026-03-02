@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="037-create-user-training-entries" author="trainingsplan">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_training_entries"/>
+            </not>
+        </preConditions>
+        <createTable tableName="user_training_entries">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="competition_registration_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="training_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="training_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="week_number" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completed" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completion_status" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint
+            constraintName="fk_ute_registration"
+            baseTableName="user_training_entries"
+            baseColumnNames="competition_registration_id"
+            referencedTableName="competition_registrations"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+        <addForeignKeyConstraint
+            constraintName="fk_ute_training"
+            baseTableName="user_training_entries"
+            baseColumnNames="training_id"
+            referencedTableName="trainings"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -2,11 +2,9 @@ package com.trainingsplan.service;
 
 import com.garmin.fit.*;
 import com.trainingsplan.entity.CompletedTraining;
-import com.trainingsplan.entity.Training;
 import com.trainingsplan.entity.User;
 import com.trainingsplan.repository.CompletedTrainingRepository;
 import com.trainingsplan.security.SecurityUtils;
-import com.trainingsplan.service.TrainingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +24,7 @@ public class CompletedTrainingService {
     private CompletedTrainingRepository completedTrainingRepository;
 
     @Autowired
-    private TrainingService trainingService;
+    private UserTrainingScheduleService userTrainingScheduleService;
 
     @Autowired
     private BodyMetricService bodyMetricService;
@@ -68,11 +66,12 @@ public class CompletedTrainingService {
                 collector.getHeartRates(),
                 currentUser);
 
-        // If trainingId is provided, mark the planned training as completed
+        // If trainingId is provided, mark the UserTrainingEntry as completed
         if (trainingId != null) {
-            Training plannedTraining = trainingService.findById(trainingId);
-            if (plannedTraining != null) {
-                trainingService.updateTrainingFeedback(trainingId, true, "completed");
+            try {
+                userTrainingScheduleService.updateCompletion(trainingId, true, "completed");
+            } catch (Exception ignored) {
+                // Entry may not exist (legacy case); silently ignore
             }
         }
 

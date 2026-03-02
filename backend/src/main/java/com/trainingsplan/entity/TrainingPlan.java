@@ -29,6 +29,12 @@ public class TrainingPlan {
     @Column(name = "training_count")
     private Integer trainingCount;
 
+    @Column(name = "target_time", length = 20)
+    private String targetTime;
+
+    @Column(name = "prerequisites", columnDefinition = "TEXT")
+    private String prerequisites;
+
     public TrainingPlan() {
         this.uploadDate = LocalDateTime.now();
     }
@@ -86,5 +92,21 @@ public class TrainingPlan {
 
     public void setTrainingCount(Integer trainingCount) {
         this.trainingCount = trainingCount;
+    }
+
+    public String getTargetTime() {
+        return targetTime;
+    }
+
+    public void setTargetTime(String targetTime) {
+        this.targetTime = targetTime;
+    }
+
+    public String getPrerequisites() {
+        return prerequisites;
+    }
+
+    public void setPrerequisites(String prerequisites) {
+        this.prerequisites = prerequisites;
     }
 }

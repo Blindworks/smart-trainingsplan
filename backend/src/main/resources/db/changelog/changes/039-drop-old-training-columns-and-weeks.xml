@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Drop training_week_id FK dynamically (name may vary), then drop the column -->
+    <changeSet id="039-1-drop-training-week-fk" author="trainingsplan">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="trainings" columnName="training_week_id"/>
+        </preConditions>
+        <sql>DROP PROCEDURE IF EXISTS liq_drop_training_week_fk</sql>
+        <sql endDelimiter="//">
+CREATE PROCEDURE liq_drop_training_week_fk()
+BEGIN
+    DECLARE v_fk VARCHAR(255) DEFAULT NULL;
+    SELECT CONSTRAINT_NAME INTO v_fk
+    FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'trainings'
+      AND COLUMN_NAME = 'training_week_id'
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1;
+    IF v_fk IS NOT NULL THEN
+        SET @drop_sql = CONCAT('ALTER TABLE trainings DROP FOREIGN KEY `', v_fk, '`');
+        PREPARE drop_stmt FROM @drop_sql;
+        EXECUTE drop_stmt;
+        DEALLOCATE PREPARE drop_stmt;
+    END IF;
+END//
+        </sql>
+        <sql>CALL liq_drop_training_week_fk()</sql>
+        <sql>DROP PROCEDURE IF EXISTS liq_drop_training_week_fk</sql>
+        <dropColumn tableName="trainings" columnName="training_week_id"/>
+    </changeSet>
+
+    <!-- Drop training_date, completed, completion_status from trainings -->
+    <changeSet id="039-2-drop-training-date-columns" author="trainingsplan">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="trainings" columnName="training_date"/>
+        </preConditions>
+        <dropColumn tableName="trainings" columnName="training_date"/>
+        <dropColumn tableName="trainings" columnName="completed"/>
+        <dropColumn tableName="trainings" columnName="completion_status"/>
+    </changeSet>
+
+    <!-- Drop training_weeks table: first drop its FK to competitions dynamically, then table -->
+    <changeSet id="039-3-drop-training-weeks" author="trainingsplan">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="training_weeks"/>
+        </preConditions>
+        <sql>DROP PROCEDURE IF EXISTS liq_drop_training_weeks_comp_fk</sql>
+        <sql endDelimiter="//">
+CREATE PROCEDURE liq_drop_training_weeks_comp_fk()
+BEGIN
+    DECLARE v_fk VARCHAR(255) DEFAULT NULL;
+    SELECT CONSTRAINT_NAME INTO v_fk
+    FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'training_weeks'
+      AND COLUMN_NAME = 'competition_id'
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1;
+    IF v_fk IS NOT NULL THEN
+        SET @drop_sql = CONCAT('ALTER TABLE training_weeks DROP FOREIGN KEY `', v_fk, '`');
+        PREPARE drop_stmt FROM @drop_sql;
+        EXECUTE drop_stmt;
+        DEALLOCATE PREPARE drop_stmt;
+    END IF;
+END//
+        </sql>
+        <sql>CALL liq_drop_training_weeks_comp_fk()</sql>
+        <sql>DROP PROCEDURE IF EXISTS liq_drop_training_weeks_comp_fk</sql>
+        <dropTable tableName="training_weeks"/>
+    </changeSet>
+
+</databaseChangeLog>

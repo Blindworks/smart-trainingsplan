@@ -75,6 +75,33 @@ public class TrainingPlanController {
         return ResponseEntity.ok(new TrainingPlanDto(updated));
     }
 
+    /**
+     * Updates editable metadata fields (name, description, targetTime, prerequisites).
+     * Does not touch jsonContent or training records.
+     */
+    @PatchMapping("/{id}/metadata")
+    public ResponseEntity<TrainingPlanDto> updateMetadata(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> updates) {
+        TrainingPlan plan = trainingPlanService.findById(id);
+        if (plan == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (updates.containsKey("name") && updates.get("name") != null && !updates.get("name").isBlank()) {
+            plan.setName(updates.get("name"));
+        }
+        if (updates.containsKey("description")) {
+            plan.setDescription(updates.get("description"));
+        }
+        if (updates.containsKey("targetTime")) {
+            plan.setTargetTime(updates.get("targetTime"));
+        }
+        if (updates.containsKey("prerequisites")) {
+            plan.setPrerequisites(updates.get("prerequisites"));
+        }
+        return ResponseEntity.ok(new TrainingPlanDto(trainingPlanService.save(plan)));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTrainingPlan(@PathVariable Long id) {
         if (trainingPlanService.findById(id) == null) {

@@ -15,7 +15,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { ApiService } from '../../services/api.service';
-import { Competition, Training, CompletedTraining, DailyMetrics } from '../../models/competition.model';
+import { Competition, Training, UserTrainingEntry, CompletedTraining, DailyMetrics } from '../../models/competition.model';
 import { TrainingDetailsDialogComponent } from '../training-details-dialog/training-details-dialog.component';
 import { StravaActivityDialogComponent, CompletedTrainingDialogData } from '../strava-activity-dialog/strava-activity-dialog.component';
 import { CreateTrainingDialogComponent } from '../create-training-dialog/create-training-dialog.component';
@@ -24,6 +24,7 @@ import { Subject, takeUntil, catchError, of, switchMap } from 'rxjs';
 interface DayTraining {
   date: string;
   trainings: Training[];
+  userEntries: UserTrainingEntry[];
   completedTrainings: CompletedTraining[];
   isEmpty: boolean;
 }
@@ -161,21 +162,70 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
   loadWeekData(): void {
     this.loading = true;
     const week = this.getWeekDates(this.currentDate);
-    
-    // Load all trainings and filter client-side
-    this.apiService.getTrainingOverview([], '', '')
+    const startDate = this.formatDateString(week.startDate);
+    const endDate = this.formatDateString(week.endDate);
+
+    this.apiService.getUserCalendarEntries(startDate, endDate)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (allTrainings) => {
-          this.processWeekData(week, allTrainings);
+        next: (entries) => {
+          this.processWeekDataFromEntries(week, entries);
           this.loading = false;
         },
-        error: (error) => {
-          console.error('Error loading trainings:', error);
-          this.snackBar.open('Fehler beim Laden der Trainingsdaten', 'Schließen', { duration: 3000 });
-          this.loading = false;
+        error: () => {
+          // Fallback: try old training API
+          this.apiService.getTrainingOverview([], '', '')
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (allTrainings) => {
+                this.processWeekData(week, allTrainings);
+                this.loading = false;
+              },
+              error: () => {
+                this.snackBar.open('Fehler beim Laden der Trainingsdaten', 'Schließen', { duration: 3000 });
+                this.loading = false;
+              }
+            });
         }
       });
+  }
+
+  private processWeekDataFromEntries(week: { startDate: Date; endDate: Date }, entries: UserTrainingEntry[]): void {
+    const mondayOfWeek = this.getMondayOfWeek(this.currentDate);
+    const weekData: WeekData = {
+      weekNumber: this.getWeekNumber(mondayOfWeek),
+      startDate: mondayOfWeek,
+      endDate: new Date(mondayOfWeek.getTime() + 6 * 24 * 60 * 60 * 1000),
+      days: this.createWeekDays(mondayOfWeek)
+    };
+
+    entries.forEach(entry => {
+      const dayIndex = weekData.days.findIndex(d => d.date === entry.trainingDate);
+      if (dayIndex !== -1) {
+        weekData.days[dayIndex].userEntries.push(entry);
+        weekData.days[dayIndex].trainings.push(this.mapEntryToTraining(entry));
+        weekData.days[dayIndex].isEmpty = false;
+      }
+    });
+
+    this.syncStravaAndLoadCompleted(weekData);
+    this.weekData = weekData;
+  }
+
+  private mapEntryToTraining(entry: UserTrainingEntry): Training {
+    return {
+      ...entry.training,
+      id: entry.id,
+      trainingDate: entry.trainingDate,
+      date: entry.trainingDate,
+      type: entry.training.trainingType,
+      intensity: entry.training.intensityLevel,
+      duration: entry.training.durationMinutes,
+      completed: entry.completed,
+      isCompleted: entry.completed,
+      completionStatus: entry.completionStatus,
+      description: entry.training.trainingDescription?.name || entry.training.name,
+    };
   }
 
   private processWeekData(week: { startDate: Date; endDate: Date }, allTrainings: Training[]): void {
@@ -207,6 +257,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
       days.push({
         date: dateString,
         trainings: [],
+        userEntries: [],
         completedTrainings: [],
         isEmpty: true
       });
@@ -515,19 +566,23 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
   // Training Completion Methods
   toggleTrainingCompletion(training: Training): void {
     const newCompletionStatus = !training.completed;
-    
-    this.apiService.updateTrainingFeedback(training.id!, {
+    const feedback = {
       completed: newCompletionStatus,
       completionStatus: newCompletionStatus ? 'completed' : 'pending'
-    }).pipe(takeUntil(this.destroy$))
-    .subscribe({
+    };
+
+    // Use UserTrainingEntry feedback endpoint (new architecture)
+    this.apiService.updateTrainingEntryFeedback(training.id!, feedback).pipe(
+      takeUntil(this.destroy$),
+      catchError(() => this.apiService.updateTrainingFeedback(training.id!, feedback))
+    ).subscribe({
       next: () => {
         training.completed = newCompletionStatus;
         const message = newCompletionStatus ? 'Training als abgeschlossen markiert' : 'Training als offen markiert';
         this.snackBar.open(message, 'Schließen', { duration: 2000 });
-        this.loadWeekData(); // Reload to refresh display
+        this.loadWeekData();
       },
-      error: (error) => {
+      error: () => {
         this.snackBar.open('Fehler beim Aktualisieren des Training-Status', 'Schließen', { duration: 3000 });
       }
     });

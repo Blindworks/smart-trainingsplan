@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="038-migrate-trainings-to-user-entries" author="trainingsplan">
+        <!-- Migrate existing competition-linked trainings into user_training_entries -->
+        <sql>
+            INSERT INTO user_training_entries
+                (competition_registration_id, training_id, training_date, week_number, completed, completion_status)
+            SELECT
+                cr.id,
+                t.id,
+                t.training_date,
+                t.week_number,
+                COALESCE(t.completed, false),
+                t.completion_status
+            FROM competition_registrations cr
+            JOIN training_weeks tw ON tw.competition_id = cr.competition_id
+            JOIN trainings t ON t.training_week_id = tw.id AND t.training_plan_id = cr.training_plan_id
+            WHERE cr.training_plan_id IS NOT NULL
+              AND t.training_date IS NOT NULL;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

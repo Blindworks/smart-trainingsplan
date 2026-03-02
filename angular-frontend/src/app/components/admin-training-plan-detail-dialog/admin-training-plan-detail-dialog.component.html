@@ -11,10 +11,75 @@
         <p class="plan-description">{{ data.plan.description }}</p>
       }
     </div>
+    <button mat-icon-button class="edit-btn" (click)="toggleEdit()" [title]="editMode ? 'Bearbeiten abbrechen' : 'Bearbeiten'">
+      <mat-icon>{{ editMode ? 'close' : 'edit' }}</mat-icon>
+    </button>
     <button mat-icon-button class="close-btn" (click)="dialogRef.close()">
       <mat-icon>close</mat-icon>
     </button>
   </div>
+
+  <!-- Edit Form -->
+  @if (editMode) {
+    <div class="edit-section">
+      <h3 class="edit-section-title">Plan bearbeiten</h3>
+
+      <mat-form-field appearance="outline" class="edit-field">
+        <mat-label>Name</mat-label>
+        <input matInput [(ngModel)]="editName" placeholder="Planname" required />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="edit-field">
+        <mat-label>Beschreibung</mat-label>
+        <textarea matInput [(ngModel)]="editDescription" rows="2" placeholder="Kurze Beschreibung"></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="edit-field edit-field--half">
+        <mat-label>Zielzeit</mat-label>
+        <input matInput [(ngModel)]="editTargetTime" placeholder="z.B. 3:45:00" />
+        <mat-hint>Format: H:MM:SS oder MM:SS</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="edit-field">
+        <mat-label>Voraussetzungen</mat-label>
+        <textarea matInput [(ngModel)]="editPrerequisites" rows="3"
+          placeholder="z.B. Mindestens 6 Monate Lauferfahrung, 40 km/Woche Grundlage"></textarea>
+      </mat-form-field>
+
+      <div class="edit-actions">
+        <button mat-stroked-button (click)="toggleEdit()" [disabled]="saving">Abbrechen</button>
+        <button mat-raised-button color="primary" (click)="saveMetadata()" [disabled]="saving || !editName.trim()">
+          @if (saving) {
+            <mat-spinner diameter="18"></mat-spinner>
+          } @else {
+            <mat-icon>save</mat-icon>
+          }
+          Speichern
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Meta info (target time + prerequisites) when not editing -->
+  @if (!editMode && (data.plan.targetTime || data.plan.prerequisites)) {
+    <div class="plan-meta">
+      @if (data.plan.targetTime) {
+        <div class="meta-chip">
+          <mat-icon>timer</mat-icon>
+          <span>Zielzeit: <strong>{{ data.plan.targetTime }}</strong></span>
+        </div>
+      }
+      @if (data.plan.prerequisites) {
+        <div class="meta-prerequisites">
+          <mat-icon>checklist</mat-icon>
+          <div>
+            <span class="prerequisites-label">Voraussetzungen</span>
+            <p class="prerequisites-text">{{ data.plan.prerequisites }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
 
   <!-- Body -->
   <div class="dialog-body">
@@ -37,7 +102,8 @@
 
       <div class="training-table">
         <div class="t-row t-head">
-          <span>Datum</span>
+          <span>Woche</span>
+          <span>Tag</span>
           <span>Name</span>
           <span>Typ</span>
           <span>Intensität</span>
@@ -45,7 +111,8 @@
         </div>
         @for (t of trainings; track t.id) {
           <div class="t-row">
-            <span class="t-date">{{ formatDate(t.trainingDate) }}</span>
+            <span class="t-week">{{ t.weekNumber ?? '–' }}</span>
+            <span class="t-day">{{ t.dayOfWeek ?? '–' }}</span>
             <span class="t-name">{{ t.name }}</span>
             <span><span class="badge badge-type">{{ typeLabel(t.trainingType) }}</span></span>
             <span><span class="badge" [class]="'badge-' + (t.intensityLevel ?? 'low')">{{ intensityLabel(t.intensityLevel) }}</span></span>

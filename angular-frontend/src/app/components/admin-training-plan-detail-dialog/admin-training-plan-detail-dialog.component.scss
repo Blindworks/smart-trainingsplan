@@ -76,6 +76,17 @@
   line-height: 1.5;
 }
 
+.edit-btn {
+  color: var(--text-muted) !important;
+  flex-shrink: 0;
+  margin: -6px 0 0 0;
+
+  &:hover {
+    color: var(--accent-blue) !important;
+    background-color: rgba(45, 123, 255, 0.08) !important;
+  }
+}
+
 .close-btn {
   color: var(--text-muted) !important;
   flex-shrink: 0;
@@ -84,6 +95,109 @@
   &:hover {
     color: var(--text-secondary) !important;
     background-color: rgba(255, 255, 255, 0.06) !important;
+  }
+}
+
+// ─── Edit section ─────────────────────────────────────────────────────────────
+
+.edit-section {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(45, 123, 255, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-section-title {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+}
+
+.edit-field {
+  width: 100%;
+
+  &--half {
+    max-width: 280px;
+  }
+}
+
+.edit-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+
+  button mat-spinner {
+    display: inline-block;
+    margin-right: 6px;
+  }
+}
+
+// ─── Plan meta (target time / prerequisites) ──────────────────────────────────
+
+.plan-meta {
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(45, 123, 255, 0.08);
+  border: 1px solid rgba(45, 123, 255, 0.18);
+  border-radius: 20px;
+  padding: 4px 14px 4px 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  width: fit-content;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--accent-blue);
+  }
+}
+
+.meta-prerequisites {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 13px;
+  color: var(--text-secondary);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .prerequisites-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+  }
+
+  .prerequisites-text {
+    margin: 0;
+    line-height: 1.5;
+    white-space: pre-wrap;
   }
 }
 
@@ -166,7 +280,7 @@
 
 .t-row {
   display: grid;
-  grid-template-columns: 100px 2fr 130px 130px 80px;
+  grid-template-columns: 60px 90px 2fr 120px 120px 70px;
   gap: 12px;
   padding: 10px 14px;
   align-items: center;

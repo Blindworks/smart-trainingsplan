@@ -93,11 +93,4 @@ public class CompetitionController {
         competitionService.unregister(id);
         return ResponseEntity.noContent().build();
     }
-
-    @PostMapping("/{competitionId}/generate-weeks")
-    public ResponseEntity<CompetitionDto> generateTrainingWeeks(@PathVariable Long competitionId) {
-        CompetitionDto dto = competitionService.generateTrainingWeeks(competitionId);
-        if (dto != null) return ResponseEntity.ok(dto);
-        return ResponseEntity.notFound().build();
-    }
 }
