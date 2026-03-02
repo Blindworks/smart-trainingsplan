@@ -40,6 +40,11 @@ export const routes: Routes = [
         .then(m => m.AdminRaceManagementComponent)
   },
   {
+    path: 'admin/training-plans/upload',
+    canActivate: [adminGuard],
+    component: TrainingPlanUploadComponent
+  },
+  {
     path: 'admin/training-plans',
     canActivate: [adminGuard],
     loadComponent: () =>
@@ -55,7 +60,7 @@ export const routes: Routes = [
   { path: 'competitions', component: CompetitionListComponent, canActivate: [authGuard] },
   { path: 'competitions/new', component: CompetitionFormComponent, canActivate: [authGuard] },
   { path: 'competitions/:id/edit', component: CompetitionFormComponent, canActivate: [authGuard] },
-  { path: 'competitions/:id/upload', component: TrainingPlanUploadComponent, canActivate: [authGuard] },
+  { path: 'competitions/:id/upload', component: TrainingPlanUploadComponent, canActivate: [adminGuard] },
   { path: 'plans', component: PlanLibraryComponent, canActivate: [authGuard] },
   { path: 'overview', component: TrainingPlanOverviewComponent, canActivate: [authGuard] },
   { path: 'completion', component: TrainingCompletionComponent, canActivate: [authGuard] },

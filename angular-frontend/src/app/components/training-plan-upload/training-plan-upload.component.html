@@ -35,7 +35,7 @@
     <!-- Save as Template Toggle -->
     <mat-card class="options-card">
       <mat-card-content>
-        <div class="option-row">
+        <div class="option-row" *ngIf="!templateOnlyMode">
           <mat-checkbox
             [(ngModel)]="saveAsTemplate"
             class="template-checkbox"
@@ -44,7 +44,7 @@
           </mat-checkbox>
         </div>
 
-        <p class="option-hint" *ngIf="saveAsTemplate">
+        <p class="option-hint" *ngIf="saveAsTemplate && !templateOnlyMode">
           Der Plan wird als wiederverwendbare Vorlage gespeichert und kann später beliebigen Wettkämpfen zugewiesen werden — ohne direkte Verknüpfung zu diesem Wettkampf.
         </p>
 

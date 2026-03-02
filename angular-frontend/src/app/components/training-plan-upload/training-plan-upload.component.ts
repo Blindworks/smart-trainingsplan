@@ -100,7 +100,14 @@ export class TrainingPlanUploadComponent implements OnInit {
     if (id) {
       this.competitionId = +id;
       this.loadCompetition();
+    } else {
+      // Kein Wettkampf-Kontext → nur Template-Upload erlaubt
+      this.saveAsTemplate = true;
     }
+  }
+
+  get templateOnlyMode(): boolean {
+    return !this.competitionId;
   }
 
   loadCompetition(): void {
@@ -167,7 +174,7 @@ export class TrainingPlanUploadComponent implements OnInit {
       this.apiService.uploadAsTemplate(formData).subscribe({
         next: () => {
           this.snackBar.open('Trainingsplan als Vorlage gespeichert', 'Schließen', { duration: 3000 });
-          this.router.navigate(['/competitions']);
+          this.router.navigate(this.templateOnlyMode ? ['/admin/training-plans'] : ['/competitions']);
         },
         error: (error) => {
           this.snackBar.open(
@@ -218,7 +225,7 @@ export class TrainingPlanUploadComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/competitions']);
+    this.router.navigate(this.templateOnlyMode ? ['/admin/training-plans'] : ['/competitions']);
   }
 
   formatDate(dateString: string): string {
