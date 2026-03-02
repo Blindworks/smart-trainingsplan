@@ -9,10 +9,19 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { catchError, of } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 
 import { ApiService } from '../../services/api.service';
 import { TrainingPlan, Training, COMPETITION_TYPES } from '../../models/competition.model';
+
+interface TrainingRow {
+  weekNumber: number | null;
+  dayOfWeek: string;
+  name: string;
+  trainingType: string;
+  intensityLevel: string;
+  durationMinutes: number | null;
+}
 
 export interface TrainingPlanDetailDialogData {
   plan: TrainingPlan;
@@ -49,7 +58,41 @@ export class AdminTrainingPlanDetailDialogComponent implements OnInit {
   editPrerequisites = '';
   editCompetitionType = '';
 
+  newRows: TrainingRow[] = [];
+  savingNewTrainings = false;
+
   readonly competitionTypes = COMPETITION_TYPES;
+
+  readonly days = [
+    { value: 'MONDAY',    label: 'Montag' },
+    { value: 'TUESDAY',   label: 'Dienstag' },
+    { value: 'WEDNESDAY', label: 'Mittwoch' },
+    { value: 'THURSDAY',  label: 'Donnerstag' },
+    { value: 'FRIDAY',    label: 'Freitag' },
+    { value: 'SATURDAY',  label: 'Samstag' },
+    { value: 'SUNDAY',    label: 'Sonntag' },
+  ];
+
+  readonly types = [
+    { value: 'endurance',  label: 'Ausdauer' },
+    { value: 'speed',      label: 'Speed' },
+    { value: 'interval',   label: 'Intervall' },
+    { value: 'fartlek',    label: 'Fahrtspiel' },
+    { value: 'strength',   label: 'Kraft' },
+    { value: 'recovery',   label: 'Regeneration' },
+    { value: 'race',       label: 'Wettkampf' },
+    { value: 'swimming',   label: 'Schwimmen' },
+    { value: 'cycling',    label: 'Radfahren' },
+    { value: 'general',    label: 'Allgemein' },
+  ];
+
+  readonly intensities = [
+    { value: 'low',      label: 'Niedrig' },
+    { value: 'medium',   label: 'Mittel' },
+    { value: 'high',     label: 'Hoch' },
+    { value: 'recovery', label: 'Regeneration' },
+    { value: 'rest',     label: 'Ruhe' },
+  ];
 
   constructor(
     public dialogRef: MatDialogRef<AdminTrainingPlanDetailDialogComponent>,
@@ -137,5 +180,68 @@ export class AdminTrainingPlanDetailDialogComponent implements OnInit {
       cycling: 'Radfahren', general: 'Allgemein', fartlek: 'Fahrtspiel'
     };
     return type ? (map[type] ?? type) : '–';
+  }
+
+  hasValidNewRow(): boolean {
+    return this.newRows.some(r => r.name.trim().length > 0);
+  }
+
+  addRow(): void {
+    this.newRows.push({
+      weekNumber: null,
+      dayOfWeek: 'MONDAY',
+      name: '',
+      trainingType: 'endurance',
+      intensityLevel: 'medium',
+      durationMinutes: null
+    });
+  }
+
+  removeNewRow(index: number): void {
+    this.newRows.splice(index, 1);
+  }
+
+  saveNewTrainings(): void {
+    const valid = this.newRows.filter(r => r.name.trim());
+    if (!valid.length || !this.data.plan.id) return;
+    this.savingNewTrainings = true;
+
+    const calls = valid.map(r => this.apiService.createTraining({
+      name: r.name.trim(),
+      trainingType: r.trainingType as any,
+      intensityLevel: r.intensityLevel as any,
+      weekNumber: r.weekNumber ?? undefined,
+      dayOfWeek: r.dayOfWeek as any,
+      durationMinutes: r.durationMinutes ?? undefined,
+      isCompleted: false
+    }, this.data.plan.id));
+
+    forkJoin(calls).subscribe({
+      next: created => {
+        this.trainings = [...this.trainings, ...created].sort((a, b) =>
+          (a.weekNumber ?? 0) - (b.weekNumber ?? 0)
+        );
+        this.newRows = [];
+        this.savingNewTrainings = false;
+        this.snackBar.open(`${created.length} Training(s) hinzugefügt`, 'Schließen', { duration: 3000 });
+      },
+      error: () => {
+        this.savingNewTrainings = false;
+        this.snackBar.open('Fehler beim Hinzufügen', 'Schließen', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteTraining(training: Training): void {
+    if (!training.id) return;
+    this.apiService.deleteTraining(training.id).subscribe({
+      next: () => {
+        this.trainings = this.trainings.filter(t => t.id !== training.id);
+        this.snackBar.open('Training gelöscht', 'Schließen', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Fehler beim Löschen', 'Schließen', { duration: 3000 });
+      }
+    });
   }
 }

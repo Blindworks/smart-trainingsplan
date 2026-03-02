@@ -1,10 +1,8 @@
-<div class="dialog-container" mat-dialog-content>
+<div class="dialog-container">
 
   <!-- Header -->
   <div class="dialog-header">
-    <div class="header-icon">
-      <mat-icon>fitness_center</mat-icon>
-    </div>
+    <div class="header-icon"><mat-icon>fitness_center</mat-icon></div>
     <div class="header-content">
       <h2 class="plan-title">{{ data.plan.name }}</h2>
       @if (data.plan.description) {
@@ -13,132 +11,204 @@
     </div>
   </div>
 
-  <!-- Edit Form -->
-  @if (editMode) {
-    <div class="edit-section">
-      <h3 class="edit-section-title">Plan bearbeiten</h3>
-
-      <mat-form-field appearance="outline" class="edit-field">
-        <mat-label>Name</mat-label>
-        <input matInput [(ngModel)]="editName" placeholder="Planname" required />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="edit-field">
-        <mat-label>Beschreibung</mat-label>
-        <textarea matInput [(ngModel)]="editDescription" rows="2" placeholder="Kurze Beschreibung"></textarea>
-      </mat-form-field>
-
-      <div class="edit-row">
-        <mat-form-field appearance="outline" class="edit-field edit-field--half">
-          <mat-label>Zielzeit</mat-label>
-          <input matInput [(ngModel)]="editTargetTime" placeholder="z.B. 3:45:00" />
-          <mat-hint>Format: H:MM:SS oder MM:SS</mat-hint>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="edit-field edit-field--half">
-          <mat-label>Wettkampfformat</mat-label>
-          <mat-select [(ngModel)]="editCompetitionType">
-            <mat-option value="">– Kein Format –</mat-option>
-            @for (ct of competitionTypes; track ct) {
-              <mat-option [value]="ct">{{ ct }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div>
-
-      <mat-form-field appearance="outline" class="edit-field">
-        <mat-label>Voraussetzungen</mat-label>
-        <textarea matInput [(ngModel)]="editPrerequisites" rows="3"
-          placeholder="z.B. Mindestens 6 Monate Lauferfahrung, 40 km/Woche Grundlage"></textarea>
-      </mat-form-field>
-
-      <div class="edit-actions">
-        <button mat-stroked-button (click)="toggleEdit()" [disabled]="saving">Abbrechen</button>
-        <button mat-raised-button color="primary" (click)="saveMetadata()" [disabled]="saving || !editName.trim()">
-          @if (saving) {
-            <mat-spinner diameter="18"></mat-spinner>
-          } @else {
-            <mat-icon>save</mat-icon>
-          }
-          Speichern
-        </button>
-      </div>
-    </div>
-  }
-
-  <!-- Meta info (target time + prerequisites) when not editing -->
-  @if (!editMode && (data.plan.targetTime || data.plan.prerequisites || data.plan.competitionType)) {
-    <div class="plan-meta">
-      @if (data.plan.competitionType) {
-        <div class="meta-chip">
-          <mat-icon>emoji_events</mat-icon>
-          <span>Format: <strong>{{ data.plan.competitionType }}</strong></span>
-        </div>
-      }
-      @if (data.plan.targetTime) {
-        <div class="meta-chip">
-          <mat-icon>timer</mat-icon>
-          <span>Zielzeit: <strong>{{ data.plan.targetTime }}</strong></span>
-        </div>
-      }
-      @if (data.plan.prerequisites) {
-        <div class="meta-prerequisites">
-          <mat-icon>checklist</mat-icon>
-          <div>
-            <span class="prerequisites-label">Voraussetzungen</span>
-            <p class="prerequisites-text">{{ data.plan.prerequisites }}</p>
-          </div>
-        </div>
-      }
-    </div>
-  }
-
-  <!-- Body -->
+  <!-- Scrollable body -->
   <div class="dialog-body">
 
-    @if (loading) {
-      <div class="loading-wrap">
-        <mat-spinner diameter="36"></mat-spinner>
-      </div>
-    } @else if (trainings.length === 0) {
-      <div class="empty-state">
-        <mat-icon>inbox</mat-icon>
-        <p>Keine Trainings für diesen Plan gefunden.</p>
-      </div>
-    } @else {
+    <!-- Edit Form -->
+    @if (editMode) {
+      <div class="edit-section">
+        <h3 class="edit-section-title">Plan bearbeiten</h3>
 
-      <div class="count-badge">
-        <mat-icon>list</mat-icon>
-        {{ trainings.length }} Trainings
-      </div>
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Name</mat-label>
+          <input matInput [(ngModel)]="editName" placeholder="Planname" required />
+        </mat-form-field>
 
-      <div class="training-table">
-        <div class="t-row t-head">
-          <span>Woche</span>
-          <span>Tag</span>
-          <span>Name</span>
-          <span>Typ</span>
-          <span>Intensität</span>
-          <span>Dauer</span>
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Beschreibung</mat-label>
+          <textarea matInput [(ngModel)]="editDescription" rows="2" placeholder="Kurze Beschreibung"></textarea>
+        </mat-form-field>
+
+        <div class="edit-row">
+          <mat-form-field appearance="outline" class="edit-field edit-field--half">
+            <mat-label>Zielzeit</mat-label>
+            <input matInput [(ngModel)]="editTargetTime" placeholder="z.B. 3:45:00" />
+            <mat-hint>Format: H:MM:SS oder MM:SS</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="edit-field edit-field--half">
+            <mat-label>Wettkampfformat</mat-label>
+            <mat-select [(ngModel)]="editCompetitionType">
+              <mat-option value="">– Kein Format –</mat-option>
+              @for (ct of competitionTypes; track ct) {
+                <mat-option [value]="ct">{{ ct }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
         </div>
-        @for (t of trainings; track t.id) {
-          <div class="t-row">
-            <span class="t-week">{{ t.weekNumber ?? '–' }}</span>
-            <span class="t-day">{{ t.dayOfWeek ?? '–' }}</span>
-            <span class="t-name">{{ t.trainingDescription?.name ?? t.name }}</span>
-            <span><span class="badge badge-type">{{ typeLabel(t.trainingType) }}</span></span>
-            <span><span class="badge" [class]="'badge-' + (t.intensityLevel ?? 'low')">{{ intensityLabel(t.intensityLevel) }}</span></span>
-            <span class="t-duration">{{ t.durationMinutes ? t.durationMinutes + ' min' : '–' }}</span>
+
+        <mat-form-field appearance="outline" class="edit-field">
+          <mat-label>Voraussetzungen</mat-label>
+          <textarea matInput [(ngModel)]="editPrerequisites" rows="3"
+            placeholder="z.B. Mindestens 6 Monate Lauferfahrung, 40 km/Woche Grundlage"></textarea>
+        </mat-form-field>
+
+        <div class="edit-actions">
+          <button mat-stroked-button (click)="toggleEdit()" [disabled]="saving">Abbrechen</button>
+          <button mat-raised-button color="primary" (click)="saveMetadata()" [disabled]="saving || !editName.trim()">
+            @if (saving) {
+              <mat-spinner diameter="18"></mat-spinner>
+            } @else {
+              <mat-icon>save</mat-icon>
+            }
+            Speichern
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Meta info when not editing -->
+    @if (!editMode && (data.plan.targetTime || data.plan.prerequisites || data.plan.competitionType)) {
+      <div class="plan-meta">
+        @if (data.plan.competitionType) {
+          <div class="meta-chip">
+            <mat-icon>emoji_events</mat-icon>
+            <span>Format: <strong>{{ data.plan.competitionType }}</strong></span>
+          </div>
+        }
+        @if (data.plan.targetTime) {
+          <div class="meta-chip">
+            <mat-icon>timer</mat-icon>
+            <span>Zielzeit: <strong>{{ data.plan.targetTime }}</strong></span>
+          </div>
+        }
+        @if (data.plan.prerequisites) {
+          <div class="meta-prerequisites">
+            <mat-icon>checklist</mat-icon>
+            <div>
+              <span class="prerequisites-label">Voraussetzungen</span>
+              <p class="prerequisites-text">{{ data.plan.prerequisites }}</p>
+            </div>
           </div>
         }
       </div>
-
     }
+
+    <!-- Trainings -->
+    <div class="section section--trainings">
+
+      <div class="section-header">
+        <div class="section-header-left">
+          <span class="section-title">Trainings</span>
+          @if (!loading) {
+            <span class="count-pill">{{ trainings.length + newRows.length }}</span>
+          }
+        </div>
+        <div class="section-header-right">
+          @if (newRows.length > 0) {
+            <button class="save-btn" (click)="saveNewTrainings()"
+              [disabled]="savingNewTrainings || !hasValidNewRow()">
+              @if (savingNewTrainings) {
+                <mat-spinner diameter="14"></mat-spinner>
+              } @else {
+                <mat-icon>save</mat-icon>
+              }
+              Speichern
+            </button>
+          }
+          <button class="add-btn" (click)="addRow()">
+            <mat-icon>add</mat-icon>
+            Hinzufügen
+          </button>
+        </div>
+      </div>
+
+      @if (loading) {
+        <div class="loading-wrap">
+          <mat-spinner diameter="36"></mat-spinner>
+        </div>
+      } @else if (trainings.length === 0 && newRows.length === 0) {
+        <div class="empty-state">
+          <mat-icon>inbox</mat-icon>
+          <p>Keine Trainings für diesen Plan gefunden.</p>
+        </div>
+      } @else {
+        <div class="training-table">
+          <div class="t-row t-head">
+            <span>Woche</span>
+            <span>Tag</span>
+            <span>Name</span>
+            <span>Typ</span>
+            <span>Intensität</span>
+            <span>Dauer</span>
+            <span></span>
+          </div>
+
+          @for (t of trainings; track t.id) {
+            <div class="t-row">
+              <span class="t-week">{{ t.weekNumber ?? '–' }}</span>
+              <span class="t-day">{{ t.dayOfWeek ?? '–' }}</span>
+              <span class="t-name">{{ t.trainingDescription?.name ?? t.name }}</span>
+              <span><span class="badge badge-type">{{ typeLabel(t.trainingType) }}</span></span>
+              <span><span class="badge" [class]="'badge-' + t.intensityLevel">{{ intensityLabel(t.intensityLevel) }}</span></span>
+              <span class="t-duration">{{ t.durationMinutes ? t.durationMinutes + ' min' : '–' }}</span>
+              <span>
+                <button class="del-btn" (click)="deleteTraining(t)" title="Training löschen">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </span>
+            </div>
+          }
+
+          @for (row of newRows; track $index; let i = $index) {
+            <div class="t-row t-row--new">
+              <span>
+                <input class="cell-input" type="number" min="1" [(ngModel)]="row.weekNumber" placeholder="–" />
+              </span>
+              <span>
+                <select class="cell-select" [(ngModel)]="row.dayOfWeek">
+                  @for (d of days; track d.value) {
+                    <option [value]="d.value">{{ d.label }}</option>
+                  }
+                </select>
+              </span>
+              <span>
+                <input class="cell-input" [(ngModel)]="row.name" placeholder="z.B. Intervalltraining" />
+              </span>
+              <span>
+                <select class="cell-select" [(ngModel)]="row.trainingType">
+                  @for (t of types; track t.value) {
+                    <option [value]="t.value">{{ t.label }}</option>
+                  }
+                </select>
+              </span>
+              <span>
+                <select class="cell-select" [(ngModel)]="row.intensityLevel">
+                  @for (it of intensities; track it.value) {
+                    <option [value]="it.value">{{ it.label }}</option>
+                  }
+                </select>
+              </span>
+              <span>
+                <input class="cell-input" type="number" min="1" [(ngModel)]="row.durationMinutes" placeholder="–" />
+              </span>
+              <span>
+                <button class="del-btn" (click)="removeNewRow(i)" title="Zeile entfernen">
+                  <mat-icon>remove_circle_outline</mat-icon>
+                </button>
+              </span>
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+
   </div>
 
 </div>
 
 <!-- Footer -->
-<div class="dialog-footer" mat-dialog-actions>
+<div class="dialog-footer">
   <button mat-button class="close-action-btn" (click)="dialogRef.close()">Schließen</button>
 </div>
