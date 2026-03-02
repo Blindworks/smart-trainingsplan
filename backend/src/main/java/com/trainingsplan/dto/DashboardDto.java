@@ -13,6 +13,8 @@ public class DashboardDto {
     private final List<EfTrendPointDto> efTrend;
     private final List<DriftTrendPointDto> driftTrend;
     private final LastRunDto lastRun;
+    private final NextCompetitionDto nextCompetition;
+    private final List<TrainingProgressDto> trainingProgress;
 
     public DashboardDto(
             double strain21,
@@ -22,7 +24,9 @@ public class DashboardDto {
             List<LoadTrendPointDto> loadTrend,
             List<EfTrendPointDto> efTrend,
             List<DriftTrendPointDto> driftTrend,
-            LastRunDto lastRun
+            LastRunDto lastRun,
+            NextCompetitionDto nextCompetition,
+            List<TrainingProgressDto> trainingProgress
     ) {
         this.strain21 = strain21;
         this.readinessScore = readinessScore;
@@ -32,6 +36,8 @@ public class DashboardDto {
         this.efTrend = efTrend;
         this.driftTrend = driftTrend;
         this.lastRun = lastRun;
+        this.nextCompetition = nextCompetition;
+        this.trainingProgress = trainingProgress;
     }
 
     public double getStrain21() {
@@ -64,6 +70,14 @@ public class DashboardDto {
 
     public LastRunDto getLastRun() {
         return lastRun;
+    }
+
+    public NextCompetitionDto getNextCompetition() {
+        return nextCompetition;
+    }
+
+    public List<TrainingProgressDto> getTrainingProgress() {
+        return trainingProgress;
     }
 
     public static class LoadStatusDto {
@@ -184,6 +198,54 @@ public class DashboardDto {
 
         public List<String> getCoachBullets() {
             return coachBullets;
+        }
+    }
+
+    public static class NextCompetitionDto {
+        private final String competitionName;
+        private final String competitionLocation;
+        private final java.time.LocalDate date;
+        private final int daysUntil;
+        private final double elapsedPct;
+
+        public NextCompetitionDto(String competitionName, String competitionLocation, java.time.LocalDate date, int daysUntil, double elapsedPct) {
+            this.competitionName = competitionName;
+            this.competitionLocation = competitionLocation;
+            this.date = date;
+            this.daysUntil = daysUntil;
+            this.elapsedPct = elapsedPct;
+        }
+
+        public String getCompetitionName() { return competitionName; }
+        public String getCompetitionLocation() { return competitionLocation; }
+        public java.time.LocalDate getDate() { return date; }
+        public int getDaysUntil() { return daysUntil; }
+        public double getElapsedPct() { return elapsedPct; }
+    }
+
+    public static class TrainingProgressDto {
+        private final long competitionId;
+        private final String competitionName;
+        private final java.time.LocalDate competitionDate;
+        private final int total;
+        private final int completed;
+
+        public TrainingProgressDto(long competitionId, String competitionName, java.time.LocalDate competitionDate, int total, int completed) {
+            this.competitionId = competitionId;
+            this.competitionName = competitionName;
+            this.competitionDate = competitionDate;
+            this.total = total;
+            this.completed = completed;
+        }
+
+        public long getCompetitionId() { return competitionId; }
+        public String getCompetitionName() { return competitionName; }
+        public java.time.LocalDate getCompetitionDate() { return competitionDate; }
+        public int getTotal() { return total; }
+        public int getCompleted() { return completed; }
+
+        public double getCompletionPct() {
+            return total > 0 ? Math.min(100.0, completed * 100.0 / total) : 0.0;
         }
     }
 }

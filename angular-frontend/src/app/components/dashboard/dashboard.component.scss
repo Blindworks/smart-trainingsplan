@@ -180,6 +180,163 @@ h1 {
   top: 0.55em;
 }
 
+// ── Race Section ──────────────────────────────────────────────
+.race-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: 14px;
+}
+
+// Countdown card
+.panel--countdown {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.countdown-body {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.countdown-days {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.countdown-number {
+  font-size: clamp(2.4rem, 6vw, 3.8rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--accent-blue);
+  line-height: 1;
+
+  &.today {
+    color: var(--volt-green, #00FF9C);
+  }
+}
+
+.countdown-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+
+  &.today {
+    color: var(--volt-green, #00FF9C);
+  }
+}
+
+.countdown-date {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.countdown-bar-wrap {
+  height: 5px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.countdown-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent-blue), #7a4fff);
+  transition: width 0.6s ease;
+}
+
+.countdown-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+// Progress card
+.panel--progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.progress-item {
+  display: grid;
+  gap: 6px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.progress-name {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-count {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-bar-track {
+  height: 8px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent-blue);
+  transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &--warn {
+    background: var(--pulse-orange, #FF6A00);
+  }
+
+  &--ok {
+    background: var(--accent-blue);
+  }
+
+  &--good {
+    background: var(--volt-green, #00FF9C);
+  }
+}
+
+.progress-pct {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+// ── End Race Section ───────────────────────────────────────────
+
 .panel--mini-trends {
   display: grid;
   gap: 12px;
@@ -214,6 +371,10 @@ h1 {
 
 @media (max-width: 960px) {
   .score-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .race-section {
     grid-template-columns: 1fr;
   }
 

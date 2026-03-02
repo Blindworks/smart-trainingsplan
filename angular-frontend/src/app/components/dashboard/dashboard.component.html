@@ -42,6 +42,57 @@
       ></app-score-ring-card>
     </section>
 
+    <section class="race-section" *ngIf="dashboard.nextCompetition || dashboard.trainingProgress?.length">
+      <article class="panel panel--countdown" *ngIf="dashboard.nextCompetition">
+        <div class="panel-head">
+          <h2>Nächster Wettkampf</h2>
+          <p>{{ dashboard.nextCompetition.competitionName }}<span *ngIf="dashboard.nextCompetition.competitionLocation"> · {{ dashboard.nextCompetition.competitionLocation }}</span></p>
+        </div>
+
+        <div class="countdown-body">
+          <div class="countdown-days">
+            <span class="countdown-number" *ngIf="dashboard.nextCompetition.daysUntil > 0">{{ dashboard.nextCompetition.daysUntil }}</span>
+            <span class="countdown-number today" *ngIf="dashboard.nextCompetition.daysUntil === 0">0</span>
+            <span class="countdown-label" *ngIf="dashboard.nextCompetition.daysUntil > 0">Tage</span>
+            <span class="countdown-label today" *ngIf="dashboard.nextCompetition.daysUntil === 0">Heute!</span>
+          </div>
+          <p class="countdown-date">{{ formatDate(dashboard.nextCompetition.date) }}</p>
+        </div>
+
+        <div class="countdown-bar-wrap">
+          <div class="countdown-bar-fill" [style.width.%]="dashboard.nextCompetition.elapsedPct"></div>
+        </div>
+        <div class="countdown-bar-labels">
+          <span>Start</span>
+          <span>{{ dashboard.nextCompetition.elapsedPct | number:'1.0-0' }}% absolviert</span>
+          <span>Race</span>
+        </div>
+      </article>
+
+      <article class="panel panel--progress" *ngIf="dashboard.trainingProgress?.length">
+        <div class="panel-head">
+          <h2>Trainingsfortschritt</h2>
+          <p>Absolvierte Einheiten je Wettkampf</p>
+        </div>
+
+        <div class="progress-list">
+          <div class="progress-item" *ngFor="let prog of dashboard.trainingProgress">
+            <div class="progress-header">
+              <span class="progress-name">{{ prog.competitionName }}</span>
+              <span class="progress-count">{{ prog.completed }} / {{ prog.total }}</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" [style.width.%]="prog.completionPct"
+                   [class.progress-bar-fill--warn]="prog.completionPct < 30"
+                   [class.progress-bar-fill--ok]="prog.completionPct >= 30 && prog.completionPct < 75"
+                   [class.progress-bar-fill--good]="prog.completionPct >= 75"></div>
+            </div>
+            <div class="progress-pct">{{ prog.completionPct | number:'1.0-0' }}%</div>
+          </div>
+        </div>
+      </article>
+    </section>
+
     <article class="panel panel--trend">
       <div class="panel-head">
         <h2>Load Trend</h2>

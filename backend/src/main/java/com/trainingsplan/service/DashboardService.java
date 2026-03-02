@@ -5,22 +5,31 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trainingsplan.dto.DashboardDto;
 import com.trainingsplan.entity.AcwrFlag;
 import com.trainingsplan.entity.ActivityMetrics;
+import com.trainingsplan.entity.Competition;
+import com.trainingsplan.entity.CompetitionRegistration;
 import com.trainingsplan.entity.CompletedTraining;
 import com.trainingsplan.entity.DailyMetrics;
 import com.trainingsplan.entity.Recommendation;
 import com.trainingsplan.entity.User;
+import com.trainingsplan.entity.UserTrainingEntry;
 import com.trainingsplan.repository.ActivityMetricsRepository;
+import com.trainingsplan.repository.CompetitionRegistrationRepository;
 import com.trainingsplan.repository.CompletedTrainingRepository;
 import com.trainingsplan.repository.DailyMetricsRepository;
+import com.trainingsplan.repository.UserTrainingEntryRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DashboardService {
@@ -33,21 +42,28 @@ public class DashboardService {
     private final CompletedTrainingRepository completedTrainingRepository;
     private final DailyMetricsService dailyMetricsService;
     private final ObjectMapper objectMapper;
+    private final CompetitionRegistrationRepository competitionRegistrationRepository;
+    private final UserTrainingEntryRepository userTrainingEntryRepository;
 
     public DashboardService(
             DailyMetricsRepository dailyMetricsRepository,
             ActivityMetricsRepository activityMetricsRepository,
             CompletedTrainingRepository completedTrainingRepository,
             DailyMetricsService dailyMetricsService,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            CompetitionRegistrationRepository competitionRegistrationRepository,
+            UserTrainingEntryRepository userTrainingEntryRepository
     ) {
         this.dailyMetricsRepository = dailyMetricsRepository;
         this.activityMetricsRepository = activityMetricsRepository;
         this.completedTrainingRepository = completedTrainingRepository;
         this.dailyMetricsService = dailyMetricsService;
         this.objectMapper = objectMapper;
+        this.competitionRegistrationRepository = competitionRegistrationRepository;
+        this.userTrainingEntryRepository = userTrainingEntryRepository;
     }
 
+    @Transactional(readOnly = true)
     public DashboardDto getDashboard(User user) {
         LocalDate today = LocalDate.now();
         LocalDate startDate = today.minusDays(DAYS - 1L);
@@ -152,6 +168,44 @@ public class DashboardService {
                 acwrFlag != null ? acwrFlag.name() : "BLUE"
         );
 
+        // Next competition countdown
+        List<CompetitionRegistration> registrations = competitionRegistrationRepository.findByUserId(user.getId());
+
+        Optional<CompetitionRegistration> nextReg = registrations.stream()
+                .filter(r -> !r.getCompetition().getDate().isBefore(today))
+                .min(Comparator.comparing(r -> r.getCompetition().getDate()));
+
+        DashboardDto.NextCompetitionDto nextCompetition = nextReg.map(r -> {
+            Competition c = r.getCompetition();
+            long daysUntil = ChronoUnit.DAYS.between(today, c.getDate());
+            List<UserTrainingEntry> nextEntries = userTrainingEntryRepository.findByCompetitionRegistrationId(r.getId());
+            LocalDate planStart = nextEntries.stream()
+                    .map(UserTrainingEntry::getTrainingDate)
+                    .min(Comparator.naturalOrder())
+                    .orElse(r.getRegisteredAt().toLocalDate());
+            long totalDays = ChronoUnit.DAYS.between(planStart, c.getDate());
+            long elapsedDays = ChronoUnit.DAYS.between(planStart, today);
+            double elapsedPct = totalDays > 0
+                    ? Math.min(100.0, Math.max(0.0, elapsedDays * 100.0 / totalDays))
+                    : 0.0;
+            return new DashboardDto.NextCompetitionDto(
+                    c.getName(), c.getLocation(), c.getDate(), (int) daysUntil, elapsedPct);
+        }).orElse(null);
+
+        // Training progress per competition
+        List<DashboardDto.TrainingProgressDto> trainingProgress = registrations.stream()
+                .filter(r -> !r.getCompetition().getDate().isBefore(today))
+                .map(r -> {
+                    List<UserTrainingEntry> entries = userTrainingEntryRepository.findByCompetitionRegistrationId(r.getId());
+                    int total = entries.size();
+                    int done = (int) entries.stream().filter(e -> Boolean.TRUE.equals(e.getCompleted())).count();
+                    Competition c = r.getCompetition();
+                    return new DashboardDto.TrainingProgressDto(c.getId(), c.getName(), c.getDate(), total, done);
+                })
+                .filter(p -> p.getTotal() > 0)
+                .sorted(Comparator.comparing(DashboardDto.TrainingProgressDto::getCompetitionDate))
+                .collect(Collectors.toList());
+
         return new DashboardDto(
                 strain21,
                 readinessScore,
@@ -160,7 +214,9 @@ public class DashboardService {
                 loadTrend,
                 efTrend,
                 driftTrend,
-                lastRun
+                lastRun,
+                nextCompetition,
+                trainingProgress
         );
     }
 

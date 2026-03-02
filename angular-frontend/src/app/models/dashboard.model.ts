@@ -27,6 +27,23 @@ export interface DashboardLastRun {
   coachBullets: string[];
 }
 
+export interface DashboardNextCompetition {
+  competitionName: string;
+  competitionLocation?: string;
+  date: string;
+  daysUntil: number;
+  elapsedPct: number;
+}
+
+export interface DashboardTrainingProgress {
+  competitionId: number;
+  competitionName: string;
+  competitionDate: string;
+  total: number;
+  completed: number;
+  completionPct: number;
+}
+
 export interface DashboardDto {
   strain21: number;
   readinessScore: number;
@@ -36,4 +53,6 @@ export interface DashboardDto {
   efTrend: DashboardEfTrendPoint[];
   driftTrend: DashboardDriftTrendPoint[];
   lastRun: DashboardLastRun;
+  nextCompetition?: DashboardNextCompetition;
+  trainingProgress?: DashboardTrainingProgress[];
 }
