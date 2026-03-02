@@ -103,7 +103,7 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/training-plans/upload`, formData);
   }
 
-  patchTrainingPlanMetadata(id: number, updates: { name?: string; description?: string; targetTime?: string; prerequisites?: string }): Observable<TrainingPlan> {
+  patchTrainingPlanMetadata(id: number, updates: { name?: string; description?: string; targetTime?: string; prerequisites?: string; competitionType?: string }): Observable<TrainingPlan> {
     return this.http.patch<TrainingPlan>(`${this.baseUrl}/training-plans/${id}/metadata`, updates);
   }
 
@@ -157,8 +157,10 @@ export class ApiService {
     return this.http.get<Training[]>(`${this.baseUrl}/trainings`);
   }
 
-  createTraining(training: Training): Observable<Training> {
-    return this.http.post<Training>(`${this.baseUrl}/trainings`, training);
+  createTraining(training: Training, planId?: number): Observable<Training> {
+    const params: Record<string, string> = {};
+    if (planId != null) params['planId'] = planId.toString();
+    return this.http.post<Training>(`${this.baseUrl}/trainings`, training, { params });
   }
 
   updateTraining(id: number, training: Training): Observable<Training> {

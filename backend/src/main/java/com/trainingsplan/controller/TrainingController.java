@@ -1,6 +1,8 @@
 package com.trainingsplan.controller;
 
 import com.trainingsplan.entity.Training;
+import com.trainingsplan.entity.TrainingPlan;
+import com.trainingsplan.repository.TrainingPlanRepository;
 import com.trainingsplan.service.TrainingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,9 @@ public class TrainingController {
 
     @Autowired
     private TrainingService trainingService;
+
+    @Autowired
+    private TrainingPlanRepository trainingPlanRepository;
 
     @GetMapping
     public ResponseEntity<List<Training>> getAllTrainings() {
@@ -34,7 +39,12 @@ public class TrainingController {
     }
 
     @PostMapping
-    public ResponseEntity<Training> createTraining(@Valid @RequestBody Training training) {
+    public ResponseEntity<Training> createTraining(
+            @Valid @RequestBody Training training,
+            @RequestParam(value = "planId", required = false) Long planId) {
+        if (planId != null) {
+            trainingPlanRepository.findById(planId).ifPresent(training::setTrainingPlan);
+        }
         return ResponseEntity.ok(trainingService.save(training));
     }
 

@@ -69,6 +69,15 @@ export class AssignPlanDialogComponent implements OnInit {
     });
   }
 
+  get filteredCompetitions(): Competition[] {
+    if (!this.plan.competitionType) return this.competitions;
+    return this.competitions.filter(c => !c.type || c.type === this.plan.competitionType);
+  }
+
+  get isFiltered(): boolean {
+    return !!this.plan.competitionType;
+  }
+
   toggle(competition: Competition): void {
     if (competition.id === undefined) return;
     if (this.selectedIds.has(competition.id)) {

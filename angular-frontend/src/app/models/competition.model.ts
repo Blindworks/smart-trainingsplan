@@ -19,12 +19,21 @@ export interface Competition {
   targetDate?: string;
 }
 
+export const COMPETITION_TYPES = [
+  '5K', '10K', 'Halbmarathon', 'Marathon', '50K', '100K',
+  'Backyard Ultra', 'Catcher car', 'Sonstige'
+] as const;
+
+export type CompetitionTypeValue = typeof COMPETITION_TYPES[number];
+
 export interface TrainingPlan {
   id?: number;
   name: string;
   description?: string;
   targetTime?: string;
   prerequisites?: string;
+  competitionType?: string;
+  uploadDate?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -161,6 +170,7 @@ export interface TrainingPlanDto {
   uploadDate?: string;
   targetTime?: string;
   prerequisites?: string;
+  competitionType?: string;
 }
 
 export interface User {

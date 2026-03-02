@@ -53,6 +53,15 @@ export class SelectPlanDialogComponent implements OnInit {
     });
   }
 
+  get filteredPlans(): TrainingPlanDto[] {
+    if (!this.data.competition.type) return this.plans;
+    return this.plans.filter(p => !p.competitionType || p.competitionType === this.data.competition.type);
+  }
+
+  get isFiltered(): boolean {
+    return !!this.data.competition.type;
+  }
+
   select(id: number): void {
     this.selectedPlanId = id;
   }

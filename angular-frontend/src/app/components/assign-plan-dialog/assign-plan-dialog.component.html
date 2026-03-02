@@ -25,19 +25,27 @@
       <span>Wettkämpfe werden geladen...</span>
     </div>
 
+    <!-- Filter hint -->
+    <div *ngIf="!loading && isFiltered" class="filter-hint">
+      <mat-icon>filter_list</mat-icon>
+      <span>Nur <strong>{{ plan.competitionType }}</strong>-Wettkämpfe werden angezeigt. Pläne ohne Format sind für alle Wettkämpfe verfügbar.</span>
+    </div>
+
     <!-- Empty -->
-    <div *ngIf="!loading && competitions.length === 0" class="empty-state">
+    <div *ngIf="!loading && filteredCompetitions.length === 0" class="empty-state">
       <div class="empty-icon">
         <mat-icon>emoji_events</mat-icon>
       </div>
-      <p class="empty-title">Keine Wettkämpfe vorhanden</p>
-      <p class="empty-hint">Erstelle zuerst einen Wettkampf, um einen Plan zuzuweisen.</p>
+      <p class="empty-title">Keine passenden Wettkämpfe</p>
+      <p class="empty-hint">
+        {{ isFiltered ? 'Kein Wettkampf mit Format "' + plan.competitionType + '" gefunden.' : 'Erstelle zuerst einen Wettkampf, um einen Plan zuzuweisen.' }}
+      </p>
     </div>
 
     <!-- Competition List -->
-    <div *ngIf="!loading && competitions.length > 0" class="comp-list">
+    <div *ngIf="!loading && filteredCompetitions.length > 0" class="comp-list">
       <div
-        *ngFor="let competition of competitions"
+        *ngFor="let competition of filteredCompetitions"
         class="comp-card"
         [class.comp-card--selected]="isSelected(competition)"
         (click)="toggle(competition)"
@@ -54,7 +62,10 @@
             <mat-icon>{{ isSelected(competition) ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
           </div>
           <div class="comp-card__info">
-            <span class="comp-card__name">{{ competition.name }}</span>
+            <div class="comp-card__name-row">
+              <span class="comp-card__name">{{ competition.name }}</span>
+              <span *ngIf="competition.type" class="comp-type-badge">{{ competition.type }}</span>
+            </div>
             <span class="comp-card__meta">
               <span *ngIf="competition.date || competition.targetDate">
                 {{ formatDate(competition.date || competition.targetDate) }}

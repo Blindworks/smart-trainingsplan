@@ -44,5 +44,6 @@
     <include file="db/changelog/changes/038-migrate-trainings-to-user-entries.xml"/>
     <include file="db/changelog/changes/039-drop-old-training-columns-and-weeks.xml"/>
     <include file="db/changelog/changes/040-add-training-plan-target-time-prerequisites.xml"/>
+    <include file="db/changelog/changes/041-add-training-plan-competition-type.xml"/>
 
 </databaseChangeLog>

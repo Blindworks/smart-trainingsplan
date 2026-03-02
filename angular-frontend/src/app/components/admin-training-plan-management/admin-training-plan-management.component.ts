@@ -12,6 +12,7 @@ import { catchError, of } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { TrainingPlan } from '../../models/competition.model';
 import { AdminTrainingPlanDetailDialogComponent } from '../admin-training-plan-detail-dialog/admin-training-plan-detail-dialog.component';
+import { AdminCreateTrainingPlanDialogComponent } from '../admin-create-training-plan-dialog/admin-create-training-plan-dialog.component';
 
 @Component({
   selector: 'app-admin-training-plan-management',
@@ -71,6 +72,18 @@ export class AdminTrainingPlanManagementComponent implements OnInit {
       if (updated) {
         const idx = this.plans.findIndex(p => p.id === updated.id);
         if (idx !== -1) this.plans[idx] = { ...this.plans[idx], ...updated };
+      }
+    });
+  }
+
+  openCreate(): void {
+    const ref = this.dialog.open(AdminCreateTrainingPlanDialogComponent, {
+      width: '920px',
+      maxWidth: '96vw',
+    });
+    ref.afterClosed().subscribe(created => {
+      if (created) {
+        this.plans = [created, ...this.plans];
       }
     });
   }

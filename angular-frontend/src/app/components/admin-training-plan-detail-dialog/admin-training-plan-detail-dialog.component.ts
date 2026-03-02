@@ -7,11 +7,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { catchError, of } from 'rxjs';
 
 import { ApiService } from '../../services/api.service';
-import { TrainingPlan, Training } from '../../models/competition.model';
+import { TrainingPlan, Training, COMPETITION_TYPES } from '../../models/competition.model';
 
 export interface TrainingPlanDetailDialogData {
   plan: TrainingPlan;
@@ -30,6 +31,7 @@ export interface TrainingPlanDetailDialogData {
     MatProgressSpinnerModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatSnackBarModule
   ],
   templateUrl: './admin-training-plan-detail-dialog.component.html',
@@ -45,6 +47,9 @@ export class AdminTrainingPlanDetailDialogComponent implements OnInit {
   editDescription = '';
   editTargetTime = '';
   editPrerequisites = '';
+  editCompetitionType = '';
+
+  readonly competitionTypes = COMPETITION_TYPES;
 
   constructor(
     public dialogRef: MatDialogRef<AdminTrainingPlanDetailDialogComponent>,
@@ -73,6 +78,7 @@ export class AdminTrainingPlanDetailDialogComponent implements OnInit {
     this.editDescription = this.data.plan.description ?? '';
     this.editTargetTime = this.data.plan.targetTime ?? '';
     this.editPrerequisites = this.data.plan.prerequisites ?? '';
+    this.editCompetitionType = this.data.plan.competitionType ?? '';
   }
 
   toggleEdit(): void {
@@ -89,13 +95,15 @@ export class AdminTrainingPlanDetailDialogComponent implements OnInit {
       name: this.editName.trim(),
       description: this.editDescription.trim(),
       targetTime: this.editTargetTime.trim(),
-      prerequisites: this.editPrerequisites.trim()
+      prerequisites: this.editPrerequisites.trim(),
+      competitionType: this.editCompetitionType
     }).subscribe({
       next: updated => {
         this.data.plan.name = updated.name;
         this.data.plan.description = updated.description;
         this.data.plan.targetTime = updated.targetTime;
         this.data.plan.prerequisites = updated.prerequisites;
+        this.data.plan.competitionType = updated.competitionType;
         this.editMode = false;
         this.saving = false;
         this.snackBar.open('Trainingsplan gespeichert', 'Schließen', { duration: 3000 });

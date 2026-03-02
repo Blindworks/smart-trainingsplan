@@ -1,6 +1,7 @@
 package com.trainingsplan.controller;
 
 import com.trainingsplan.dto.TrainingPlanDto;
+import com.trainingsplan.entity.CompetitionType;
 import com.trainingsplan.entity.TrainingPlan;
 import com.trainingsplan.service.TrainingPlanService;
 import jakarta.validation.Valid;
@@ -98,6 +99,9 @@ public class TrainingPlanController {
         }
         if (updates.containsKey("prerequisites")) {
             plan.setPrerequisites(updates.get("prerequisites"));
+        }
+        if (updates.containsKey("competitionType")) {
+            plan.setCompetitionType(CompetitionType.fromString(updates.get("competitionType")));
         }
         return ResponseEntity.ok(new TrainingPlanDto(trainingPlanService.save(plan)));
     }

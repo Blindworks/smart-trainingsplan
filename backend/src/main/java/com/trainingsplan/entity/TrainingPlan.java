@@ -35,6 +35,10 @@ public class TrainingPlan {
     @Column(name = "prerequisites", columnDefinition = "TEXT")
     private String prerequisites;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "competition_type", length = 50)
+    private CompetitionType competitionType;
+
     public TrainingPlan() {
         this.uploadDate = LocalDateTime.now();
     }
@@ -108,5 +112,13 @@ public class TrainingPlan {
 
     public void setPrerequisites(String prerequisites) {
         this.prerequisites = prerequisites;
+    }
+
+    public CompetitionType getCompetitionType() {
+        return competitionType;
+    }
+
+    public void setCompetitionType(CompetitionType competitionType) {
+        this.competitionType = competitionType;
     }
 }

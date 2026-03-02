@@ -31,19 +31,27 @@
       {{ errorMessage }}
     </div>
 
+    <!-- Filter hint -->
+    <div *ngIf="!loading && isFiltered" class="filter-hint">
+      <mat-icon>filter_list</mat-icon>
+      <span>Nur Pläne für <strong>{{ data.competition.type }}</strong> werden angezeigt. Pläne ohne Format sind allgemeingültig.</span>
+    </div>
+
     <!-- Empty -->
-    <div *ngIf="!loading && plans.length === 0 && !errorMessage" class="empty-state">
+    <div *ngIf="!loading && filteredPlans.length === 0 && !errorMessage" class="empty-state">
       <div class="empty-icon">
         <mat-icon>description</mat-icon>
       </div>
-      <p class="empty-title">Keine Pläne vorhanden</p>
-      <p class="empty-hint">Lade zuerst einen Trainingsplan als Template hoch.</p>
+      <p class="empty-title">Keine passenden Pläne</p>
+      <p class="empty-hint">
+        {{ isFiltered ? 'Kein Plan für "' + data.competition.type + '" gefunden. Erstelle oder lade einen passenden Plan hoch.' : 'Lade zuerst einen Trainingsplan als Template hoch.' }}
+      </p>
     </div>
 
     <!-- Plan List -->
-    <div *ngIf="!loading && plans.length > 0" class="plan-list">
+    <div *ngIf="!loading && filteredPlans.length > 0" class="plan-list">
       <div
-        *ngFor="let plan of plans"
+        *ngFor="let plan of filteredPlans"
         class="plan-card"
         [class.plan-card--selected]="isSelected(plan.id)"
         (click)="select(plan.id)"
@@ -60,7 +68,10 @@
             <mat-icon>{{ isSelected(plan.id) ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
           </div>
           <div class="plan-card__info">
-            <span class="plan-card__name">{{ plan.name }}</span>
+            <div class="plan-card__name-row">
+              <span class="plan-card__name">{{ plan.name }}</span>
+              <span *ngIf="plan.competitionType" class="plan-type-badge">{{ plan.competitionType }}</span>
+            </div>
             <span class="plan-card__meta">
               <span *ngIf="plan.trainingCount">{{ plan.trainingCount }} Einheiten</span>
               <span class="plan-card__dot" *ngIf="plan.trainingCount && plan.uploadDate">·</span>

@@ -11,6 +11,7 @@ public class TrainingPlanDto {
     private String uploadDate;
     private String targetTime;
     private String prerequisites;
+    private String competitionType;
 
     public TrainingPlanDto() {}
 
@@ -22,6 +23,8 @@ public class TrainingPlanDto {
         this.uploadDate = plan.getUploadDate() != null ? plan.getUploadDate().toString() : null;
         this.targetTime = plan.getTargetTime();
         this.prerequisites = plan.getPrerequisites();
+        this.competitionType = plan.getCompetitionType() != null
+                ? plan.getCompetitionType().getDisplayName() : null;
     }
 
     public Long getId() {
@@ -78,5 +81,13 @@ public class TrainingPlanDto {
 
     public void setPrerequisites(String prerequisites) {
         this.prerequisites = prerequisites;
+    }
+
+    public String getCompetitionType() {
+        return competitionType;
+    }
+
+    public void setCompetitionType(String competitionType) {
+        this.competitionType = competitionType;
     }
 }

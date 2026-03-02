@@ -5,6 +5,10 @@
       Zurück zu Admin
     </a>
     <h1>Trainingspläne</h1>
+    <button mat-stroked-button (click)="openCreate()">
+      <mat-icon>add</mat-icon>
+      Neu erstellen
+    </button>
     <a mat-raised-button color="primary" routerLink="/admin/training-plans/upload">
       <mat-icon>upload_file</mat-icon>
       Hochladen
@@ -24,7 +28,7 @@
           <span>ID</span>
           <span>Name</span>
           <span>Beschreibung</span>
-          <span>Erstellt</span>
+          <span>Hochgeladen</span>
           <span>Aktionen</span>
         </div>
         @for (plan of plans; track plan.id) {
@@ -32,7 +36,7 @@
             <span>{{ plan.id }}</span>
             <span class="plan-name">{{ plan.name }}</span>
             <span>{{ plan.description || '–' }}</span>
-            <span>{{ formatDate(plan.createdAt) }}</span>
+            <span>{{ formatDate(plan.uploadDate) }}</span>
             <span class="actions-cell">
               <button class="pacr-btn-ghost row-btn" (click)="openDetail(plan)">
                 <mat-icon>visibility</mat-icon>
