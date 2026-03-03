@@ -3,21 +3,31 @@ import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../services/auth.service';
+import { TranslatePipe } from '../../i18n/translate.pipe';
+import { I18nService } from '../../services/i18n.service';
+import { Language } from '../../i18n/translations';
 
 @Component({
   selector: 'app-navigation',
   imports: [
     RouterModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    TranslatePipe
   ],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss'
 })
 export class NavigationComponent {
   mobileMenuOpen = false;
+  readonly languages: readonly Language[];
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private i18nService: I18nService
+  ) {
+    this.languages = this.i18nService.getSupportedLanguages();
+  }
 
   @HostListener('window:resize')
   onResize(): void {
@@ -43,7 +53,7 @@ export class NavigationComponent {
   }
 
   getUsername(): string {
-    return this.authService.getCurrentUsername() ?? 'Profil';
+    return this.authService.getCurrentUsername() ?? this.i18nService.t('common.profile');
   }
 
   getInitial(): string {
@@ -54,5 +64,13 @@ export class NavigationComponent {
   logout(): void {
     this.closeMobileMenu();
     this.authService.logout();
+  }
+
+  getLanguage(): Language {
+    return this.i18nService.getLanguage();
+  }
+
+  onLanguageChange(language: string): void {
+    this.i18nService.setLanguage(language);
   }
 }

@@ -10,6 +10,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/auth.service';
 import { AuthResponse } from '../../models/auth.model';
+import { TranslatePipe } from '../../i18n/translate.pipe';
+import { I18nService } from '../../services/i18n.service';
 
 @Component({
   selector: 'app-register',
@@ -23,7 +25,8 @@ import { AuthResponse } from '../../models/auth.model';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TranslatePipe
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
@@ -41,7 +44,8 @@ export class RegisterComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private i18nService: I18nService
   ) {
     this.registerForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
@@ -54,7 +58,10 @@ export class RegisterComponent {
   }
 
   onSubmit(): void {
-    if (this.registerForm.invalid) return;
+    if (this.registerForm.invalid) {
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
@@ -64,21 +71,24 @@ export class RegisterComponent {
         this.isLoading = false;
         this.pendingEmail = response.email;
         this.step = 'verify';
-        this.successMessage = 'Wir haben einen 6-stelligen Code an deine E-Mail gesendet.';
+        this.successMessage = this.i18nService.t('register.verificationSent');
       },
       error: (err) => {
         this.isLoading = false;
         if (err.status === 409) {
-          this.errorMessage = 'Username oder Email bereits vergeben';
+          this.errorMessage = this.i18nService.t('register.duplicateUser');
         } else {
-          this.errorMessage = 'Registrierung fehlgeschlagen';
+          this.errorMessage = this.i18nService.t('register.failed');
         }
       }
     });
   }
 
   onVerifySubmit(): void {
-    if (this.verificationForm.invalid || !this.pendingEmail) return;
+    if (this.verificationForm.invalid || !this.pendingEmail) {
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
@@ -93,7 +103,7 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err?.error?.message ?? 'Code-Verifizierung fehlgeschlagen';
+        this.errorMessage = err?.error?.message ?? this.i18nService.t('register.verificationFailed');
       }
     });
   }

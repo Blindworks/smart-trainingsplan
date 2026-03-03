@@ -8,30 +8,28 @@
       alt="PACR Logo"
       height="1024" width="1536"/>
 
-    <p class="hero-kicker">Performance Training Reimagined</p>
-    <h1>Train smarter for your next race.</h1>
-    <p class="hero-subtitle">
-      PACR helps you structure competition goals, upload plans, and keep your training progress visible every week.
-    </p>
+    <p class="hero-kicker">{{ 'landing.kicker' | t }}</p>
+    <h1>{{ 'landing.title' | t }}</h1>
+    <p class="hero-subtitle">{{ 'landing.subtitle' | t }}</p>
 
     <div class="hero-actions">
-      <a class="cta cta-primary" routerLink="/competitions">Start Planning</a>
-      <a class="cta cta-secondary" routerLink="/overview">View Overview</a>
+      <a class="cta cta-primary" routerLink="/competitions">{{ 'landing.startPlanning' | t }}</a>
+      <a class="cta cta-secondary" routerLink="/overview">{{ 'landing.viewOverview' | t }}</a>
     </div>
   </section>
 
   <section class="features">
     <article class="feature-card">
-      <h2>Plan by race date</h2>
-      <p>Create competitions and attach tailored plans for a clear path to race day.</p>
+      <h2>{{ 'landing.featureRaceTitle' | t }}</h2>
+      <p>{{ 'landing.featureRaceText' | t }}</p>
     </article>
     <article class="feature-card">
-      <h2>Track completion</h2>
-      <p>Log your weekly sessions and spot consistency trends at a glance.</p>
+      <h2>{{ 'landing.featureTrackTitle' | t }}</h2>
+      <p>{{ 'landing.featureTrackText' | t }}</p>
     </article>
     <article class="feature-card">
-      <h2>Everything in one place</h2>
-      <p>Switch seamlessly between races, schedule overview, and profile settings.</p>
+      <h2>{{ 'landing.featureAllTitle' | t }}</h2>
+      <p>{{ 'landing.featureAllText' | t }}</p>
     </article>
   </section>
 </main>

@@ -9,6 +9,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/auth.service';
+import { TranslatePipe } from '../../i18n/translate.pipe';
+import { I18nService } from '../../services/i18n.service';
 
 @Component({
   selector: 'app-login',
@@ -22,7 +24,8 @@ import { AuthService } from '../../services/auth.service';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TranslatePipe
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
@@ -38,7 +41,8 @@ export class LoginComponent {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private i18nService: I18nService
   ) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required]],
@@ -52,7 +56,10 @@ export class LoginComponent {
   }
 
   onSubmit(): void {
-    if (this.loginForm.invalid) return;
+    if (this.loginForm.invalid) {
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
 
@@ -65,7 +72,7 @@ export class LoginComponent {
         this.isLoading = false;
 
         if (err.status === 401) {
-          this.errorMessage = 'Ungültige Anmeldedaten';
+          this.errorMessage = this.i18nService.t('login.invalidCredentials');
           return;
         }
 
@@ -75,19 +82,20 @@ export class LoginComponent {
           return;
         }
 
-        this.errorMessage = 'Anmeldung fehlgeschlagen';
+        this.errorMessage = this.i18nService.t('login.failed');
       }
     });
   }
 
   private messageForStatus(status: string): string {
     const statusMessages: Record<string, string> = {
-      EMAIL_VERIFICATION_PENDING: 'Registrierung erfolgreich. Bitte bestätige zuerst deine E-Mail-Adresse.',
-      ADMIN_APPROVAL_PENDING: 'Dein Konto wartet auf Freigabe durch einen Admin.',
-      BLOCKED: 'Dein Konto ist blockiert. Bitte kontaktiere den Support.',
-      INACTIVE: 'Dein Konto ist inaktiv. Bitte kontaktiere den Support.',
-      ACTIVE: 'Dein Konto ist aktiv.'
+      EMAIL_VERIFICATION_PENDING: this.i18nService.t('accountStatus.emailPending'),
+      ADMIN_APPROVAL_PENDING: this.i18nService.t('accountStatus.adminPending'),
+      BLOCKED: this.i18nService.t('accountStatus.blocked'),
+      INACTIVE: this.i18nService.t('accountStatus.inactive'),
+      ACTIVE: this.i18nService.t('accountStatus.active')
     };
-    return statusMessages[status] ?? 'Anmeldung derzeit nicht möglich.';
+
+    return statusMessages[status] ?? this.i18nService.t('login.unavailable');
   }
 }

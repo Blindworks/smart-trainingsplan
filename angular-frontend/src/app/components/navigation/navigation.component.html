@@ -20,59 +20,68 @@
     <div class="nav-links nav-links--desktop">
       <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
         <mat-icon>dashboard</mat-icon>
-        <span>Dashboard</span>
+        <span>{{ 'nav.dashboard' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/competitions" routerLinkActive="active">
         <mat-icon>emoji_events</mat-icon>
-        <span>Races</span>
+        <span>{{ 'nav.races' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/plans" routerLinkActive="active">
         <mat-icon>library_books</mat-icon>
-        <span>Pl�ne</span>
+        <span>{{ 'nav.plans' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/overview" routerLinkActive="active">
         <mat-icon>grid_view</mat-icon>
-        <span>Training</span>
+        <span>{{ 'nav.training' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/completion" routerLinkActive="active">
         <mat-icon>monitoring</mat-icon>
-        <span>Log</span>
+        <span>{{ 'nav.log' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/body-status" routerLinkActive="active">
         <mat-icon>monitor_heart</mat-icon>
-        <span>Body</span>
+        <span>{{ 'nav.body' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/body-measurements" routerLinkActive="active">
         <mat-icon>scale</mat-icon>
-        <span>K�rperdaten</span>
+        <span>{{ 'nav.bodyData' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/compare" routerLinkActive="active">
         <mat-icon>compare_arrows</mat-icon>
-        <span>Vergleich</span>
+        <span>{{ 'nav.comparison' | t }}</span>
       </a>
       @if (isAdmin()) {
         <div class="nav-admin-menu">
           <a class="nav-link" routerLink="/admin" routerLinkActive="active">
             <mat-icon>admin_panel_settings</mat-icon>
-            <span>Admin</span>
+            <span>{{ 'nav.admin' | t }}</span>
           </a>
           <div class="admin-submenu">
             <a class="nav-link nav-sub-link" routerLink="/admin/users" routerLinkActive="active">
               <mat-icon>group</mat-icon>
-              <span>Usersverwaltung</span>
+              <span>{{ 'nav.usersAdmin' | t }}</span>
             </a>
             <a class="nav-link nav-sub-link" routerLink="/admin/races" routerLinkActive="active">
               <mat-icon>emoji_events</mat-icon>
-              <span>Raceverwaltung</span>
+              <span>{{ 'nav.racesAdmin' | t }}</span>
             </a>
             <a class="nav-link nav-sub-link" routerLink="/admin/training-plans" routerLinkActive="active">
               <mat-icon>fitness_center</mat-icon>
-              <span>Trainingspl�ne</span>
+              <span>{{ 'nav.plansAdmin' | t }}</span>
             </a>
           </div>
         </div>
       }
     </div>
+
+    <label class="language-select language-select--desktop" [attr.aria-label]="'nav.language' | t">
+      <span>{{ 'nav.language' | t }}</span>
+      <select [value]="getLanguage()" (change)="onLanguageChange($any($event.target).value)">
+        @for (language of languages; track language) {
+          <option [value]="language">{{ language.toUpperCase() }}</option>
+        }
+      </select>
+    </label>
 
     <a class="nav-profile-pill nav-profile-pill--desktop" routerLink="/profile" routerLinkActive="active">
       <div class="profile-avatar">
@@ -82,12 +91,12 @@
     </a>
 
     @if (isLoggedIn()) {
-      <button mat-icon-button class="nav-logout nav-logout--desktop" (click)="logout()" title="Abmelden">
+      <button mat-icon-button class="nav-logout nav-logout--desktop" (click)="logout()" [title]="'nav.logout' | t">
         <mat-icon>logout</mat-icon>
       </button>
     }
 
-    <button mat-icon-button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-label]="mobileMenuOpen ? 'Men� schlie�en' : 'Men� �ffnen'">
+    <button mat-icon-button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-label]="mobileMenuOpen ? ('nav.menuClose' | t) : ('nav.menuOpen' | t)">
       <mat-icon>{{ mobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
     </button>
   </div>
@@ -96,57 +105,66 @@
     <div class="nav-links nav-links--mobile">
       <a class="nav-link" routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>dashboard</mat-icon>
-        <span>Dashboard</span>
+        <span>{{ 'nav.dashboard' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/competitions" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>emoji_events</mat-icon>
-        <span>Races</span>
+        <span>{{ 'nav.races' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/plans" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>library_books</mat-icon>
-        <span>Pl�ne</span>
+        <span>{{ 'nav.plans' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/overview" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>grid_view</mat-icon>
-        <span>Training</span>
+        <span>{{ 'nav.training' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/completion" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>monitoring</mat-icon>
-        <span>Log</span>
+        <span>{{ 'nav.log' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/body-status" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>monitor_heart</mat-icon>
-        <span>Body</span>
+        <span>{{ 'nav.body' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/body-measurements" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>scale</mat-icon>
-        <span>K�rperdaten</span>
+        <span>{{ 'nav.bodyData' | t }}</span>
       </a>
       <a class="nav-link" routerLink="/compare" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>compare_arrows</mat-icon>
-        <span>Vergleich</span>
+        <span>{{ 'nav.comparison' | t }}</span>
       </a>
       @if (isAdmin()) {
         <a class="nav-link" routerLink="/admin" routerLinkActive="active" (click)="closeMobileMenu()">
           <mat-icon>admin_panel_settings</mat-icon>
-          <span>Admin</span>
+          <span>{{ 'nav.admin' | t }}</span>
         </a>
         <a class="nav-link nav-sub-link" routerLink="/admin/users" routerLinkActive="active" (click)="closeMobileMenu()">
           <mat-icon>group</mat-icon>
-          <span>Usersverwaltung</span>
+          <span>{{ 'nav.usersAdmin' | t }}</span>
         </a>
         <a class="nav-link nav-sub-link" routerLink="/admin/races" routerLinkActive="active" (click)="closeMobileMenu()">
           <mat-icon>emoji_events</mat-icon>
-          <span>Raceverwaltung</span>
+          <span>{{ 'nav.racesAdmin' | t }}</span>
         </a>
         <a class="nav-link nav-sub-link" routerLink="/admin/training-plans" routerLinkActive="active" (click)="closeMobileMenu()">
           <mat-icon>fitness_center</mat-icon>
-          <span>Trainingspl�ne</span>
+          <span>{{ 'nav.plansAdmin' | t }}</span>
         </a>
       }
     </div>
 
     <div class="mobile-menu-footer">
+      <label class="language-select language-select--mobile" [attr.aria-label]="'nav.language' | t">
+        <span>{{ 'nav.language' | t }}</span>
+        <select [value]="getLanguage()" (change)="onLanguageChange($any($event.target).value)">
+          @for (language of languages; track language) {
+            <option [value]="language">{{ language.toUpperCase() }}</option>
+          }
+        </select>
+      </label>
+
       <a class="nav-profile-pill" routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">
         <div class="profile-avatar">
           <span class="avatar-initial">{{ getInitial() }}</span>
@@ -157,7 +175,7 @@
       @if (isLoggedIn()) {
         <button mat-stroked-button class="mobile-logout-btn" (click)="logout()">
           <mat-icon>logout</mat-icon>
-          Abmelden
+          {{ 'nav.logout' | t }}
         </button>
       }
     </div>
