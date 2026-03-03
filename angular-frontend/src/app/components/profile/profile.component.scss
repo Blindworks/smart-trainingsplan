@@ -89,6 +89,60 @@
   gap: 6px;
 }
 
+.header-strava {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  align-self: flex-start;
+}
+
+.strava-dot-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+
+  .strava-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #555;
+    flex-shrink: 0;
+
+    &.connected {
+      background: #4caf50;
+      box-shadow: 0 0 4px rgba(76, 175, 80, 0.6);
+    }
+  }
+}
+
+.strava-header-btn {
+  font-size: 12px;
+  line-height: 28px;
+  height: 28px;
+  padding: 0 10px;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+  }
+
+  &--connect {
+    background: #FC4C02;
+    color: #fff;
+    border: none;
+
+    &:hover:not(:disabled) {
+      background: #e04300;
+    }
+  }
+}
+
 .profile-name {
   font-size: 28px;
   font-weight: 800;

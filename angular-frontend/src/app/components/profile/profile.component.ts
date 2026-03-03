@@ -15,7 +15,7 @@ import { catchError, takeUntil } from 'rxjs/operators';
 
 import { ApiService } from '../../services/api.service';
 import { Competition, PaceZones, User } from '../../models/competition.model';
-import { StravaActivity, StravaStatus } from '../../models/strava.model';
+import { StravaStatus } from '../../models/strava.model';
 import { TranslatePipe } from '../../i18n/translate.pipe';
 import { I18nService } from '../../services/i18n.service';
 
@@ -45,14 +45,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   loading = true;
   stravaLoading = false;
-  activitiesLoading = false;
 
   competitions: Competition[] = [];
   totalTrainings = 0;
   completedTrainings = 0;
 
   stravaStatus: StravaStatus | null = null;
-  stravaActivities: StravaActivity[] = [];
 
   user: User | null = null;
   editMode = false;
@@ -133,22 +131,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), catchError(() => of(null)))
       .subscribe(status => {
         this.stravaStatus = status;
-        if (status?.connected) {
-          this.loadStravaActivities();
-        }
-      });
-  }
-
-  loadStravaActivities(): void {
-    this.activitiesLoading = true;
-    const endDate = new Date().toISOString().split('T')[0];
-    const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-    this.apiService.getStravaActivities(startDate, endDate)
-      .pipe(takeUntil(this.destroy$), catchError(() => of([])))
-      .subscribe(activities => {
-        this.stravaActivities = activities.slice(0, 5);
-        this.activitiesLoading = false;
       });
   }
 
@@ -174,7 +156,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.stravaStatus = null;
-          this.stravaActivities = [];
           this.stravaLoading = false;
           this.showSnack('profile.messages.stravaDisconnected');
         },
@@ -183,29 +164,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.stravaLoading = false;
         }
       });
-  }
-
-  formatDuration(seconds: number): string {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    if (h > 0) {
-      return this.i18nService.t('profile.durationHours', { h, m });
-    }
-    return this.i18nService.t('profile.durationMinutes', { m });
-  }
-
-  formatPace(speedMs: number): string {
-    if (!speedMs || speedMs === 0) {
-      return '-';
-    }
-    const paceSecPerKm = 1000 / speedMs;
-    const m = Math.floor(paceSecPerKm / 60);
-    const s = Math.floor(paceSecPerKm % 60);
-    return `${m}:${s.toString().padStart(2, '0')} /km`;
-  }
-
-  formatDistance(meters: number): string {
-    return `${(meters / 1000).toFixed(1)} km`;
   }
 
   get completionRate(): number {
@@ -340,18 +298,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.saving = false;
         }
       });
-  }
-
-  getActivityIcon(type: string): string {
-    const icons: Record<string, string> = {
-      Run: 'directions_run',
-      Ride: 'directions_bike',
-      Swim: 'pool',
-      Walk: 'directions_walk',
-      Hike: 'hiking',
-      WeightTraining: 'fitness_center'
-    };
-    return icons[type] ?? 'sports';
   }
 
   getUserStatusLabel(status?: User['status']): string {

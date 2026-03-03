@@ -25,6 +25,30 @@
           {{ profileImageUploading ? ('profile.uploading' | t) : ('profile.changeImage' | t) }}
         </label>
       </div>
+      <div class="header-strava">
+        <ng-container *ngIf="stravaStatus?.connected; else stravaNotConnected">
+          <span class="strava-dot-badge">
+            <span class="strava-dot connected"></span>
+            Strava
+          </span>
+          <button mat-stroked-button class="strava-header-btn" (click)="disconnectStrava()" [disabled]="stravaLoading">
+            <mat-spinner *ngIf="stravaLoading" diameter="14"></mat-spinner>
+            <mat-icon *ngIf="!stravaLoading">link_off</mat-icon>
+            {{ 'profile.disconnect' | t }}
+          </button>
+        </ng-container>
+        <ng-template #stravaNotConnected>
+          <span class="strava-dot-badge">
+            <span class="strava-dot"></span>
+            Strava
+          </span>
+          <button mat-flat-button class="strava-header-btn strava-header-btn--connect" (click)="connectStrava()" [disabled]="stravaLoading">
+            <mat-spinner *ngIf="stravaLoading" diameter="14"></mat-spinner>
+            <mat-icon *ngIf="!stravaLoading">link</mat-icon>
+            {{ 'profile.connectWithStrava' | t }}
+          </button>
+        </ng-template>
+      </div>
     </div>
 
     <div class="stats-grid">
@@ -284,77 +308,6 @@
 
       <div class="loading-state" *ngIf="paceZoneLoading" style="height: 80px;">
         <mat-spinner diameter="28"></mat-spinner>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">
-        <mat-icon class="strava-icon">bolt</mat-icon>
-        Strava
-      </h2>
-
-      <div class="strava-card connected" *ngIf="stravaStatus?.connected">
-        <div class="strava-status-row">
-          <div class="strava-badge">
-            <div class="strava-dot connected"></div>
-            <span>{{ 'profile.connected' | t }}</span>
-          </div>
-          <button mat-stroked-button class="disconnect-btn" (click)="disconnectStrava()" [disabled]="stravaLoading">
-            <mat-spinner *ngIf="stravaLoading" diameter="16"></mat-spinner>
-            <mat-icon *ngIf="!stravaLoading">link_off</mat-icon>
-            <span>{{ 'profile.disconnect' | t }}</span>
-          </button>
-        </div>
-
-        <mat-divider class="strava-divider"></mat-divider>
-
-        <div class="activities-section">
-          <h3 class="activities-title">{{ 'profile.last30Days' | t }}</h3>
-
-          <div class="activities-loading" *ngIf="activitiesLoading">
-            <mat-spinner diameter="24"></mat-spinner>
-          </div>
-
-          <div class="activity-list" *ngIf="!activitiesLoading && stravaActivities.length > 0">
-            <div class="activity-item" *ngFor="let activity of stravaActivities">
-              <div class="activity-icon">
-                <mat-icon>{{ getActivityIcon(activity.type) }}</mat-icon>
-              </div>
-              <div class="activity-info">
-                <span class="activity-name">{{ activity.name }}</span>
-                <span class="activity-meta">{{ formatDistance(activity.distance) }} · {{ formatDuration(activity.moving_time) }}</span>
-              </div>
-              <div class="activity-pace" *ngIf="activity.average_speed">
-                <span class="pace-value">{{ formatPace(activity.average_speed) }}</span>
-                <span class="activity-hr" *ngIf="activity.average_heartrate">
-                  <mat-icon>favorite</mat-icon>{{ activity.average_heartrate | number:'1.0-0' }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div class="empty-activities" *ngIf="!activitiesLoading && stravaActivities.length === 0">
-            <mat-icon>directions_run</mat-icon>
-            <p>{{ 'profile.noActivities' | t }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="strava-card not-connected" *ngIf="!stravaStatus?.connected">
-        <div class="strava-prompt">
-          <div class="strava-logo-wrap">
-            <mat-icon>bolt</mat-icon>
-          </div>
-          <div class="strava-prompt-text">
-            <p class="prompt-title">{{ 'profile.connectStrava' | t }}</p>
-            <p class="prompt-sub">{{ 'profile.connectStravaSubtitle' | t }}</p>
-          </div>
-        </div>
-        <button mat-flat-button class="pacr-btn-primary connect-btn" (click)="connectStrava()" [disabled]="stravaLoading">
-          <mat-spinner *ngIf="stravaLoading" diameter="16"></mat-spinner>
-          <mat-icon *ngIf="!stravaLoading">link</mat-icon>
-          {{ 'profile.connectWithStrava' | t }}
-        </button>
       </div>
     </div>
   </ng-container>
