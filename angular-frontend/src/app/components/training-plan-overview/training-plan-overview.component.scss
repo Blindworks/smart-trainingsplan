@@ -202,10 +202,32 @@
     }
 
     .training-section {
-      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
 
       h5 {
         display: none;
+      }
+
+      // Planned cards — fixed height, always 130px regardless of surrounding layout
+      &:has(.planned-training) {
+        flex: 0 0 auto;
+
+        .training-card.planned-training {
+          flex: 0 0 130px;
+          height: 130px;
+        }
+      }
+
+      // Completed/Strava cards — vertical stack, separated from planned section
+      &:has(.completed-training) {
+        flex: 0 0 auto;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--border-subtle);
       }
     }
   }
@@ -272,6 +294,7 @@
     background-color: rgba(0, 255, 156, 0.06);
     border: 1px solid rgba(0, 255, 156, 0.2);
     border-left: 3px solid var(--volt-green);
+    min-height: 130px;
 
     .completed-icon {
       color: var(--volt-green);
@@ -362,6 +385,10 @@
     &.training-distance mat-icon { color: var(--accent-blue); }
     &.training-time mat-icon   { color: var(--volt-green); }
   }
+}
+
+.planned-training .training-actions {
+  margin-top: auto;
 }
 
 .training-actions {
