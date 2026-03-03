@@ -28,10 +28,6 @@
         <mat-icon>monitor_heart</mat-icon>
         <span>{{ 'nav.body' | t }}</span>
       </a>
-      <a class="nav-link" routerLink="/body-measurements" routerLinkActive="active">
-        <mat-icon>scale</mat-icon>
-        <span>{{ 'nav.bodyData' | t }}</span>
-      </a>
       <a class="nav-link" routerLink="/compare" routerLinkActive="active">
         <mat-icon>compare_arrows</mat-icon>
         <span>{{ 'nav.comparison' | t }}</span>
@@ -60,27 +56,31 @@
       }
     </div>
 
-    <label class="language-select language-select--desktop" [attr.aria-label]="'nav.language' | t">
-      <span>{{ 'nav.language' | t }}</span>
-      <select [value]="getLanguage()" (change)="onLanguageChange($any($event.target).value)">
-        @for (language of languages; track language) {
-          <option [value]="language">{{ language.toUpperCase() }}</option>
-        }
-      </select>
-    </label>
+    <button class="lang-toggle lang-toggle--desktop" (click)="toggleLanguage()" [title]="'nav.language' | t">
+      <mat-icon>language</mat-icon>
+      <span>{{ getLanguage().toUpperCase() }}</span>
+    </button>
 
-    <a class="nav-profile-pill nav-profile-pill--desktop" routerLink="/profile" routerLinkActive="active">
-      <div class="profile-avatar">
-        <span class="avatar-initial">{{ getInitial() }}</span>
-      </div>
-      <span class="profile-name">{{ getUsername() }}</span>
-    </a>
-
-    @if (isLoggedIn()) {
-      <button mat-icon-button class="nav-logout nav-logout--desktop" (click)="logout()" [title]="'nav.logout' | t">
-        <mat-icon>logout</mat-icon>
-      </button>
-    }
+    <div class="nav-profile-menu nav-profile-pill--desktop">
+      <a class="nav-profile-pill" routerLink="/profile" routerLinkActive="active">
+        <div class="profile-avatar">
+          <span class="avatar-initial">{{ getInitial() }}</span>
+        </div>
+        <span class="profile-name">{{ getUsername() }}</span>
+      </a>
+      @if (isLoggedIn()) {
+        <div class="profile-submenu">
+          <a class="nav-link nav-sub-link" routerLink="/body-measurements" routerLinkActive="active">
+            <mat-icon>scale</mat-icon>
+            <span>{{ 'nav.bodyData' | t }}</span>
+          </a>
+          <button class="nav-link nav-sub-link" (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>{{ 'nav.logout' | t }}</span>
+          </button>
+        </div>
+      }
+    </div>
 
     <button mat-icon-button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-label]="mobileMenuOpen ? ('nav.menuClose' | t) : ('nav.menuOpen' | t)">
       <mat-icon>{{ mobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
@@ -109,10 +109,6 @@
         <mat-icon>monitor_heart</mat-icon>
         <span>{{ 'nav.body' | t }}</span>
       </a>
-      <a class="nav-link" routerLink="/body-measurements" routerLinkActive="active" (click)="closeMobileMenu()">
-        <mat-icon>scale</mat-icon>
-        <span>{{ 'nav.bodyData' | t }}</span>
-      </a>
       <a class="nav-link" routerLink="/compare" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>compare_arrows</mat-icon>
         <span>{{ 'nav.comparison' | t }}</span>
@@ -138,14 +134,10 @@
     </div>
 
     <div class="mobile-menu-footer">
-      <label class="language-select language-select--mobile" [attr.aria-label]="'nav.language' | t">
-        <span>{{ 'nav.language' | t }}</span>
-        <select [value]="getLanguage()" (change)="onLanguageChange($any($event.target).value)">
-          @for (language of languages; track language) {
-            <option [value]="language">{{ language.toUpperCase() }}</option>
-          }
-        </select>
-      </label>
+      <button class="lang-toggle lang-toggle--mobile" (click)="toggleLanguage()" [title]="'nav.language' | t">
+        <mat-icon>language</mat-icon>
+        <span>{{ getLanguage().toUpperCase() }}</span>
+      </button>
 
       <a class="nav-profile-pill" routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">
         <div class="profile-avatar">

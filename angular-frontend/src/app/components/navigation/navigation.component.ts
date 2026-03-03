@@ -73,4 +73,10 @@ export class NavigationComponent {
   onLanguageChange(language: string): void {
     this.i18nService.setLanguage(language);
   }
+
+  toggleLanguage(): void {
+    const current = this.i18nService.getLanguage();
+    const next = this.languages.find(l => l !== current) ?? this.languages[0];
+    this.i18nService.setLanguage(next);
+  }
 }
