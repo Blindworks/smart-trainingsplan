@@ -1,5 +1,6 @@
 package com.trainingsplan.controller;
 
+import com.trainingsplan.dto.ActivityComparisonItemDto;
 import com.trainingsplan.dto.ProfileCompletionDto;
 import com.trainingsplan.entity.ActivityMetrics;
 import com.trainingsplan.entity.CompletedTraining;
@@ -26,6 +27,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/completed-trainings")
@@ -178,8 +180,69 @@ public class CompletedTrainingController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CompletedTraining> getCompletedTrainingById(@PathVariable Long id) {
-        // Diese Methode kann später implementiert werden
-        return ResponseEntity.notFound().build();
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return completedTrainingRepository.findByIdAndUserId(id, user.getId())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/compare")
+    public ResponseEntity<List<ActivityComparisonItemDto>> compareActivities(
+            @RequestParam List<Long> ids) {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<ActivityComparisonItemDto> result = new ArrayList<>();
+        List<Long> limitedIds = ids.size() > 6 ? ids.subList(0, 6) : ids;
+
+        for (Long id : limitedIds) {
+            Optional<CompletedTraining> ctOpt = completedTrainingRepository.findByIdAndUserId(id, user.getId());
+            if (ctOpt.isEmpty()) {
+                continue;
+            }
+            CompletedTraining ct = ctOpt.get();
+            Optional<ActivityMetrics> metricsOpt = activityMetricsRepository.findByCompletedTrainingId(ct.getId());
+
+            ActivityComparisonItemDto dto = new ActivityComparisonItemDto();
+            dto.setId(ct.getId());
+            dto.setActivityName(ct.getActivityName());
+            dto.setSport(ct.getSport());
+            dto.setTrainingDate(ct.getTrainingDate() != null ? ct.getTrainingDate().toString() : null);
+            dto.setDistanceKm(ct.getDistanceKm());
+            dto.setDurationSeconds(ct.getDurationSeconds());
+            dto.setMovingTimeSeconds(ct.getMovingTimeSeconds());
+            dto.setAveragePaceSecondsPerKm(ct.getAveragePaceSecondsPerKm());
+            dto.setAverageSpeedKmh(ct.getAverageSpeedKmh());
+            dto.setAverageHeartRate(ct.getAverageHeartRate());
+            dto.setMaxHeartRate(ct.getMaxHeartRate());
+            dto.setAveragePowerWatts(ct.getAveragePowerWatts());
+            dto.setNormalizedPowerWatts(ct.getNormalizedPowerWatts());
+            dto.setAverageCadence(ct.getAverageCadence());
+            dto.setElevationGainM(ct.getElevationGainM());
+            dto.setCalories(ct.getCalories());
+            dto.setSource(ct.getSource());
+
+            metricsOpt.ifPresent(am -> {
+                dto.setZ1Min(am.getZ1Min());
+                dto.setZ2Min(am.getZ2Min());
+                dto.setZ3Min(am.getZ3Min());
+                dto.setZ4Min(am.getZ4Min());
+                dto.setZ5Min(am.getZ5Min());
+                dto.setStrain21(am.getStrain21());
+                dto.setTrimp(am.getTrimp());
+                dto.setEfficiencyFactor(am.getEfficiencyFactor());
+                dto.setDecouplingPct(am.getDecouplingPct());
+            });
+
+            result.add(dto);
+        }
+
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")

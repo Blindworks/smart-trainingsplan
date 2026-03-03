@@ -46,6 +46,8 @@ public interface CompletedTrainingRepository extends JpaRepository<CompletedTrai
 
     Optional<CompletedTraining> findTopByUserIdOrderByTrainingDateDescUploadDateDesc(Long userId);
 
+    Optional<CompletedTraining> findByIdAndUserId(Long id, Long userId);
+
     /**
      * One-time migration: assigns the current user to any Strava activities that were
      * synced before per-user tracking was added (user_id = NULL).

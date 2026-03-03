@@ -66,6 +66,13 @@ export const routes: Routes = [
   { path: 'completion', component: TrainingCompletionComponent, canActivate: [authGuard] },
   { path: 'body-status', component: BodyStatusComponent, canActivate: [authGuard] },
   {
+    path: 'compare',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/training-comparison/training-comparison.component')
+        .then(m => m.TrainingComparisonComponent)
+  },
+  {
     path: 'body-measurements',
     canActivate: [authGuard],
     loadComponent: () =>

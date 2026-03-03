@@ -28,7 +28,7 @@
       </a>
       <a class="nav-link" routerLink="/plans" routerLinkActive="active">
         <mat-icon>library_books</mat-icon>
-        <span>Pläne</span>
+        <span>Plï¿½ne</span>
       </a>
       <a class="nav-link" routerLink="/overview" routerLinkActive="active">
         <mat-icon>grid_view</mat-icon>
@@ -44,7 +44,11 @@
       </a>
       <a class="nav-link" routerLink="/body-measurements" routerLinkActive="active">
         <mat-icon>scale</mat-icon>
-        <span>Körperdaten</span>
+        <span>Kï¿½rperdaten</span>
+      </a>
+      <a class="nav-link" routerLink="/compare" routerLinkActive="active">
+        <mat-icon>compare_arrows</mat-icon>
+        <span>Vergleich</span>
       </a>
       @if (isAdmin()) {
         <div class="nav-admin-menu">
@@ -63,7 +67,7 @@
             </a>
             <a class="nav-link nav-sub-link" routerLink="/admin/training-plans" routerLinkActive="active">
               <mat-icon>fitness_center</mat-icon>
-              <span>Trainingspläne</span>
+              <span>Trainingsplï¿½ne</span>
             </a>
           </div>
         </div>
@@ -83,7 +87,7 @@
       </button>
     }
 
-    <button mat-icon-button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-label]="mobileMenuOpen ? 'Menü schließen' : 'Menü öffnen'">
+    <button mat-icon-button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-label]="mobileMenuOpen ? 'Menï¿½ schlieï¿½en' : 'Menï¿½ ï¿½ffnen'">
       <mat-icon>{{ mobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
     </button>
   </div>
@@ -100,7 +104,7 @@
       </a>
       <a class="nav-link" routerLink="/plans" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>library_books</mat-icon>
-        <span>Pläne</span>
+        <span>Plï¿½ne</span>
       </a>
       <a class="nav-link" routerLink="/overview" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>grid_view</mat-icon>
@@ -116,7 +120,11 @@
       </a>
       <a class="nav-link" routerLink="/body-measurements" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>scale</mat-icon>
-        <span>Körperdaten</span>
+        <span>Kï¿½rperdaten</span>
+      </a>
+      <a class="nav-link" routerLink="/compare" routerLinkActive="active" (click)="closeMobileMenu()">
+        <mat-icon>compare_arrows</mat-icon>
+        <span>Vergleich</span>
       </a>
       @if (isAdmin()) {
         <a class="nav-link" routerLink="/admin" routerLinkActive="active" (click)="closeMobileMenu()">
@@ -133,7 +141,7 @@
         </a>
         <a class="nav-link nav-sub-link" routerLink="/admin/training-plans" routerLinkActive="active" (click)="closeMobileMenu()">
           <mat-icon>fitness_center</mat-icon>
-          <span>Trainingspläne</span>
+          <span>Trainingsplï¿½ne</span>
         </a>
       }
     </div>

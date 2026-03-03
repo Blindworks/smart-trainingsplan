@@ -242,6 +242,35 @@ export interface DecouplingHistoryPoint {
   decouplingPct: number;
 }
 
+export interface ActivityComparisonItem {
+  id: number;
+  activityName?: string;
+  sport?: string;
+  trainingDate: string;
+  distanceKm?: number;
+  durationSeconds?: number;
+  movingTimeSeconds?: number;
+  averagePaceSecondsPerKm?: number;
+  averageSpeedKmh?: number;
+  averageHeartRate?: number;
+  maxHeartRate?: number;
+  averagePowerWatts?: number;
+  normalizedPowerWatts?: number;
+  averageCadence?: number;
+  elevationGainM?: number;
+  calories?: number;
+  source?: string;
+  z1Min?: number;
+  z2Min?: number;
+  z3Min?: number;
+  z4Min?: number;
+  z5Min?: number;
+  strain21?: number;
+  trimp?: number;
+  efficiencyFactor?: number;
+  decouplingPct?: number;
+}
+
 export interface BodyStatusVo2Max {
   vo2max: number | null;
   trainingDate?: string;

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
@@ -24,7 +24,8 @@ import {
   ActivityMetrics,
   DailyMetrics,
   DecouplingHistoryPoint,
-  PaceZones
+  PaceZones,
+  ActivityComparisonItem
 } from '../models/competition.model';
 import { StravaStatus, StravaActivity } from '../models/strava.model';
 import { DashboardDto } from '../models/dashboard.model';
@@ -234,6 +235,12 @@ export class ApiService {
       `${this.baseUrl}/completed-trainings/decoupling-history`,
       { params: { startDate, endDate } }
     );
+  }
+
+  compareActivities(ids: number[]): Observable<ActivityComparisonItem[]> {
+    let params = new HttpParams();
+    ids.forEach(id => { params = params.append('ids', id.toString()); });
+    return this.http.get<ActivityComparisonItem[]>(`${this.baseUrl}/completed-trainings/compare`, { params });
   }
 
   // Strava API
