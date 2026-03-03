@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { CompetitionListComponent } from './components/competition-list/competition-list.component';
 import { CompetitionFormComponent } from './components/competition-form/competition-form.component';
 import { TrainingPlanOverviewComponent } from './components/training-plan-overview/training-plan-overview.component';
-import { TrainingCompletionComponent } from './components/training-completion/training-completion.component';
 import { TrainingPlanUploadComponent } from './components/training-plan-upload/training-plan-upload.component';
 import { StravaCallbackComponent } from './components/strava-callback/strava-callback.component';
 import { ProfileComponent } from './components/profile/profile.component';
@@ -63,7 +62,6 @@ export const routes: Routes = [
   { path: 'competitions/:id/upload', component: TrainingPlanUploadComponent, canActivate: [adminGuard] },
   { path: 'plans', component: PlanLibraryComponent, canActivate: [authGuard] },
   { path: 'overview', component: TrainingPlanOverviewComponent, canActivate: [authGuard] },
-  { path: 'completion', component: TrainingCompletionComponent, canActivate: [authGuard] },
   { path: 'body-status', component: BodyStatusComponent, canActivate: [authGuard] },
   {
     path: 'compare',
