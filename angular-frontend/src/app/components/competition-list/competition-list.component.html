@@ -1,34 +1,28 @@
 <div class="competitions-page">
-
-  <!-- Page Header -->
   <div class="page-header">
     <div class="page-header-inner">
       <div class="page-title-group">
-        <span class="page-label">RACE CALENDAR</span>
-        <h1 class="page-title">Competitions</h1>
+        <span class="page-label">{{ 'competitions.headerLabel' | t }}</span>
+        <h1 class="page-title">{{ 'competitions.title' | t }}</h1>
       </div>
       <button class="pacr-btn-primary mat-elevation-z0" mat-raised-button routerLink="/competitions/new">
         <mat-icon>add</mat-icon>
-        New Race
+        {{ 'competitions.newRace' | t }}
       </button>
     </div>
   </div>
 
-  <!-- Section Label -->
   <div class="section-label" *ngIf="!loading && competitions.length > 0">
-    <span>Alle Wettkämpfe</span>
+    <span>{{ 'competitions.all' | t }}</span>
   </div>
 
-  <!-- Loading -->
   <div *ngIf="loading" class="loading-state">
     <mat-spinner diameter="36"></mat-spinner>
-    <span>Loading races...</span>
+    <span>{{ 'competitions.loading' | t }}</span>
   </div>
 
-  <!-- Grid -->
   <div class="competitions-grid" *ngIf="!loading && competitions.length > 0">
     <div class="competition-card" *ngFor="let competition of competitions">
-
       <div class="card-accent-bar"
            [class.card-accent-bar--planned]="competition.registered && !competition.registeredWithOrganizer"
            [class.card-accent-bar--registered]="competition.registered && competition.registeredWithOrganizer"></div>
@@ -39,15 +33,15 @@
           <span class="card-countdown"
                 *ngIf="getDaysUntil(competition.date || competition.targetDate) !== null"
                 [class.card-countdown--soon]="getDaysUntil(competition.date || competition.targetDate)! <= 14">
-            {{ getDaysUntil(competition.date || competition.targetDate) }} Tage
+            {{ 'competitions.daysLabel' | t:{ days: getDaysUntil(competition.date || competition.targetDate) } }}
           </span>
           <span class="card-badge card-badge--planned" *ngIf="competition.registered && !competition.registeredWithOrganizer">
             <mat-icon>bookmark</mat-icon>
-            Teilnahme geplant
+            {{ 'competitions.statusPlanned' | t }}
           </span>
           <span class="card-badge card-badge--registered" *ngIf="competition.registered && competition.registeredWithOrganizer">
             <mat-icon>how_to_reg</mat-icon>
-            Angemeldet
+            {{ 'competitions.statusRegistered' | t }}
           </span>
           <span class="card-badge" *ngIf="competition.type">
             <mat-icon>flag</mat-icon>
@@ -73,26 +67,25 @@
 
         <div class="card-plan-info" *ngIf="competition.trainingPlanId">
           <mat-icon>route</mat-icon>
-          <span>{{ competition.trainingPlanName || 'Trainingsplan zugewiesen' }}</span>
+          <span>{{ competition.trainingPlanName || ('competitions.trainingPlanAssigned' | t) }}</span>
         </div>
 
-        <!-- Ranking inline edit (nur für angemeldete User) -->
         <div class="card-ranking" *ngIf="competition.registered">
           <ng-container *ngIf="editingRankingId !== competition.id">
             <button class="ranking-display" (click)="startEditRanking(competition)">
               <mat-icon>military_tech</mat-icon>
-              <span>{{ competition.ranking || 'Platzierung eintragen' }}</span>
+              <span>{{ competition.ranking || ('competitions.enterRanking' | t) }}</span>
               <mat-icon class="ranking-edit-icon">edit</mat-icon>
             </button>
           </ng-container>
           <ng-container *ngIf="editingRankingId === competition.id">
             <div class="ranking-edit-row">
-              <input class="ranking-input" [(ngModel)]="rankingInput" placeholder="z.B. Saisonhighlight, 3. Platz AK"
+              <input class="ranking-input" [(ngModel)]="rankingInput" [placeholder]="'competitions.rankingPlaceholder' | t"
                      (keydown.enter)="saveRanking(competition)" (keydown.escape)="cancelEditRanking()">
-              <button class="ranking-save-btn" (click)="saveRanking(competition)">
+              <button class="ranking-save-btn" (click)="saveRanking(competition)" [attr.aria-label]="'common.save' | t">
                 <mat-icon>check</mat-icon>
               </button>
-              <button class="ranking-cancel-btn" (click)="cancelEditRanking()">
+              <button class="ranking-cancel-btn" (click)="cancelEditRanking()" [attr.aria-label]="'common.cancel' | t">
                 <mat-icon>close</mat-icon>
               </button>
             </div>
@@ -103,37 +96,35 @@
       <div class="card-actions">
         <button class="action-link" *ngIf="!competition.registered" (click)="openRegistrationDialog(competition)">
           <mat-icon>person_add</mat-icon>
-          Anmelden
+          {{ 'competitions.register' | t }}
         </button>
         <button class="action-link danger" *ngIf="competition.registered" (click)="unregister(competition)">
           <mat-icon>person_remove</mat-icon>
-          Abmelden
+          {{ 'competitions.unregister' | t }}
         </button>
         <button class="action-link" *ngIf="competition.registered" (click)="openEditRegistrationDialog(competition)"
-                matTooltip="Zielzeit und Anmeldedaten bearbeiten">
+                [matTooltip]="'competitions.editRegistrationTooltip' | t">
           <mat-icon>edit_note</mat-icon>
-          Anmeldedaten
+          {{ 'competitions.registrationData' | t }}
         </button>
         <button class="action-link" *ngIf="competition.registered && !competition.trainingPlanId" (click)="openSelectPlanDialog(competition)"
-                matTooltip="Bestehenden Trainingsplan verknüpfen">
+                [matTooltip]="'competitions.linkPlanTooltip' | t">
           <mat-icon>link</mat-icon>
-          Plan verknüpfen
+          {{ 'competitions.linkPlan' | t }}
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Empty State -->
   <div *ngIf="!loading && competitions.length === 0" class="empty-state">
     <div class="empty-icon">
       <mat-icon>emoji_events</mat-icon>
     </div>
-    <h2>No races yet</h2>
-    <p>Add your first competition to start building your training plan.</p>
+    <h2>{{ 'competitions.emptyTitle' | t }}</h2>
+    <p>{{ 'competitions.emptySubtitle' | t }}</p>
     <button class="pacr-btn-primary mat-elevation-z0" mat-raised-button routerLink="/competitions/new">
       <mat-icon>add</mat-icon>
-      Add First Race
+      {{ 'competitions.addFirstRace' | t }}
     </button>
   </div>
-
 </div>

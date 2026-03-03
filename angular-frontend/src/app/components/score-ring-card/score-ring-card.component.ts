@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
+import { TranslatePipe } from '../../i18n/translate.pipe';
 
 export type ScoreRingState = 'good' | 'warn' | 'bad' | 'info';
 
 @Component({
   selector: 'app-score-ring-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './score-ring-card.component.html',
   styleUrl: './score-ring-card.component.scss'
 })

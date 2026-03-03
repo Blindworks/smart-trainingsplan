@@ -1,21 +1,17 @@
 <div class="profile-page">
-
-  <!-- Loading -->
   <div class="loading-state" *ngIf="loading">
     <mat-spinner diameter="40"></mat-spinner>
   </div>
 
   <ng-container *ngIf="!loading">
-
-    <!-- Header -->
     <div class="profile-header">
       <div class="avatar">
-        <img *ngIf="profileImageUrl" class="avatar-image" [src]="profileImageUrl" alt="Profilbild" />
+        <img *ngIf="profileImageUrl" class="avatar-image" [src]="profileImageUrl" [alt]="'profile.avatarAlt' | t" />
         <span class="avatar-initials" *ngIf="!profileImageUrl">{{ getInitials(stravaStatus?.athleteName) }}</span>
         <div class="avatar-ring"></div>
       </div>
       <div class="header-info">
-        <h1 class="profile-name">{{ user?.username || stravaStatus?.athleteName || 'Athlet' }}</h1>
+        <h1 class="profile-name">{{ user?.username || stravaStatus?.athleteName || ('profile.athlete' | t) }}</h1>
         <p class="profile-location" *ngIf="stravaStatus?.athleteCity">
           <mat-icon>location_on</mat-icon>
           {{ stravaStatus?.athleteCity }}
@@ -26,12 +22,11 @@
                  [disabled]="profileImageUploading"
                  (change)="onProfileImageSelected($event)" />
           <mat-icon>image</mat-icon>
-          {{ profileImageUploading ? 'Upload...' : 'Profilbild ändern' }}
+          {{ profileImageUploading ? ('profile.uploading' | t) : ('profile.changeImage' | t) }}
         </label>
       </div>
     </div>
 
-    <!-- Stats Row -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon-wrap accent-blue">
@@ -39,7 +34,7 @@
         </div>
         <div class="stat-body">
           <span class="stat-value">{{ competitions.length }}</span>
-          <span class="stat-label">Aktive Wettkämpfe</span>
+          <span class="stat-label">{{ 'profile.activeCompetitions' | t }}</span>
         </div>
       </div>
 
@@ -49,7 +44,7 @@
         </div>
         <div class="stat-body">
           <span class="stat-value">{{ totalTrainings }}</span>
-          <span class="stat-label">Geplante Trainings</span>
+          <span class="stat-label">{{ 'profile.plannedTrainings' | t }}</span>
         </div>
       </div>
 
@@ -59,7 +54,7 @@
         </div>
         <div class="stat-body">
           <span class="stat-value">{{ completedTrainings }}</span>
-          <span class="stat-label">Abgeschlossen</span>
+          <span class="stat-label">{{ 'profile.completed' | t }}</span>
         </div>
       </div>
 
@@ -69,159 +64,152 @@
         </div>
         <div class="stat-body">
           <span class="stat-value">{{ completionRate }}%</span>
-          <span class="stat-label">Abschlussrate</span>
+          <span class="stat-label">{{ 'profile.completionRate' | t }}</span>
         </div>
       </div>
     </div>
 
-    <!-- Profil Section -->
     <div class="section">
       <h2 class="section-title">
         <mat-icon>person</mat-icon>
-        Profil
+        {{ 'profile.sectionProfile' | t }}
       </h2>
 
-      <!-- View Mode -->
       <div class="profile-info-card" *ngIf="!editMode">
         <div class="profile-fields">
           <div class="profile-field">
-            <span class="field-label">Benutzername</span>
-            <span class="field-value">{{ user?.username || '–' }}</span>
+            <span class="field-label">{{ 'profile.username' | t }}</span>
+            <span class="field-value">{{ user?.username || '-' }}</span>
           </div>
           <div class="profile-field">
-            <span class="field-label">E-Mail</span>
-            <span class="field-value">{{ user?.email || '–' }}</span>
+            <span class="field-label">{{ 'profile.email' | t }}</span>
+            <span class="field-value">{{ user?.email || '-' }}</span>
           </div>
           <div class="profile-field">
-            <span class="field-label">Anmeldestatus</span>
+            <span class="field-label">{{ 'profile.registrationStatus' | t }}</span>
             <span class="field-value">{{ getUserStatusLabel(user?.status) }}</span>
           </div>
           <div class="profile-field">
-            <span class="field-label">Vorname</span>
-            <span class="field-value">{{ user?.firstName || '–' }}</span>
+            <span class="field-label">{{ 'profile.firstName' | t }}</span>
+            <span class="field-value">{{ user?.firstName || '-' }}</span>
           </div>
           <div class="profile-field">
-            <span class="field-label">Nachname</span>
-            <span class="field-value">{{ user?.lastName || '–' }}</span>
+            <span class="field-label">{{ 'profile.lastName' | t }}</span>
+            <span class="field-value">{{ user?.lastName || '-' }}</span>
           </div>
           <div class="profile-field">
-            <span class="field-label">Geburtsdatum</span>
-            <span class="field-value">{{ user?.dateOfBirth ? (user!.dateOfBirth | date:'dd.MM.yyyy') : '–' }}</span>
+            <span class="field-label">{{ 'profile.dateOfBirth' | t }}</span>
+            <span class="field-value">{{ user?.dateOfBirth ? (user!.dateOfBirth | date:'dd.MM.yyyy') : '-' }}</span>
           </div>
           <div class="profile-field">
-            <span class="field-label">Größe</span>
-            <span class="field-value">{{ user?.heightCm != null ? user!.heightCm + ' cm' : '–' }}</span>
+            <span class="field-label">{{ 'profile.height' | t }}</span>
+            <span class="field-value">{{ user?.heightCm != null ? user!.heightCm + ' cm' : '-' }}</span>
           </div>
           <div class="profile-field">
-            <span class="field-label">Gewicht</span>
-            <span class="field-value">{{ user?.weightKg != null ? user!.weightKg + ' kg' : '–' }}</span>
+            <span class="field-label">{{ 'profile.weight' | t }}</span>
+            <span class="field-value">{{ user?.weightKg != null ? user!.weightKg + ' kg' : '-' }}</span>
           </div>
           <div class="profile-field">
-            <span class="field-label">Max. Herzfrequenz</span>
-            <span class="field-value">{{ user?.maxHeartRate != null ? user!.maxHeartRate + ' bpm' : '–' }}</span>
+            <span class="field-label">{{ 'profile.maxHeartRate' | t }}</span>
+            <span class="field-value">{{ user?.maxHeartRate != null ? user!.maxHeartRate + ' bpm' : '-' }}</span>
           </div>
           <div class="profile-field">
-            <span class="field-label">Ruhepuls</span>
-            <span class="field-value">{{ user?.hrRest != null ? user!.hrRest + ' bpm' : '–' }}</span>
+            <span class="field-label">{{ 'profile.restingHeartRate' | t }}</span>
+            <span class="field-value">{{ user?.hrRest != null ? user!.hrRest + ' bpm' : '-' }}</span>
           </div>
           <div class="profile-field">
-            <span class="field-label">Geschlecht</span>
-            <span class="field-value">{{ user?.gender === 'MALE' ? 'Männlich' : user?.gender === 'FEMALE' ? 'Weiblich' : '–' }}</span>
+            <span class="field-label">{{ 'profile.gender' | t }}</span>
+            <span class="field-value">{{ user?.gender === 'MALE' ? ('profile.genderMale' | t) : user?.gender === 'FEMALE' ? ('profile.genderFemale' | t) : '-' }}</span>
           </div>
         </div>
         <button mat-stroked-button class="edit-btn" (click)="startEdit()" *ngIf="user">
           <mat-icon>edit</mat-icon>
-          Bearbeiten
+          {{ 'profile.edit' | t }}
         </button>
         <div class="no-user-hint" *ngIf="!user">
-          <span>Kein Benutzerprofil gefunden.</span>
+          <span>{{ 'profile.noUser' | t }}</span>
         </div>
       </div>
 
-      <!-- Edit Mode -->
       <div class="profile-info-card edit-card" *ngIf="editMode">
         <mat-form-field appearance="outline" class="edit-field">
-          <mat-label>Benutzername</mat-label>
-          <input matInput [(ngModel)]="editUsername" placeholder="Benutzername">
+          <mat-label>{{ 'profile.username' | t }}</mat-label>
+          <input matInput [(ngModel)]="editUsername" [placeholder]="'profile.username' | t">
         </mat-form-field>
         <mat-form-field appearance="outline" class="edit-field">
-          <mat-label>E-Mail</mat-label>
-          <input matInput [(ngModel)]="editEmail" type="email" placeholder="E-Mail">
+          <mat-label>{{ 'profile.email' | t }}</mat-label>
+          <input matInput [(ngModel)]="editEmail" type="email" [placeholder]="'profile.email' | t">
         </mat-form-field>
         <mat-form-field appearance="outline" class="edit-field">
-          <mat-label>Vorname</mat-label>
-          <input matInput [(ngModel)]="editFirstName" placeholder="Vorname">
+          <mat-label>{{ 'profile.firstName' | t }}</mat-label>
+          <input matInput [(ngModel)]="editFirstName" [placeholder]="'profile.firstName' | t">
         </mat-form-field>
         <mat-form-field appearance="outline" class="edit-field">
-          <mat-label>Nachname</mat-label>
-          <input matInput [(ngModel)]="editLastName" placeholder="Nachname">
+          <mat-label>{{ 'profile.lastName' | t }}</mat-label>
+          <input matInput [(ngModel)]="editLastName" [placeholder]="'profile.lastName' | t">
         </mat-form-field>
         <mat-form-field appearance="outline" class="edit-field">
-          <mat-label>Geburtsdatum</mat-label>
-          <input matInput [(ngModel)]="editDateOfBirth" type="date" placeholder="JJJJ-MM-TT">
+          <mat-label>{{ 'profile.dateOfBirth' | t }}</mat-label>
+          <input matInput [(ngModel)]="editDateOfBirth" type="date" placeholder="YYYY-MM-DD">
         </mat-form-field>
         <mat-form-field appearance="outline" class="edit-field">
-          <mat-label>Größe (cm)</mat-label>
-          <input matInput [(ngModel)]="editHeightCm" type="number" min="50" max="300" placeholder="z.B. 175">
+          <mat-label>{{ 'profile.heightCm' | t }}</mat-label>
+          <input matInput [(ngModel)]="editHeightCm" type="number" min="50" max="300" [placeholder]="'profile.exampleHeight' | t">
         </mat-form-field>
         <mat-form-field appearance="outline" class="edit-field">
-          <mat-label>Gewicht (kg)</mat-label>
-          <input matInput [(ngModel)]="editWeightKg" type="number" min="20" max="500" step="0.1" placeholder="z.B. 72.5">
+          <mat-label>{{ 'profile.weightKg' | t }}</mat-label>
+          <input matInput [(ngModel)]="editWeightKg" type="number" min="20" max="500" step="0.1" [placeholder]="'profile.exampleWeight' | t">
         </mat-form-field>
         <mat-form-field appearance="outline" class="edit-field">
-          <mat-label>Max. Herzfrequenz (bpm)</mat-label>
-          <input matInput [(ngModel)]="editMaxHeartRate" type="number" min="100" max="230" placeholder="z.B. 185">
-          <mat-hint>Wird für Zonen, Strain und TRIMP benötigt</mat-hint>
+          <mat-label>{{ 'profile.maxHeartRateBpm' | t }}</mat-label>
+          <input matInput [(ngModel)]="editMaxHeartRate" type="number" min="100" max="230" [placeholder]="'profile.exampleMaxHr' | t">
+          <mat-hint>{{ 'profile.maxHrHint' | t }}</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline" class="edit-field">
-          <mat-label>Ruhepuls (bpm)</mat-label>
-          <input matInput [(ngModel)]="editHrRest" type="number" min="30" max="100" placeholder="z.B. 55">
-          <mat-hint>Wird für TRIMP (Bannister) benötigt</mat-hint>
+          <mat-label>{{ 'profile.restingHeartRateBpm' | t }}</mat-label>
+          <input matInput [(ngModel)]="editHrRest" type="number" min="30" max="100" [placeholder]="'profile.exampleRestHr' | t">
+          <mat-hint>{{ 'profile.restHrHint' | t }}</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline" class="edit-field">
-          <mat-label>Geschlecht</mat-label>
+          <mat-label>{{ 'profile.gender' | t }}</mat-label>
           <mat-select [(ngModel)]="editGender">
-            <mat-option value="">Nicht angegeben</mat-option>
-            <mat-option value="MALE">Männlich (k = 1.92)</mat-option>
-            <mat-option value="FEMALE">Weiblich (k = 1.67)</mat-option>
+            <mat-option value="">{{ 'profile.notSpecified' | t }}</mat-option>
+            <mat-option value="MALE">{{ 'profile.genderMaleCoeff' | t }}</mat-option>
+            <mat-option value="FEMALE">{{ 'profile.genderFemaleCoeff' | t }}</mat-option>
           </mat-select>
-          <mat-hint>Bestimmt den Bannister-Koeffizienten für TRIMP</mat-hint>
+          <mat-hint>{{ 'profile.genderHint' | t }}</mat-hint>
         </mat-form-field>
         <div class="edit-actions">
           <button mat-flat-button class="pacr-btn-primary" (click)="saveUser()" [disabled]="saving">
             <mat-spinner *ngIf="saving" diameter="16"></mat-spinner>
             <mat-icon *ngIf="!saving">save</mat-icon>
-            Speichern
+            {{ 'common.save' | t }}
           </button>
-          <button mat-stroked-button (click)="cancelEdit()" [disabled]="saving">Abbrechen</button>
+          <button mat-stroked-button (click)="cancelEdit()" [disabled]="saving">{{ 'common.cancel' | t }}</button>
         </div>
       </div>
     </div>
 
-    <!-- Tempobereiche Section -->
     <div class="section">
       <h2 class="section-title">
         <mat-icon>speed</mat-icon>
-        Tempobereiche
+        {{ 'profile.paceZones' | t }}
       </h2>
 
       <div class="pace-zone-card" *ngIf="!paceZoneLoading">
-
-        <!-- Keine Daten + Edit-Modus geschlossen -->
         <div *ngIf="!paceZones && !paceZoneEditMode" class="pace-zone-empty">
           <mat-icon>directions_run</mat-icon>
-          <p>Noch keine Tempobereiche konfiguriert. Gib eine Referenzleistung ein, um deine Zonen zu berechnen.</p>
+          <p>{{ 'profile.paceZonesEmpty' | t }}</p>
           <button mat-flat-button class="pacr-btn-primary" (click)="paceZoneEditMode = true">
             <mat-icon>add</mat-icon>
-            Tempobereiche einrichten
+            {{ 'profile.setupPaceZones' | t }}
           </button>
         </div>
 
-        <!-- Zonen anzeigen -->
         <div *ngIf="paceZones && !paceZoneEditMode">
           <div class="pace-zone-ref-info">
-            <span class="pace-ref-label">Referenz: {{ paceZones.referenceLabel }}</span>
-            <span class="pace-threshold">Schwellentempo: <strong>{{ formatPaceFromSeconds(paceZones.thresholdPaceSecPerKm) }} min/km</strong></span>
+            <span class="pace-ref-label">{{ 'profile.reference' | t }}: {{ paceZones.referenceLabel }}</span>
+            <span class="pace-threshold">{{ 'profile.thresholdPace' | t }}: <strong>{{ formatPaceFromSeconds(paceZones.thresholdPaceSecPerKm) }} min/km</strong></span>
           </div>
 
           <div class="pace-zones-list">
@@ -233,7 +221,7 @@
               </div>
               <div class="zone-range">
                 <span *ngIf="zone.fastestPaceSecPerKm && zone.slowestPaceSecPerKm">
-                  {{ formatPaceFromSeconds(zone.fastestPaceSecPerKm) }} – {{ formatPaceFromSeconds(zone.slowestPaceSecPerKm) }} min/km
+                  {{ formatPaceFromSeconds(zone.fastestPaceSecPerKm) }} - {{ formatPaceFromSeconds(zone.slowestPaceSecPerKm) }} min/km
                 </span>
                 <span *ngIf="zone.fastestPaceSecPerKm && !zone.slowestPaceSecPerKm">
                   &gt; {{ formatPaceFromSeconds(zone.fastestPaceSecPerKm) }} min/km
@@ -250,17 +238,16 @@
 
           <button mat-stroked-button class="pace-edit-btn" (click)="paceZoneEditMode = true">
             <mat-icon>edit</mat-icon>
-            Referenzleistung ändern
+            {{ 'profile.changeReference' | t }}
           </button>
         </div>
 
-        <!-- Eingabeformular -->
         <div *ngIf="paceZoneEditMode" class="pace-zone-form">
-          <p class="pace-form-hint">Gib deine beste Leistung bei einer Referenzstrecke ein. Die Tempobereiche werden nach der Jack-Daniels-VDOT-Methode berechnet.</p>
+          <p class="pace-form-hint">{{ 'profile.paceFormHint' | t }}</p>
 
           <div class="pace-form-row">
             <mat-form-field appearance="outline" class="pace-field-distance">
-              <mat-label>Strecke</mat-label>
+              <mat-label>{{ 'profile.distance' | t }}</mat-label>
               <mat-select [(ngModel)]="paceRefDistanceM" (ngModelChange)="onPaceDistanceChange($event)">
                 <mat-option *ngFor="let p of PRESET_DISTANCES" [value]="p.distanceM">{{ p.label }}</mat-option>
               </mat-select>
@@ -288,12 +275,11 @@
             <button mat-flat-button class="pacr-btn-primary" (click)="savePaceZones()" [disabled]="paceZoneSaving">
               <mat-spinner *ngIf="paceZoneSaving" diameter="16"></mat-spinner>
               <mat-icon *ngIf="!paceZoneSaving">calculate</mat-icon>
-              Berechnen &amp; Speichern
+              {{ 'profile.calculateSave' | t }}
             </button>
-            <button mat-stroked-button (click)="paceZoneEditMode = false" [disabled]="paceZoneSaving">Abbrechen</button>
+            <button mat-stroked-button (click)="paceZoneEditMode = false" [disabled]="paceZoneSaving">{{ 'common.cancel' | t }}</button>
           </div>
         </div>
-
       </div>
 
       <div class="loading-state" *ngIf="paceZoneLoading" style="height: 80px;">
@@ -301,32 +287,29 @@
       </div>
     </div>
 
-    <!-- Strava Section -->
     <div class="section">
       <h2 class="section-title">
         <mat-icon class="strava-icon">bolt</mat-icon>
         Strava
       </h2>
 
-      <!-- Connected -->
       <div class="strava-card connected" *ngIf="stravaStatus?.connected">
         <div class="strava-status-row">
           <div class="strava-badge">
             <div class="strava-dot connected"></div>
-            <span>Verbunden</span>
+            <span>{{ 'profile.connected' | t }}</span>
           </div>
           <button mat-stroked-button class="disconnect-btn" (click)="disconnectStrava()" [disabled]="stravaLoading">
             <mat-spinner *ngIf="stravaLoading" diameter="16"></mat-spinner>
             <mat-icon *ngIf="!stravaLoading">link_off</mat-icon>
-            <span>Trennen</span>
+            <span>{{ 'profile.disconnect' | t }}</span>
           </button>
         </div>
 
         <mat-divider class="strava-divider"></mat-divider>
 
-        <!-- Recent Activities -->
         <div class="activities-section">
-          <h3 class="activities-title">Letzte 30 Tage</h3>
+          <h3 class="activities-title">{{ 'profile.last30Days' | t }}</h3>
 
           <div class="activities-loading" *ngIf="activitiesLoading">
             <mat-spinner diameter="24"></mat-spinner>
@@ -339,7 +322,7 @@
               </div>
               <div class="activity-info">
                 <span class="activity-name">{{ activity.name }}</span>
-                <span class="activity-meta">{{ formatDistance(activity.distance) }} &middot; {{ formatDuration(activity.moving_time) }}</span>
+                <span class="activity-meta">{{ formatDistance(activity.distance) }} � {{ formatDuration(activity.moving_time) }}</span>
               </div>
               <div class="activity-pace" *ngIf="activity.average_speed">
                 <span class="pace-value">{{ formatPace(activity.average_speed) }}</span>
@@ -352,29 +335,27 @@
 
           <div class="empty-activities" *ngIf="!activitiesLoading && stravaActivities.length === 0">
             <mat-icon>directions_run</mat-icon>
-            <p>Keine Aktivitäten in den letzten 30 Tagen</p>
+            <p>{{ 'profile.noActivities' | t }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Not connected -->
       <div class="strava-card not-connected" *ngIf="!stravaStatus?.connected">
         <div class="strava-prompt">
           <div class="strava-logo-wrap">
             <mat-icon>bolt</mat-icon>
           </div>
           <div class="strava-prompt-text">
-            <p class="prompt-title">Strava verbinden</p>
-            <p class="prompt-sub">Importiere deine Aktivitäten automatisch und tracke deinen Fortschritt.</p>
+            <p class="prompt-title">{{ 'profile.connectStrava' | t }}</p>
+            <p class="prompt-sub">{{ 'profile.connectStravaSubtitle' | t }}</p>
           </div>
         </div>
         <button mat-flat-button class="pacr-btn-primary connect-btn" (click)="connectStrava()" [disabled]="stravaLoading">
           <mat-spinner *ngIf="stravaLoading" diameter="16"></mat-spinner>
           <mat-icon *ngIf="!stravaLoading">link</mat-icon>
-          Mit Strava verbinden
+          {{ 'profile.connectWithStrava' | t }}
         </button>
       </div>
     </div>
-
   </ng-container>
 </div>

@@ -16,6 +16,8 @@ import { ApiService } from '../../services/api.service';
 import { Competition } from '../../models/competition.model';
 import { RegistrationDialogComponent } from '../registration-dialog/registration-dialog.component';
 import { SelectPlanDialogComponent } from '../select-plan-dialog/select-plan-dialog.component';
+import { TranslatePipe } from '../../i18n/translate.pipe';
+import { I18nService } from '../../services/i18n.service';
 
 @Component({
   selector: 'app-competition-list',
@@ -32,6 +34,7 @@ import { SelectPlanDialogComponent } from '../select-plan-dialog/select-plan-dia
     MatSnackBarModule,
     MatDialogModule,
     MatTooltipModule,
+    TranslatePipe
   ],
   templateUrl: './competition-list.component.html',
   styleUrl: './competition-list.component.scss'
@@ -46,6 +49,7 @@ export class CompetitionListComponent implements OnInit {
     private apiService: ApiService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
+    private i18nService: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -65,7 +69,7 @@ export class CompetitionListComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.snackBar.open('Fehler beim Laden der Wettkämpfe', 'Schließen', { duration: 3000 });
+        this.showSnack('competitions.messages.loadError');
         this.loading = false;
       }
     });
@@ -78,7 +82,7 @@ export class CompetitionListComponent implements OnInit {
     });
     ref.afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.snackBar.open('Erfolgreich angemeldet!', 'Schließen', { duration: 3000 });
+        this.showSnack('competitions.messages.registered');
         this.loadCompetitions();
       }
     });
@@ -91,21 +95,24 @@ export class CompetitionListComponent implements OnInit {
     });
     ref.afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.snackBar.open('Anmeldedaten aktualisiert', 'Schließen', { duration: 3000 });
+        this.showSnack('competitions.messages.registrationUpdated');
         this.loadCompetitions();
       }
     });
   }
 
   unregister(competition: Competition): void {
-    if (!competition.id) return;
+    if (!competition.id) {
+      return;
+    }
+
     this.apiService.unregisterFromCompetition(competition.id).subscribe({
       next: () => {
-        this.snackBar.open('Abmeldung erfolgreich', 'Schließen', { duration: 3000 });
+        this.showSnack('competitions.messages.unregisterSuccess');
         this.loadCompetitions();
       },
       error: () => {
-        this.snackBar.open('Fehler bei der Abmeldung', 'Schließen', { duration: 3000 });
+        this.showSnack('competitions.messages.unregisterError');
       }
     });
   }
@@ -127,38 +134,52 @@ export class CompetitionListComponent implements OnInit {
     });
     ref.afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.snackBar.open('Plan erfolgreich verknüpft', 'Schließen', { duration: 3000 });
+        this.showSnack('competitions.messages.planLinked');
         this.loadCompetitions();
       }
     });
   }
 
   saveRanking(competition: Competition): void {
-    if (!competition.id) return;
+    if (!competition.id) {
+      return;
+    }
+
     this.apiService.updateCompetitionRegistration(competition.id, { ranking: this.rankingInput }).subscribe({
       next: () => {
         competition.ranking = this.rankingInput;
         this.editingRankingId = null;
         this.rankingInput = '';
-        this.snackBar.open('Ranking gespeichert', 'Schließen', { duration: 2000 });
+        this.showSnack('competitions.messages.rankingSaved', 2000);
       },
       error: () => {
-        this.snackBar.open('Fehler beim Speichern des Rankings', 'Schließen', { duration: 3000 });
+        this.showSnack('competitions.messages.rankingSaveError');
       }
     });
   }
 
   formatDate(dateString: string | undefined): string {
-    if (!dateString) return 'Kein Datum';
-    return new Date(dateString).toLocaleDateString('de-DE');
+    if (!dateString) {
+      return this.i18nService.t('competitions.noDate');
+    }
+
+    const locale = this.i18nService.getLanguage() === 'de' ? 'de-DE' : 'en-US';
+    return new Date(dateString).toLocaleDateString(locale);
   }
 
   getDaysUntil(dateString: string | undefined): number | null {
-    if (!dateString) return null;
+    if (!dateString) {
+      return null;
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const target = new Date(dateString);
     target.setHours(0, 0, 0, 0);
     return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  private showSnack(messageKey: string, duration = 3000): void {
+    this.snackBar.open(this.i18nService.t(messageKey), this.i18nService.t('common.close'), { duration });
   }
 }

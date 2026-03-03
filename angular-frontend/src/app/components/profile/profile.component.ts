@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -10,13 +10,14 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Subject, forkJoin } from 'rxjs';
-import { takeUntil, catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { Subject, forkJoin, of } from 'rxjs';
+import { catchError, takeUntil } from 'rxjs/operators';
 
 import { ApiService } from '../../services/api.service';
-import { Competition, User, PaceZones } from '../../models/competition.model';
-import { StravaStatus, StravaActivity } from '../../models/strava.model';
+import { Competition, PaceZones, User } from '../../models/competition.model';
+import { StravaActivity, StravaStatus } from '../../models/strava.model';
+import { TranslatePipe } from '../../i18n/translate.pipe';
+import { I18nService } from '../../services/i18n.service';
 
 @Component({
   selector: 'app-profile',
@@ -32,7 +33,8 @@ import { StravaStatus, StravaActivity } from '../../models/strava.model';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    DatePipe
+    DatePipe,
+    TranslatePipe
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
@@ -64,12 +66,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
   editWeightKg: number | null = null;
   editMaxHeartRate: number | null = null;
   editHrRest: number | null = null;
-  editGender: string = '';
+  editGender = '';
   profileImageUrl: string | null = null;
   profileImageUploading = false;
   profileImageMessage = '';
 
-  // Pace zones
   paceZones: PaceZones | null = null;
   paceZoneLoading = false;
   paceZoneSaving = false;
@@ -81,16 +82,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
   paceRefSeconds = 0;
 
   readonly PRESET_DISTANCES = [
-    { label: '1 Meile (1,6 km)', distanceM: 1609 },
+    { label: '1 Mile (1.6 km)', distanceM: 1609 },
     { label: '5K', distanceM: 5000 },
     { label: '10K', distanceM: 10000 },
-    { label: 'Halbmarathon', distanceM: 21097 },
-    { label: 'Marathon', distanceM: 42195 },
+    { label: 'Half Marathon', distanceM: 21097 },
+    { label: 'Marathon', distanceM: 42195 }
   ];
 
   constructor(
     private apiService: ApiService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private i18nService: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -159,7 +161,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           window.location.href = url;
         },
         error: () => {
-          this.snackBar.open('Strava-Verbindung fehlgeschlagen', 'Schließen', { duration: 3000 });
+          this.showSnack('profile.messages.stravaConnectError');
           this.stravaLoading = false;
         }
       });
@@ -174,10 +176,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.stravaStatus = null;
           this.stravaActivities = [];
           this.stravaLoading = false;
-          this.snackBar.open('Strava getrennt', 'Schließen', { duration: 3000 });
+          this.showSnack('profile.messages.stravaDisconnected');
         },
         error: () => {
-          this.snackBar.open('Fehler beim Trennen', 'Schließen', { duration: 3000 });
+          this.showSnack('profile.messages.stravaDisconnectError');
           this.stravaLoading = false;
         }
       });
@@ -186,11 +188,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
   formatDuration(seconds: number): string {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
-    return h > 0 ? `${h}h ${m}min` : `${m}min`;
+    if (h > 0) {
+      return this.i18nService.t('profile.durationHours', { h, m });
+    }
+    return this.i18nService.t('profile.durationMinutes', { m });
   }
 
   formatPace(speedMs: number): string {
-    if (!speedMs || speedMs === 0) return '–';
+    if (!speedMs || speedMs === 0) {
+      return '-';
+    }
     const paceSecPerKm = 1000 / speedMs;
     const m = Math.floor(paceSecPerKm / 60);
     const s = Math.floor(paceSecPerKm % 60);
@@ -198,18 +205,27 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   formatDistance(meters: number): string {
-    return (meters / 1000).toFixed(1) + ' km';
+    return `${(meters / 1000).toFixed(1)} km`;
   }
 
   get completionRate(): number {
-    if (this.totalTrainings === 0) return 0;
+    if (this.totalTrainings === 0) {
+      return 0;
+    }
     return Math.round((this.completedTrainings / this.totalTrainings) * 100);
   }
 
   getInitials(name?: string): string {
     const resolved = this.user?.username || name;
-    if (!resolved) return 'AT';
-    return resolved.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    if (!resolved) {
+      return 'AT';
+    }
+    return resolved
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   }
 
   loadUser(): void {
@@ -242,11 +258,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
         error: (error) => {
           this.revokeProfileImageObjectUrl();
           this.profileImageUrl = null;
-          if (error?.status === 404) {
-            this.profileImageMessage = 'Noch kein Profilbild hochgeladen.';
-          } else {
-            this.profileImageMessage = 'Profilbild konnte nicht geladen werden.';
-          }
+          this.profileImageMessage = error?.status === 404
+            ? this.i18nService.t('profile.imageNotUploaded')
+            : this.i18nService.t('profile.imageLoadError');
         }
       });
   }
@@ -265,12 +279,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
         next: () => {
           this.profileImageUploading = false;
           this.profileImageMessage = '';
-          this.snackBar.open('Profilbild aktualisiert', 'SchlieÃŸen', { duration: 3000 });
+          this.showSnack('profile.messages.imageUpdated');
           this.loadUser();
         },
         error: () => {
           this.profileImageUploading = false;
-          this.snackBar.open('Fehler beim Profilbild-Upload', 'SchlieÃŸen', { duration: 3000 });
+          this.showSnack('profile.messages.imageUploadError');
         }
       });
 
@@ -296,7 +310,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   saveUser(): void {
-    if (!this.user?.id) return;
+    if (!this.user?.id) {
+      return;
+    }
+
     this.saving = true;
     this.apiService.updateUser(this.user.id, {
       username: this.editUsername,
@@ -316,10 +333,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.user = updated;
           this.editMode = false;
           this.saving = false;
-          this.snackBar.open('Profil gespeichert', 'Schließen', { duration: 3000 });
+          this.showSnack('profile.messages.profileSaved');
         },
         error: () => {
-          this.snackBar.open('Fehler beim Speichern', 'Schließen', { duration: 3000 });
+          this.showSnack('profile.messages.profileSaveError');
           this.saving = false;
         }
       });
@@ -340,28 +357,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
   getUserStatusLabel(status?: User['status']): string {
     switch (status) {
       case 'EMAIL_VERIFICATION_PENDING':
-        return 'E-Mail-Bestätigung ausstehend';
+        return this.i18nService.t('profile.statusEmailPending');
       case 'ADMIN_APPROVAL_PENDING':
-        return 'Admin-Freigabe ausstehend';
+        return this.i18nService.t('profile.statusAdminPending');
       case 'BLOCKED':
-        return 'Blockiert';
+        return this.i18nService.t('profile.statusBlocked');
       case 'INACTIVE':
-        return 'Inaktiv';
+        return this.i18nService.t('profile.statusInactive');
       case 'ACTIVE':
-        return 'Aktiv';
+        return this.i18nService.t('profile.statusActive');
       default:
-        return 'Unbekannt';
+        return this.i18nService.t('profile.statusUnknown');
     }
   }
-
-  private revokeProfileImageObjectUrl(): void {
-    if (this.profileImageObjectUrl) {
-      URL.revokeObjectURL(this.profileImageObjectUrl);
-      this.profileImageObjectUrl = null;
-    }
-  }
-
-  // ─── Pace Zones ───────────────────────────────────────────────
 
   loadPaceZones(): void {
     this.paceZoneLoading = true;
@@ -403,10 +411,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const totalSeconds = (this.paceRefHours || 0) * 3600
       + (this.paceRefMinutes || 0) * 60
       + (this.paceRefSeconds || 0);
+
     if (!this.paceRefDistanceM || totalSeconds <= 0) {
-      this.snackBar.open('Bitte Strecke und Zeit eingeben', 'Schließen', { duration: 3000 });
+      this.showSnack('profile.messages.paceMissingInput');
       return;
     }
+
     this.paceZoneSaving = true;
     this.apiService.setPaceZoneReference(this.paceRefDistanceM, totalSeconds, this.paceRefLabel)
       .pipe(takeUntil(this.destroy$))
@@ -415,17 +425,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.paceZones = zones;
           this.paceZoneEditMode = false;
           this.paceZoneSaving = false;
-          this.snackBar.open('Tempobereiche gespeichert', 'Schließen', { duration: 3000 });
+          this.showSnack('profile.messages.paceSaved');
         },
         error: () => {
-          this.snackBar.open('Fehler beim Speichern der Tempobereiche', 'Schließen', { duration: 3000 });
+          this.showSnack('profile.messages.paceSaveError');
           this.paceZoneSaving = false;
         }
       });
   }
 
   formatPaceFromSeconds(secPerKm: number | null): string {
-    if (secPerKm == null) return '∞';
+    if (secPerKm == null) {
+      return '8';
+    }
     const m = Math.floor(secPerKm / 60);
     const s = secPerKm % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
@@ -433,13 +445,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   getPaceZoneColor(zone: number): string {
     const colors: Record<number, string> = {
-      1: '#64B5F6', // blue-light
-      2: '#4CAF50', // green
-      3: '#FFC107', // amber
-      4: '#FF7043', // deep-orange
-      5: '#E53935', // red
-      6: '#9C27B0', // purple
+      1: '#64B5F6',
+      2: '#4CAF50',
+      3: '#FFC107',
+      4: '#FF7043',
+      5: '#E53935',
+      6: '#9C27B0'
     };
     return colors[zone] ?? '#888';
+  }
+
+  private revokeProfileImageObjectUrl(): void {
+    if (this.profileImageObjectUrl) {
+      URL.revokeObjectURL(this.profileImageObjectUrl);
+      this.profileImageObjectUrl = null;
+    }
+  }
+
+  private showSnack(messageKey: string, duration = 3000): void {
+    this.snackBar.open(this.i18nService.t(messageKey), this.i18nService.t('common.close'), { duration });
   }
 }

@@ -6,7 +6,7 @@
         <p class="subtitle">{{ subtitle }}</p>
       </div>
       <button class="info-btn" type="button" *ngIf="infoText" (click)="toggleInfo()">
-        Was bedeutet das?
+        {{ 'dashboard.whatDoesItMean' | t }}
       </button>
     </div>
     <p class="info-text" *ngIf="infoText && infoOpen">{{ infoText }}</p>

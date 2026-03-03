@@ -1,12 +1,12 @@
-<section class="dashboard-page">
+﻿<section class="dashboard-page">
   <header class="page-head">
     <div>
-      <p class="eyebrow">PERFORMANCE</p>
-      <h1>Runner Dashboard</h1>
+      <p class="eyebrow">{{ 'dashboard.eyebrow' | t }}</p>
+      <h1>{{ 'dashboard.title' | t }}</h1>
     </div>
   </header>
 
-  <div class="loading-state" *ngIf="loading">Loading dashboard...</div>
+  <div class="loading-state" *ngIf="loading">{{ 'dashboard.loading' | t }}</div>
   <div class="error-state" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
 
   <ng-container *ngIf="!loading && dashboard">
@@ -14,38 +14,38 @@
       <app-score-ring-card
         [value]="dashboard.strain21"
         [max]="21"
-        label="Strain"
-        subtitle="Normalized training load"
+        [label]="'dashboard.strain' | t"
+        [subtitle]="'dashboard.normalizedTrainingLoad' | t"
         [state]="strainState"
-        footerText="Current daily strain"
-        infoText="Strain zeigt die Trainingsbelastung des Tages auf einer Skala von 0 bis 21. Hohe Werte bedeuten viel Intensität oder Umfang."
+        [footerText]="'dashboard.currentDailyStrain' | t"
+        [infoText]="'dashboard.strainInfo' | t"
       ></app-score-ring-card>
 
       <app-score-ring-card
         [value]="dashboard.readinessScore"
         [max]="100"
-        label="Readiness"
-        [subtitle]="dashboard.readinessRecommendation"
+        [label]="'dashboard.readiness' | t"
+        [subtitle]="readinessSubtitle"
         [state]="readinessState"
-        footerText="Recovery and adaptation score"
-        infoText="Readiness ist ein Erholungs-Score von 0 bis 100. Je höher der Wert, desto eher ist ein fordernder Lauf sinnvoll."
+        [footerText]="'dashboard.recoveryAndAdaptation' | t"
+        [infoText]="'dashboard.readinessInfo' | t"
       ></app-score-ring-card>
 
       <app-score-ring-card
         [value]="dashboard.loadStatus.acwr"
         [max]="2"
-        label="Load Status"
+        [label]="'dashboard.loadStatus' | t"
         [subtitle]="loadSubtitle"
         [state]="loadState"
         [footerText]="loadFooterText"
-        infoText="Load Status nutzt ACWR (akute/chronische Last). Werte im grünen Bereich sprechen für eine stabile Belastungssteuerung."
+        [infoText]="'dashboard.loadStatusInfo' | t"
       ></app-score-ring-card>
     </section>
 
     <section class="race-section" *ngIf="dashboard.nextCompetition || dashboard.trainingProgress?.length">
       <article class="panel panel--countdown" *ngIf="dashboard.nextCompetition">
         <div class="panel-head">
-          <h2>Nächster Wettkampf</h2>
+          <h2>{{ 'dashboard.nextRace' | t }}</h2>
           <p>{{ dashboard.nextCompetition.competitionName }}<span *ngIf="dashboard.nextCompetition.competitionLocation"> · {{ dashboard.nextCompetition.competitionLocation }}</span></p>
         </div>
 
@@ -53,8 +53,8 @@
           <div class="countdown-days">
             <span class="countdown-number" *ngIf="dashboard.nextCompetition.daysUntil > 0">{{ dashboard.nextCompetition.daysUntil }}</span>
             <span class="countdown-number today" *ngIf="dashboard.nextCompetition.daysUntil === 0">0</span>
-            <span class="countdown-label" *ngIf="dashboard.nextCompetition.daysUntil > 0">Tage</span>
-            <span class="countdown-label today" *ngIf="dashboard.nextCompetition.daysUntil === 0">Heute!</span>
+            <span class="countdown-label" *ngIf="dashboard.nextCompetition.daysUntil > 0">{{ 'dashboard.days' | t }}</span>
+            <span class="countdown-label today" *ngIf="dashboard.nextCompetition.daysUntil === 0">{{ 'dashboard.today' | t }}</span>
           </div>
           <p class="countdown-date">{{ formatDate(dashboard.nextCompetition.date) }}</p>
         </div>
@@ -63,16 +63,16 @@
           <div class="countdown-bar-fill" [style.width.%]="dashboard.nextCompetition.elapsedPct"></div>
         </div>
         <div class="countdown-bar-labels">
-          <span>Start</span>
-          <span>{{ dashboard.nextCompetition.elapsedPct | number:'1.0-0' }}% absolviert</span>
-          <span>Race</span>
+          <span>{{ 'dashboard.start' | t }}</span>
+          <span>{{ 'dashboard.completedPercent' | t:{ percent: (dashboard.nextCompetition.elapsedPct | number:'1.0-0') } }}</span>
+          <span>{{ 'dashboard.race' | t }}</span>
         </div>
       </article>
 
       <article class="panel panel--progress" *ngIf="dashboard.trainingProgress?.length">
         <div class="panel-head">
-          <h2>Trainingsfortschritt</h2>
-          <p>Absolvierte Einheiten je Wettkampf</p>
+          <h2>{{ 'dashboard.trainingProgress' | t }}</h2>
+          <p>{{ 'dashboard.completedSessionsPerRace' | t }}</p>
         </div>
 
         <div class="progress-list">
@@ -95,11 +95,11 @@
 
     <article class="panel panel--trend">
       <div class="panel-head">
-        <h2>Load Trend</h2>
-        <p>Last 28 days of normalized strain</p>
-        <button class="info-btn" type="button" (click)="toggleInfo('loadTrend')">Was bedeutet das?</button>
+        <h2>{{ 'dashboard.loadTrend' | t }}</h2>
+        <p>{{ 'dashboard.last28Days' | t }}</p>
+        <button class="info-btn" type="button" (click)="toggleInfo('loadTrend')">{{ 'dashboard.whatDoesItMean' | t }}</button>
       </div>
-      <p class="panel-info" *ngIf="isInfoOpen('loadTrend')">Der Verlauf zeigt deine tägliche Strain-Entwicklung der letzten 28 Tage. Achte auf starke Peaks und schnelle Lastanstiege.</p>
+      <p class="panel-info" *ngIf="isInfoOpen('loadTrend')">{{ 'dashboard.loadTrendInfo' | t }}</p>
       <div class="chart-wrap chart-wrap--main">
         <canvas #loadTrendCanvas></canvas>
       </div>
@@ -108,50 +108,50 @@
     <section class="bottom-grid">
       <article class="panel panel--last-run" *ngIf="dashboard.lastRun">
         <div class="panel-head">
-          <h2>Last Run Insight</h2>
+          <h2>{{ 'dashboard.lastRunInsight' | t }}</h2>
           <p>{{ formatDate(dashboard.lastRun.date) }}</p>
-          <button class="info-btn" type="button" (click)="toggleInfo('lastRun')">Was bedeutet das?</button>
+          <button class="info-btn" type="button" (click)="toggleInfo('lastRun')">{{ 'dashboard.whatDoesItMean' | t }}</button>
         </div>
-        <p class="panel-info" *ngIf="isInfoOpen('lastRun')">Hier siehst du die wichtigsten Kennzahlen deines letzten Laufs: Strain, Drift sowie Minuten in Z4 und Z5 für die Intensitätsbewertung.</p>
+        <p class="panel-info" *ngIf="isInfoOpen('lastRun')">{{ 'dashboard.lastRunInfo' | t }}</p>
 
         <div class="metrics-grid">
           <div class="metric-item">
-            <span class="metric-label">Strain</span>
+            <span class="metric-label">{{ 'dashboard.strain' | t }}</span>
             <span class="metric-value">{{ dashboard.lastRun.strain21 | number:'1.1-1' }}</span>
           </div>
           <div class="metric-item">
-            <span class="metric-label">Drift</span>
+            <span class="metric-label">{{ 'dashboard.drift' | t }}</span>
             <span class="metric-value">{{ dashboard.lastRun.driftPct | number:'1.1-1' }}%</span>
           </div>
           <div class="metric-item">
-            <span class="metric-label">Z4 Minutes</span>
+            <span class="metric-label">{{ 'dashboard.z4Minutes' | t }}</span>
             <span class="metric-value">{{ dashboard.lastRun.z4Min | number:'1.0-0' }}</span>
           </div>
           <div class="metric-item">
-            <span class="metric-label">Z5 Minutes</span>
+            <span class="metric-label">{{ 'dashboard.z5Minutes' | t }}</span>
             <span class="metric-value">{{ dashboard.lastRun.z5Min | number:'1.0-0' }}</span>
           </div>
         </div>
 
         <div class="bullet-block" *ngIf="dashboard.lastRun.coachBullets?.length">
-          <h3>Coach Notes</h3>
+          <h3>{{ 'dashboard.coachNotes' | t }}</h3>
           <ul>
-            <li *ngFor="let bullet of dashboard.lastRun.coachBullets">{{ bullet }}</li>
+            <li *ngFor="let bullet of dashboard.lastRun.coachBullets">{{ localizeBullet(bullet) }}</li>
           </ul>
         </div>
       </article>
 
       <article class="panel panel--mini-trends">
         <div class="panel-head">
-          <h2>Mini Trends</h2>
-          <p>Efficiency factor and drift snapshots</p>
-          <button class="info-btn" type="button" (click)="toggleInfo('miniTrends')">Was bedeutet das?</button>
+          <h2>{{ 'dashboard.miniTrends' | t }}</h2>
+          <p>{{ 'dashboard.efAndDriftSnapshots' | t }}</p>
+          <button class="info-btn" type="button" (click)="toggleInfo('miniTrends')">{{ 'dashboard.whatDoesItMean' | t }}</button>
         </div>
-        <p class="panel-info" *ngIf="isInfoOpen('miniTrends')">Efficiency Factor verknüpft Tempo und Herzfrequenz. Drift zeigt, wie stark die Effizienz innerhalb von Läufen abnimmt.</p>
+        <p class="panel-info" *ngIf="isInfoOpen('miniTrends')">{{ 'dashboard.miniTrendsInfo' | t }}</p>
 
         <div class="mini-chart-block">
           <div class="mini-chart-head">
-            <h3>Efficiency Factor</h3>
+            <h3>{{ 'dashboard.efficiencyFactor' | t }}</h3>
           </div>
           <div class="chart-wrap chart-wrap--mini">
             <canvas #efTrendCanvas></canvas>
@@ -160,7 +160,7 @@
 
         <div class="mini-chart-block">
           <div class="mini-chart-head">
-            <h3>Drift</h3>
+            <h3>{{ 'dashboard.drift' | t }}</h3>
           </div>
           <div class="chart-wrap chart-wrap--mini">
             <canvas #driftTrendCanvas></canvas>

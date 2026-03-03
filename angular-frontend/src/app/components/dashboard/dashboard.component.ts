@@ -12,13 +12,15 @@ import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { DashboardDto } from '../../models/dashboard.model';
 import { ApiService } from '../../services/api.service';
 import { ScoreRingCardComponent, ScoreRingState } from '../score-ring-card/score-ring-card.component';
+import { TranslatePipe } from '../../i18n/translate.pipe';
+import { I18nService } from '../../services/i18n.service';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ScoreRingCardComponent],
+  imports: [CommonModule, ScoreRingCardComponent, TranslatePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -37,7 +39,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private driftTrendChart?: Chart;
   private viewReady = false;
 
-  constructor(private readonly apiService: ApiService) {}
+  constructor(
+    private readonly apiService: ApiService,
+    private readonly i18nService: I18nService
+  ) {}
 
   ngOnInit(): void {
     this.fetchDashboard();
@@ -97,7 +102,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       return '';
     }
 
-    return `${this.flagLabel(this.dashboard.loadStatus.flag)} | ACWR ${this.dashboard.loadStatus.acwr.toFixed(2)}`;
+    return this.i18nService.t('dashboard.loadSubtitle', {
+      flag: this.flagLabel(this.dashboard.loadStatus.flag),
+      acwr: this.dashboard.loadStatus.acwr.toFixed(2)
+    });
   }
 
   get loadFooterText(): string {
@@ -105,11 +113,35 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       return '';
     }
 
-    return `Flag: ${this.dashboard.loadStatus.flag}`;
+    return this.i18nService.t('dashboard.loadFooter', { flag: this.flagLabel(this.dashboard.loadStatus.flag) });
+  }
+
+  get readinessSubtitle(): string {
+    const recommendation = this.dashboard?.readinessRecommendation;
+    if (!recommendation) {
+      return '';
+    }
+
+    switch (recommendation.toUpperCase()) {
+      case 'REST':
+        return this.i18nService.t('dashboard.recommendationRest');
+      case 'EASY':
+        return this.i18nService.t('dashboard.recommendationEasy');
+      case 'MODERATE':
+        return this.i18nService.t('dashboard.recommendationModerate');
+      case 'HARD':
+        return this.i18nService.t('dashboard.recommendationHard');
+      default:
+        return this.i18nService.translateLiteral(recommendation);
+    }
+  }
+
+  localizeBullet(bullet: string): string {
+    return this.i18nService.translateLiteral(bullet);
   }
 
   formatDate(date: string): string {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString(this.getDateLocale(), {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
@@ -138,7 +170,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           requestAnimationFrame(() => this.renderCharts());
         },
         error: (error) => {
-          this.errorMessage = error?.error?.message || 'Dashboard data could not be loaded.';
+          this.errorMessage = error?.error?.message || this.i18nService.t('dashboard.loadError');
           this.dashboard = undefined;
           this.destroyCharts();
         }
@@ -203,7 +235,9 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
             bodyColor: '#EAF0FF',
             displayColors: false,
             callbacks: {
-              label: (context) => `Strain: ${Number(context.raw).toFixed(1)}`
+              label: (context) => this.i18nService.t('dashboard.tooltipStrain', {
+                value: Number(context.raw).toFixed(1)
+              })
             }
           }
         },
@@ -261,7 +295,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           fill: true
         }]
       },
-      options: this.miniChartOptions('EF')
+      options: this.miniChartOptions(this.i18nService.t('dashboard.ef'))
     });
   }
 
@@ -291,7 +325,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           fill: true
         }]
       },
-      options: this.miniChartOptions('Drift')
+      options: this.miniChartOptions(this.i18nService.t('dashboard.drift'))
     });
   }
 
@@ -344,7 +378,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private compactDate(date: string): string {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString(this.getDateLocale(), {
       month: 'short',
       day: 'numeric'
     });
@@ -353,15 +387,19 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private flagLabel(flag: DashboardDto['loadStatus']['flag']): string {
     switch (flag) {
       case 'GREEN':
-        return 'Optimal Load';
+        return this.i18nService.t('dashboard.flagGreen');
       case 'ORANGE':
-        return 'Elevated Load';
+        return this.i18nService.t('dashboard.flagOrange');
       case 'RED':
-        return 'High Risk';
+        return this.i18nService.t('dashboard.flagRed');
       case 'BLUE':
       default:
-        return 'Low Load';
+        return this.i18nService.t('dashboard.flagBlue');
     }
+  }
+
+  private getDateLocale(): string {
+    return this.i18nService.getLanguage() === 'de' ? 'de-DE' : 'en-US';
   }
 
   private themeColor(varName: string, fallback: string): string {
