@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +9,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { ActivityMetrics, CompletedTraining } from '../../models/competition.model';
 import { ApiService } from '../../services/api.service';
 import { catchError, of } from 'rxjs';
@@ -21,6 +24,7 @@ export interface CompletedTrainingDialogData {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
@@ -29,6 +33,8 @@ export interface CompletedTrainingDialogData {
     MatDividerModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
+    MatFormFieldModule,
   ],
   templateUrl: './strava-activity-dialog.component.html',
   styleUrl: './strava-activity-dialog.component.scss'
@@ -42,6 +48,11 @@ export class StravaActivityDialogComponent implements OnInit {
   metricsComputing = false;
   metricsComputeError: string | null = null;
 
+  trainingTypes: string[] = [];
+  selectedTrainingType: string | null = null;
+  trainingTypeSaving = false;
+  trainingTypeSaved = false;
+
   constructor(
     private dialogRef: MatDialogRef<StravaActivityDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: CompletedTrainingDialogData,
@@ -51,6 +62,13 @@ export class StravaActivityDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.selectedTrainingType = this.completed.trainingType ?? null;
+    this.apiService.getCompletedTrainingTypes().pipe(
+      catchError(() => of([]))
+    ).subscribe(types => {
+      this.trainingTypes = types;
+    });
+
     if (this.isRunning() && this.completed.distanceKm && this.completed.durationSeconds) {
       this.vo2MaxLoading = true;
       this.apiService.getVo2MaxEstimate(
@@ -112,6 +130,22 @@ export class StravaActivityDialogComponent implements OnInit {
     const h = Math.floor(minutes / 60);
     const m = Math.round(minutes % 60);
     return h > 0 ? `${h}h ${m}min` : `${m} min`;
+  }
+
+  saveTrainingType(): void {
+    if (!this.completed.id) return;
+    this.trainingTypeSaving = true;
+    this.trainingTypeSaved = false;
+    this.apiService.updateCompletedTrainingType(this.completed.id, this.selectedTrainingType).pipe(
+      catchError(() => of(null))
+    ).subscribe(updated => {
+      this.trainingTypeSaving = false;
+      if (updated) {
+        this.completed.trainingType = updated.trainingType;
+        this.trainingTypeSaved = true;
+        setTimeout(() => this.trainingTypeSaved = false, 2000);
+      }
+    });
   }
 
   onClose(): void {

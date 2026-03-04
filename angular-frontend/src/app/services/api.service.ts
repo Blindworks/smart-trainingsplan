@@ -224,6 +224,14 @@ export class ApiService {
     return this.http.post<ActivityMetrics>(`${this.baseUrl}/completed-trainings/${completedTrainingId}/compute-strava-metrics`, {});
   }
 
+  getCompletedTrainingTypes(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/completed-trainings/training-types`);
+  }
+
+  updateCompletedTrainingType(id: number, trainingType: string | null): Observable<CompletedTraining> {
+    return this.http.patch<CompletedTraining>(`${this.baseUrl}/completed-trainings/${id}/training-type`, { trainingType });
+  }
+
   getDailyMetrics(startDate: string, endDate: string): Observable<DailyMetrics[]> {
     return this.http.get<DailyMetrics[]>(`${this.baseUrl}/daily-metrics`, {
       params: { startDate, endDate }

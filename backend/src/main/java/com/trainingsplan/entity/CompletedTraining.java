@@ -135,6 +135,10 @@ public class CompletedTraining {
     @Column(name = "sub_sport")
     private String subSport;
 
+    // Training Type (user-defined label, e.g. "Langer Lauf", "Intervalle")
+    @Column(name = "training_type")
+    private String trainingType;
+
     // Source tracking
     @Column(name = "source", nullable = false)
     private String source = "FIT_FILE";
@@ -505,6 +509,14 @@ public class CompletedTraining {
 
     public void setEndLongitude(Double endLongitude) {
         this.endLongitude = endLongitude;
+    }
+
+    public String getTrainingType() {
+        return trainingType;
+    }
+
+    public void setTrainingType(String trainingType) {
+        this.trainingType = trainingType;
     }
 
     public String getSource() {

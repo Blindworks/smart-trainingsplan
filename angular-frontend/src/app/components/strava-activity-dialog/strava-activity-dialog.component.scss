@@ -893,6 +893,28 @@ $ef-green: #4caf50;
   line-height: 1.4;
 }
 
+// ─── Trainingstyp ─────────────────────────────────────────────────────────────
+
+.info-section--type .mat-mdc-card-avatar {
+  background-color: rgba(25, 118, 210, 0.1) !important;
+  color: $accent-blue !important;
+}
+
+.info-section--type:hover {
+  border-color: rgba(25, 118, 210, 0.3) !important;
+}
+
+.training-type-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.training-type-select {
+  width: 100%;
+}
+
 // ─── Responsive ───────────────────────────────────────────────────────────────
 
 @media (max-width: 600px) {

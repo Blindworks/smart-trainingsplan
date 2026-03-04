@@ -125,6 +125,7 @@ export interface CompletedTraining {
   // Sport Information
   sport?: string;
   subSport?: string;
+  trainingType?: string;
 
   // Source Information
   source?: string;

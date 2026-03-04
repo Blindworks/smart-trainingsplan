@@ -74,6 +74,27 @@
       </mat-card-content>
     </mat-card>
 
+    <!-- Trainingstyp -->
+    <mat-card class="info-section info-section--type" appearance="outlined">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>label</mat-icon>
+        <mat-card-title>Trainingstyp</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="training-type-row">
+          <mat-form-field appearance="outline" class="training-type-select">
+            <mat-label>Typ auswählen</mat-label>
+            <mat-select [(ngModel)]="selectedTrainingType" (ngModelChange)="saveTrainingType()">
+              <mat-option [value]="null">– kein Typ –</mat-option>
+              <mat-option *ngFor="let t of trainingTypes" [value]="t">{{ t }}</mat-option>
+            </mat-select>
+            <mat-icon matSuffix *ngIf="trainingTypeSaved" style="color: #4caf50">check_circle</mat-icon>
+            <mat-spinner matSuffix *ngIf="trainingTypeSaving" diameter="18"></mat-spinner>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
     <!-- Leistungsdaten -->
     <mat-card class="info-section" appearance="outlined"
               *ngIf="completed.distanceKm || completed.averagePaceSecondsPerKm || completed.averageSpeedKmh || completed.elevationGainM">

@@ -245,6 +245,39 @@ public class CompletedTrainingController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/training-types")
+    public ResponseEntity<List<String>> getTrainingTypes() {
+        return ResponseEntity.ok(List.of(
+            "Langer Lauf",
+            "Intervalle",
+            "Tempo",
+            "Fahrtspiel",
+            "Regenerationslauf",
+            "Wettkampf",
+            "Krafttraining",
+            "Schwimmen",
+            "Radfahren",
+            "Allgemein"
+        ));
+    }
+
+    @PatchMapping("/{id}/training-type")
+    public ResponseEntity<?> updateTrainingType(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return completedTrainingRepository.findByIdAndUserId(id, user.getId())
+                .map(ct -> {
+                    ct.setTrainingType(body.get("trainingType"));
+                    completedTrainingRepository.save(ct);
+                    return ResponseEntity.ok(ct);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCompletedTraining(@PathVariable Long id) {
         // Diese Methode kann später implementiert werden
