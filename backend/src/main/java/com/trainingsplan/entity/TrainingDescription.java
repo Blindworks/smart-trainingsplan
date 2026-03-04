@@ -35,6 +35,24 @@ public class TrainingDescription {
     @Column(name = "difficulty_level")
     private String difficultyLevel;
 
+    @Column(name = "work_pace", length = 50)
+    private String workPace;
+
+    @Column(name = "work_time_seconds")
+    private Integer workTimeSeconds;
+
+    @Column(name = "work_distance_meters")
+    private Integer workDistanceMeters;
+
+    @Column(name = "recovery_pace", length = 50)
+    private String recoveryPace;
+
+    @Column(name = "recovery_time_seconds")
+    private Integer recoveryTimeSeconds;
+
+    @Column(name = "recovery_distance_meters")
+    private Integer recoveryDistanceMeters;
+
     public TrainingDescription() {}
 
     public TrainingDescription(String name, String detailedInstructions) {
@@ -112,5 +130,53 @@ public class TrainingDescription {
 
     public void setDifficultyLevel(String difficultyLevel) {
         this.difficultyLevel = difficultyLevel;
+    }
+
+    public String getWorkPace() {
+        return workPace;
+    }
+
+    public void setWorkPace(String workPace) {
+        this.workPace = workPace;
+    }
+
+    public Integer getWorkTimeSeconds() {
+        return workTimeSeconds;
+    }
+
+    public void setWorkTimeSeconds(Integer workTimeSeconds) {
+        this.workTimeSeconds = workTimeSeconds;
+    }
+
+    public Integer getWorkDistanceMeters() {
+        return workDistanceMeters;
+    }
+
+    public void setWorkDistanceMeters(Integer workDistanceMeters) {
+        this.workDistanceMeters = workDistanceMeters;
+    }
+
+    public String getRecoveryPace() {
+        return recoveryPace;
+    }
+
+    public void setRecoveryPace(String recoveryPace) {
+        this.recoveryPace = recoveryPace;
+    }
+
+    public Integer getRecoveryTimeSeconds() {
+        return recoveryTimeSeconds;
+    }
+
+    public void setRecoveryTimeSeconds(Integer recoveryTimeSeconds) {
+        this.recoveryTimeSeconds = recoveryTimeSeconds;
+    }
+
+    public Integer getRecoveryDistanceMeters() {
+        return recoveryDistanceMeters;
+    }
+
+    public void setRecoveryDistanceMeters(Integer recoveryDistanceMeters) {
+        this.recoveryDistanceMeters = recoveryDistanceMeters;
     }
 }

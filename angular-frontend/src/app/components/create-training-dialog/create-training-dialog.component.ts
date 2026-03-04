@@ -75,13 +75,13 @@ export class CreateTrainingDialogComponent {
       intensityLevel:       [t?.intensityLevel ?? 'medium',             Validators.required],
       durationMinutes:      [t?.durationMinutes ?? null,                [Validators.min(1), Validators.max(999)]],
       // TrainingDescription fields
-      descName:             [desc?.name ?? ''],
-      detailedInstructions: [desc?.detailedInstructions ?? ''],
-      warmupInstructions:   [desc?.warmupInstructions ?? ''],
-      cooldownInstructions: [desc?.cooldownInstructions ?? ''],
-      equipment:            [desc?.equipment ?? ''],
-      tips:                 [desc?.tips ?? ''],
-      difficultyLevel:      [desc?.difficultyLevel ?? '']
+      descName:                [desc?.name ?? ''],
+      detailedInstructions:    [desc?.detailedInstructions ?? ''],
+      warmupInstructions:      [desc?.warmupInstructions ?? ''],
+      cooldownInstructions:    [desc?.cooldownInstructions ?? ''],
+      equipment:               [desc?.equipment ?? ''],
+      tips:                    [desc?.tips ?? ''],
+      difficultyLevel:         [desc?.difficultyLevel ?? '']
     });
   }
 

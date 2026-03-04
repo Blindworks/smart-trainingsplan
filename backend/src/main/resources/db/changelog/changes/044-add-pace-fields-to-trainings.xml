@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="044-add-pace-fields-to-trainings" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="trainings" columnName="work_pace"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="trainings">
+            <column name="work_pace" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="work_time_seconds" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="work_distance_meters" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="recovery_pace" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="recovery_time_seconds" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="recovery_distance_meters" type="INT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -46,6 +46,12 @@ public class TrainingDescriptionService {
                 existing.setTips(trainingDescription.getTips());
                 existing.setEstimatedDurationMinutes(trainingDescription.getEstimatedDurationMinutes());
                 existing.setDifficultyLevel(trainingDescription.getDifficultyLevel());
+                existing.setWorkPace(trainingDescription.getWorkPace());
+                existing.setWorkTimeSeconds(trainingDescription.getWorkTimeSeconds());
+                existing.setWorkDistanceMeters(trainingDescription.getWorkDistanceMeters());
+                existing.setRecoveryPace(trainingDescription.getRecoveryPace());
+                existing.setRecoveryTimeSeconds(trainingDescription.getRecoveryTimeSeconds());
+                existing.setRecoveryDistanceMeters(trainingDescription.getRecoveryDistanceMeters());
                 return save(existing);
             }
         }

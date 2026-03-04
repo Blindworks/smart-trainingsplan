@@ -46,5 +46,7 @@
     <include file="db/changelog/changes/040-add-training-plan-target-time-prerequisites.xml"/>
     <include file="db/changelog/changes/041-add-training-plan-competition-type.xml"/>
     <include file="db/changelog/changes/042-add-completed-training-type.xml"/>
+    <include file="db/changelog/changes/043-add-pace-fields-to-training-descriptions.xml"/>
+    <include file="db/changelog/changes/044-add-pace-fields-to-trainings.xml"/>
 
 </databaseChangeLog>

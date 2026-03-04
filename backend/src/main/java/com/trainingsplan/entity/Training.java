@@ -38,6 +38,24 @@ public class Training {
     @Column(name = "training_type")
     private String trainingType;
 
+    @Column(name = "work_pace", length = 50)
+    private String workPace;
+
+    @Column(name = "work_time_seconds")
+    private Integer workTimeSeconds;
+
+    @Column(name = "work_distance_meters")
+    private Integer workDistanceMeters;
+
+    @Column(name = "recovery_pace", length = 50)
+    private String recoveryPace;
+
+    @Column(name = "recovery_time_seconds")
+    private Integer recoveryTimeSeconds;
+
+    @Column(name = "recovery_distance_meters")
+    private Integer recoveryDistanceMeters;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "training_plan_id")
     @JsonIgnore
@@ -70,6 +88,24 @@ public class Training {
 
     public String getTrainingType() { return trainingType; }
     public void setTrainingType(String trainingType) { this.trainingType = trainingType; }
+
+    public String getWorkPace() { return workPace; }
+    public void setWorkPace(String workPace) { this.workPace = workPace; }
+
+    public Integer getWorkTimeSeconds() { return workTimeSeconds; }
+    public void setWorkTimeSeconds(Integer workTimeSeconds) { this.workTimeSeconds = workTimeSeconds; }
+
+    public Integer getWorkDistanceMeters() { return workDistanceMeters; }
+    public void setWorkDistanceMeters(Integer workDistanceMeters) { this.workDistanceMeters = workDistanceMeters; }
+
+    public String getRecoveryPace() { return recoveryPace; }
+    public void setRecoveryPace(String recoveryPace) { this.recoveryPace = recoveryPace; }
+
+    public Integer getRecoveryTimeSeconds() { return recoveryTimeSeconds; }
+    public void setRecoveryTimeSeconds(Integer recoveryTimeSeconds) { this.recoveryTimeSeconds = recoveryTimeSeconds; }
+
+    public Integer getRecoveryDistanceMeters() { return recoveryDistanceMeters; }
+    public void setRecoveryDistanceMeters(Integer recoveryDistanceMeters) { this.recoveryDistanceMeters = recoveryDistanceMeters; }
 
     public TrainingPlan getTrainingPlan() { return trainingPlan; }
     public void setTrainingPlan(TrainingPlan trainingPlan) { this.trainingPlan = trainingPlan; }

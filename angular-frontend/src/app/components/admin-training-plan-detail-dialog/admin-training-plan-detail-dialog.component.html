@@ -145,19 +145,90 @@
           </div>
 
           @for (t of trainings; track t.id) {
-            <div class="t-row">
-              <span class="t-week">{{ t.weekNumber ?? '–' }}</span>
-              <span class="t-day">{{ t.dayOfWeek ?? '–' }}</span>
-              <span class="t-name">{{ t.trainingDescription?.name ?? t.name }}</span>
-              <span><span class="badge badge-type">{{ typeLabel(t.trainingType) }}</span></span>
-              <span><span class="badge" [class]="'badge-' + t.intensityLevel">{{ intensityLabel(t.intensityLevel) }}</span></span>
-              <span class="t-duration">{{ t.durationMinutes ? t.durationMinutes + ' min' : '–' }}</span>
-              <span>
-                <button class="del-btn" (click)="deleteTraining(t)" title="Training löschen">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </span>
-            </div>
+            @if (editingId === t.id && editRow) {
+              <div class="t-row t-row--editing">
+                <span><input class="cell-input" type="number" min="1" [(ngModel)]="editRow.weekNumber" placeholder="–" /></span>
+                <span>
+                  <select class="cell-select" [(ngModel)]="editRow.dayOfWeek">
+                    @for (d of days; track d.value) { <option [value]="d.value">{{ d.label }}</option> }
+                  </select>
+                </span>
+                <span><input class="cell-input" [(ngModel)]="editRow.name" placeholder="Name" /></span>
+                <span>
+                  <select class="cell-select" [(ngModel)]="editRow.trainingType">
+                    @for (tp of types; track tp.value) { <option [value]="tp.value">{{ tp.label }}</option> }
+                  </select>
+                </span>
+                <span>
+                  <select class="cell-select" [(ngModel)]="editRow.intensityLevel">
+                    @for (it of intensities; track it.value) { <option [value]="it.value">{{ it.label }}</option> }
+                  </select>
+                </span>
+                <span><input class="cell-input" type="number" min="1" [(ngModel)]="editRow.durationMinutes" placeholder="–" /></span>
+                <span class="edit-actions-cell">
+                  <button class="save-btn" (click)="saveEdit()" [disabled]="savingEdit" title="Speichern">
+                    <mat-icon>check</mat-icon>
+                  </button>
+                  <button class="del-btn" (click)="cancelEdit()" title="Abbrechen">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </span>
+              </div>
+              <div class="t-row--pace-edit">
+                <div class="pace-row">
+                  <span class="pace-row-label">Belastung</span>
+                  <div class="pace-group">
+                    <label class="pace-label">Pace (min/km)</label>
+                    <input class="cell-input" [(ngModel)]="editRow.workPace" placeholder="z.B. 4:30" />
+                  </div>
+                  <div class="pace-group">
+                    <label class="pace-label">Zeit (s)</label>
+                    <input class="cell-input" type="number" min="1" [(ngModel)]="editRow.workTimeSeconds" placeholder="–" />
+                  </div>
+                  <div class="pace-group">
+                    <label class="pace-label">Distanz (m)</label>
+                    <input class="cell-input" type="number" min="1" [(ngModel)]="editRow.workDistanceMeters" placeholder="–" />
+                  </div>
+                </div>
+                <div class="pace-row">
+                  <span class="pace-row-label">Erholung</span>
+                  <div class="pace-group">
+                    <label class="pace-label">Pace (min/km)</label>
+                    <input class="cell-input" [(ngModel)]="editRow.recoveryPace" placeholder="z.B. 6:00" />
+                  </div>
+                  <div class="pace-group">
+                    <label class="pace-label">Zeit (s)</label>
+                    <input class="cell-input" type="number" min="1" [(ngModel)]="editRow.recoveryTimeSeconds" placeholder="–" />
+                  </div>
+                  <div class="pace-group">
+                    <label class="pace-label">Distanz (m)</label>
+                    <input class="cell-input" type="number" min="1" [(ngModel)]="editRow.recoveryDistanceMeters" placeholder="–" />
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="t-row">
+                <span class="t-week">{{ t.weekNumber ?? '–' }}</span>
+                <span class="t-day">{{ t.dayOfWeek ?? '–' }}</span>
+                <span class="t-name">
+                  {{ t.trainingDescription?.name ?? t.name }}
+                  @if (t.workPace) {
+                    <span class="pace-hint"> · {{ t.workPace }}/km</span>
+                  }
+                </span>
+                <span><span class="badge badge-type">{{ typeLabel(t.trainingType) }}</span></span>
+                <span><span class="badge" [class]="'badge-' + t.intensityLevel">{{ intensityLabel(t.intensityLevel) }}</span></span>
+                <span class="t-duration">{{ t.durationMinutes ? t.durationMinutes + ' min' : '–' }}</span>
+                <span>
+                  <button class="edit-btn" (click)="startEdit(t)" title="Training bearbeiten">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button class="del-btn" (click)="deleteTraining(t)" title="Training löschen">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </span>
+              </div>
+            }
           }
 
           @for (row of newRows; track $index; let i = $index) {
@@ -167,9 +238,7 @@
               </span>
               <span>
                 <select class="cell-select" [(ngModel)]="row.dayOfWeek">
-                  @for (d of days; track d.value) {
-                    <option [value]="d.value">{{ d.label }}</option>
-                  }
+                  @for (d of days; track d.value) { <option [value]="d.value">{{ d.label }}</option> }
                 </select>
               </span>
               <span>
@@ -177,16 +246,12 @@
               </span>
               <span>
                 <select class="cell-select" [(ngModel)]="row.trainingType">
-                  @for (t of types; track t.value) {
-                    <option [value]="t.value">{{ t.label }}</option>
-                  }
+                  @for (t of types; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
                 </select>
               </span>
               <span>
                 <select class="cell-select" [(ngModel)]="row.intensityLevel">
-                  @for (it of intensities; track it.value) {
-                    <option [value]="it.value">{{ it.label }}</option>
-                  }
+                  @for (it of intensities; track it.value) { <option [value]="it.value">{{ it.label }}</option> }
                 </select>
               </span>
               <span>
@@ -197,6 +262,38 @@
                   <mat-icon>remove_circle_outline</mat-icon>
                 </button>
               </span>
+            </div>
+            <div class="t-row--pace-edit">
+              <div class="pace-row">
+                <span class="pace-row-label">Belastung</span>
+                <div class="pace-group">
+                  <label class="pace-label">Pace (min/km)</label>
+                  <input class="cell-input" [(ngModel)]="row.workPace" placeholder="z.B. 4:30" />
+                </div>
+                <div class="pace-group">
+                  <label class="pace-label">Zeit (s)</label>
+                  <input class="cell-input" type="number" min="1" [(ngModel)]="row.workTimeSeconds" placeholder="–" />
+                </div>
+                <div class="pace-group">
+                  <label class="pace-label">Distanz (m)</label>
+                  <input class="cell-input" type="number" min="1" [(ngModel)]="row.workDistanceMeters" placeholder="–" />
+                </div>
+              </div>
+              <div class="pace-row">
+                <span class="pace-row-label">Erholung</span>
+                <div class="pace-group">
+                  <label class="pace-label">Pace (min/km)</label>
+                  <input class="cell-input" [(ngModel)]="row.recoveryPace" placeholder="z.B. 6:00" />
+                </div>
+                <div class="pace-group">
+                  <label class="pace-label">Zeit (s)</label>
+                  <input class="cell-input" type="number" min="1" [(ngModel)]="row.recoveryTimeSeconds" placeholder="–" />
+                </div>
+                <div class="pace-group">
+                  <label class="pace-label">Distanz (m)</label>
+                  <input class="cell-input" type="number" min="1" [(ngModel)]="row.recoveryDistanceMeters" placeholder="–" />
+                </div>
+              </div>
             </div>
           }
         </div>

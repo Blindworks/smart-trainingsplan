@@ -21,6 +21,12 @@ interface TrainingRow {
   trainingType: string;
   intensityLevel: string;
   durationMinutes: number | null;
+  workPace: string;
+  workTimeSeconds: number | null;
+  workDistanceMeters: number | null;
+  recoveryPace: string;
+  recoveryTimeSeconds: number | null;
+  recoveryDistanceMeters: number | null;
 }
 
 export interface TrainingPlanDetailDialogData {
@@ -60,6 +66,10 @@ export class AdminTrainingPlanDetailDialogComponent implements OnInit {
 
   newRows: TrainingRow[] = [];
   savingNewTrainings = false;
+
+  editingId: number | null = null;
+  editRow: TrainingRow | null = null;
+  savingEdit = false;
 
   readonly competitionTypes = COMPETITION_TYPES;
 
@@ -186,6 +196,67 @@ export class AdminTrainingPlanDetailDialogComponent implements OnInit {
     return this.newRows.some(r => r.name.trim().length > 0);
   }
 
+  startEdit(t: Training): void {
+    this.editingId = t.id!;
+    this.editRow = {
+      weekNumber: t.weekNumber ?? null,
+      dayOfWeek: t.dayOfWeek ?? 'MONDAY',
+      name: t.name,
+      trainingType: t.trainingType,
+      intensityLevel: t.intensityLevel,
+      durationMinutes: t.durationMinutes ?? null,
+      workPace: t.workPace ?? '',
+      workTimeSeconds: t.workTimeSeconds ?? null,
+      workDistanceMeters: t.workDistanceMeters ?? null,
+      recoveryPace: t.recoveryPace ?? '',
+      recoveryTimeSeconds: t.recoveryTimeSeconds ?? null,
+      recoveryDistanceMeters: t.recoveryDistanceMeters ?? null,
+    };
+  }
+
+  cancelEdit(): void {
+    this.editingId = null;
+    this.editRow = null;
+  }
+
+  saveEdit(): void {
+    if (!this.editingId || !this.editRow) return;
+    const original = this.trainings.find(t => t.id === this.editingId);
+    if (!original) return;
+
+    const r = this.editRow;
+    const updated: Training = {
+      ...original,
+      name: r.name.trim(),
+      trainingType: r.trainingType as any,
+      intensityLevel: r.intensityLevel as any,
+      weekNumber: r.weekNumber ?? undefined,
+      dayOfWeek: r.dayOfWeek as any,
+      durationMinutes: r.durationMinutes ?? undefined,
+      workPace: r.workPace?.trim() || undefined,
+      workTimeSeconds: r.workTimeSeconds ?? undefined,
+      workDistanceMeters: r.workDistanceMeters ?? undefined,
+      recoveryPace: r.recoveryPace?.trim() || undefined,
+      recoveryTimeSeconds: r.recoveryTimeSeconds ?? undefined,
+      recoveryDistanceMeters: r.recoveryDistanceMeters ?? undefined,
+    };
+
+    this.savingEdit = true;
+    this.apiService.updateTraining(this.editingId, updated).subscribe({
+      next: saved => {
+        const idx = this.trainings.findIndex(t => t.id === this.editingId);
+        if (idx >= 0) this.trainings[idx] = saved;
+        this.cancelEdit();
+        this.savingEdit = false;
+        this.snackBar.open('Training gespeichert', 'Schließen', { duration: 2000 });
+      },
+      error: () => {
+        this.savingEdit = false;
+        this.snackBar.open('Fehler beim Speichern', 'Schließen', { duration: 3000 });
+      }
+    });
+  }
+
   addRow(): void {
     this.newRows.push({
       weekNumber: null,
@@ -193,7 +264,13 @@ export class AdminTrainingPlanDetailDialogComponent implements OnInit {
       name: '',
       trainingType: 'endurance',
       intensityLevel: 'medium',
-      durationMinutes: null
+      durationMinutes: null,
+      workPace: '',
+      workTimeSeconds: null,
+      workDistanceMeters: null,
+      recoveryPace: '',
+      recoveryTimeSeconds: null,
+      recoveryDistanceMeters: null,
     });
   }
 
@@ -213,6 +290,12 @@ export class AdminTrainingPlanDetailDialogComponent implements OnInit {
       weekNumber: r.weekNumber ?? undefined,
       dayOfWeek: r.dayOfWeek as any,
       durationMinutes: r.durationMinutes ?? undefined,
+      workPace: r.workPace?.trim() || undefined,
+      workTimeSeconds: r.workTimeSeconds ?? undefined,
+      workDistanceMeters: r.workDistanceMeters ?? undefined,
+      recoveryPace: r.recoveryPace?.trim() || undefined,
+      recoveryTimeSeconds: r.recoveryTimeSeconds ?? undefined,
+      recoveryDistanceMeters: r.recoveryDistanceMeters ?? undefined,
       isCompleted: false
     }, this.data.plan.id));
 

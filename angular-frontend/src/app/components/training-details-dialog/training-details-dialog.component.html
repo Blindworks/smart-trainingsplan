@@ -137,7 +137,7 @@
       </mat-card>
 
       <!-- Tips Section -->
-      <mat-card class="info-section" appearance="outlined" 
+      <mat-card class="info-section" appearance="outlined"
                 *ngIf="training.trainingDescription?.tips">
         <mat-card-header>
           <mat-icon mat-card-avatar class="tips-icon">lightbulb</mat-icon>
@@ -147,10 +147,88 @@
           <div class="tips-text">{{ training.trainingDescription?.tips }}</div>
         </mat-card-content>
       </mat-card>
+
+      <!-- Pace Section -->
+      <mat-card class="info-section" appearance="outlined"
+                *ngIf="training.trainingDescription?.workPace || training.trainingDescription?.recoveryPace">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>speed</mat-icon>
+          <mat-card-title>Pace-Vorgaben</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-grid">
+            <div class="info-item" *ngIf="training.trainingDescription?.workPace">
+              <mat-icon class="info-icon">directions_run</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Belastungs-Pace</span>
+                <span class="info-value">
+                  {{ training.trainingDescription?.workPace }} min/km
+                  <span *ngIf="training.trainingDescription?.workTimeSeconds">
+                    &nbsp;· {{ formatSeconds(training.trainingDescription!.workTimeSeconds!) }}
+                  </span>
+                  <span *ngIf="training.trainingDescription?.workDistanceMeters">
+                    &nbsp;· {{ training.trainingDescription?.workDistanceMeters }} m
+                  </span>
+                </span>
+              </div>
+            </div>
+            <div class="info-item" *ngIf="training.trainingDescription?.recoveryPace">
+              <mat-icon class="info-icon">self_improvement</mat-icon>
+              <div class="info-content">
+                <span class="info-label">Erholungs-Pace</span>
+                <span class="info-value">
+                  {{ training.trainingDescription?.recoveryPace }} min/km
+                  <span *ngIf="training.trainingDescription?.recoveryTimeSeconds">
+                    &nbsp;· {{ formatSeconds(training.trainingDescription!.recoveryTimeSeconds!) }}
+                  </span>
+                  <span *ngIf="training.trainingDescription?.recoveryDistanceMeters">
+                    &nbsp;· {{ training.trainingDescription?.recoveryDistanceMeters }} m
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
 
+    <!-- Training-level Pace -->
+    <mat-card class="info-section" appearance="outlined"
+              *ngIf="training.workPace || training.recoveryPace">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>speed</mat-icon>
+        <mat-card-title>Pace-Vorgaben</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item" *ngIf="training.workPace">
+            <mat-icon class="info-icon">directions_run</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Belastungs-Pace</span>
+              <span class="info-value">
+                {{ training.workPace }} min/km
+                <span *ngIf="training.workTimeSeconds">&nbsp;· {{ formatSeconds(training.workTimeSeconds) }}</span>
+                <span *ngIf="training.workDistanceMeters">&nbsp;· {{ training.workDistanceMeters }} m</span>
+              </span>
+            </div>
+          </div>
+          <div class="info-item" *ngIf="training.recoveryPace">
+            <mat-icon class="info-icon">self_improvement</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Erholungs-Pace</span>
+              <span class="info-value">
+                {{ training.recoveryPace }} min/km
+                <span *ngIf="training.recoveryTimeSeconds">&nbsp;· {{ formatSeconds(training.recoveryTimeSeconds) }}</span>
+                <span *ngIf="training.recoveryDistanceMeters">&nbsp;· {{ training.recoveryDistanceMeters }} m</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
     <!-- Difficulty Level -->
-    <mat-card class="info-section" appearance="outlined" 
+    <mat-card class="info-section" appearance="outlined"
               *ngIf="training.trainingDescription?.difficultyLevel">
       <mat-card-header>
         <mat-icon mat-card-avatar>trending_up</mat-icon>

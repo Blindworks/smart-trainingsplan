@@ -137,8 +137,16 @@ export class TrainingDetailsDialogComponent {
       desc.warmupInstructions ||
       desc.cooldownInstructions ||
       desc.equipment ||
-      desc.tips
+      desc.tips ||
+      desc.workPace ||
+      desc.recoveryPace
     ));
+  }
+
+  formatSeconds(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return s > 0 ? `${m}min ${s}s` : `${m}min`;
   }
 
   getCompletionStatusText(): string {

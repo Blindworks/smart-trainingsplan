@@ -50,6 +50,13 @@ export interface Training {
   trainingType: 'speed' | 'endurance' | 'strength' | 'race' | 'interval' | 'recovery' | 'swimming' | 'cycling' | 'general' | 'fartlek';
   isCompleted: boolean;
   completionStatus?: string;
+  // Pace fields
+  workPace?: string;
+  workTimeSeconds?: number;
+  workDistanceMeters?: number;
+  recoveryPace?: string;
+  recoveryTimeSeconds?: number;
+  recoveryDistanceMeters?: number;
   // Training plan information
   trainingPlanId?: number;
   trainingPlanName?: string;
@@ -85,6 +92,12 @@ export interface TrainingDescription {
   tips?: string;
   estimatedDurationMinutes?: number;
   difficultyLevel?: string;
+  workPace?: string;
+  workTimeSeconds?: number;
+  workDistanceMeters?: number;
+  recoveryPace?: string;
+  recoveryTimeSeconds?: number;
+  recoveryDistanceMeters?: number;
 }
 
 export interface CompletedTraining {
