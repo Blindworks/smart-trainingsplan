@@ -259,6 +259,7 @@ export const TRANSLATIONS: Record<Language, Record<string, unknown>> = {
     statistics: {
       title: 'Trainingsstatistiken',
       period: 'Zeitraum',
+      day: 'Tag',
       week: 'Woche',
       month: 'Monat',
       year: 'Jahr',
@@ -531,6 +532,7 @@ export const TRANSLATIONS: Record<Language, Record<string, unknown>> = {
     statistics: {
       title: 'Training Statistics',
       period: 'Period',
+      day: 'Day',
       week: 'Week',
       month: 'Month',
       year: 'Year',

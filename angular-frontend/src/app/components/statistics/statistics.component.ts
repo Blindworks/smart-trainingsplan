@@ -39,10 +39,11 @@ export class StatisticsComponent implements OnInit {
   hoveredIndex: number | null = null;
 
   readonly periods = [
-    { value: 'week', labelKey: 'statistics.week' },
+    { value: 'day',   labelKey: 'statistics.day' },
+    { value: 'week',  labelKey: 'statistics.week' },
     { value: 'month', labelKey: 'statistics.month' },
-    { value: 'year', labelKey: 'statistics.year' },
-    { value: 'all', labelKey: 'statistics.all' },
+    { value: 'year',  labelKey: 'statistics.year' },
+    { value: 'all',   labelKey: 'statistics.all' },
   ];
 
   constructor(private api: ApiService) {}

@@ -49,6 +49,7 @@ public class TrainingStatsService {
             return today.minusMonths(12);
         }
         return switch (period) {
+            case "day"   -> today.minusDays(29);
             case "week"  -> today.minusWeeks(12);
             case "year"  -> LocalDate.of(2000, 1, 1);
             case "all"   -> LocalDate.of(2000, 1, 1);
@@ -80,6 +81,9 @@ public class TrainingStatsService {
                                                         LocalDate from, LocalDate today) {
         if ("all".equals(period)) {
             return buildAllBucket(trainings, from, today);
+        }
+        if ("day".equals(period)) {
+            return buildDayBuckets(trainings, from, today);
         }
         if ("week".equals(period)) {
             return buildWeekBuckets(trainings, from, today);
@@ -120,6 +124,39 @@ public class TrainingStatsService {
         );
 
         return List.of(bucket);
+    }
+
+    // -------------------------------------------------------------------------
+    // "day" — one bucket per day (last 30 days)
+    // -------------------------------------------------------------------------
+
+    private List<TrainingStatsDto.Bucket> buildDayBuckets(List<CompletedTraining> trainings,
+                                                           LocalDate from, LocalDate today) {
+        Map<LocalDate, TrainingStatsDto.Bucket> bucketMap = new LinkedHashMap<>();
+
+        LocalDate day = from;
+        while (!day.isAfter(today)) {
+            bucketMap.put(day, new TrainingStatsDto.Bucket(
+                    dayLabel(day),
+                    day.toString(),
+                    day.toString(),
+                    0.0, 0, 0, 0
+            ));
+            day = day.plusDays(1);
+        }
+
+        for (CompletedTraining ct : trainings) {
+            TrainingStatsDto.Bucket bucket = bucketMap.get(ct.getTrainingDate());
+            if (bucket != null) {
+                accumulate(bucket, ct);
+            }
+        }
+
+        return new ArrayList<>(bucketMap.values());
+    }
+
+    private String dayLabel(LocalDate date) {
+        return String.format("%02d.%02d.", date.getDayOfMonth(), date.getMonthValue());
     }
 
     // -------------------------------------------------------------------------
