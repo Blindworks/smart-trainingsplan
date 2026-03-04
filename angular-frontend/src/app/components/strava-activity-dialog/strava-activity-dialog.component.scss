@@ -399,6 +399,25 @@ $zone-color-z3: #ffca28;
 $zone-color-z4: #ff7043;
 $zone-color-z5: #ef5350;
 
+.collapsible-header {
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    border-radius: 12px 12px 0 0;
+  }
+}
+
+.collapse-icon {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+
+  &.collapsed {
+    transform: rotate(-90deg);
+  }
+}
+
 .info-section--zones .mat-mdc-card-avatar {
   background-color: rgba(233, 30, 99, 0.1) !important;
   color: $heartrate-red !important;

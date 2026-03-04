@@ -244,14 +244,15 @@
     <!-- Herzfrequenz-Zonen -->
     <mat-card class="info-section info-section--zones" appearance="outlined"
               *ngIf="completed.averageHeartRate || isStrava()">
-      <mat-card-header>
+      <mat-card-header class="collapsible-header" (click)="zonesExpanded = !zonesExpanded">
         <mat-icon mat-card-avatar class="zones-avatar-icon">bar_chart</mat-icon>
         <mat-card-title>Herzfrequenz-Zonen</mat-card-title>
         <mat-card-subtitle *ngIf="activityMetrics && activityMetrics.hrDataCoverage != null">
           HR-Datenabdeckung: {{ (activityMetrics.hrDataCoverage * 100) | number:'1.0-0' }}%
         </mat-card-subtitle>
+        <mat-icon class="collapse-icon" [class.collapsed]="!zonesExpanded">expand_more</mat-icon>
       </mat-card-header>
-      <mat-card-content>
+      <mat-card-content *ngIf="zonesExpanded">
 
         <!-- Zone bars when data is available -->
         <div class="zone-bars" *ngIf="activityMetrics && !activityMetrics.zonesUnknown">
@@ -334,12 +335,13 @@
     <!-- Trainingsbelastung (Strain) -->
 <mat-card class="info-section info-section--strain" appearance="outlined"
           *ngIf="activityMetrics && !activityMetrics.zonesUnknown && activityMetrics.strain21 != null">
-  <mat-card-header>
+  <mat-card-header class="collapsible-header" (click)="strainExpanded = !strainExpanded">
     <mat-icon mat-card-avatar class="strain-avatar-icon">whatshot</mat-icon>
     <mat-card-title>Trainingsbelastung</mat-card-title>
     <mat-card-subtitle>Strain-Score (0–21)</mat-card-subtitle>
+    <mat-icon class="collapse-icon" [class.collapsed]="!strainExpanded">expand_more</mat-icon>
   </mat-card-header>
-  <mat-card-content>
+  <mat-card-content *ngIf="strainExpanded">
     <div class="strain-display">
       <div class="strain-score-row">
         <span class="strain-score-label">Strain</span>
@@ -404,11 +406,12 @@
     <!-- Efficiency Factor -->
     <mat-card class="info-section info-section--ef" appearance="outlined"
               *ngIf="activityMetrics && activityMetrics.efficiencyFactor != null">
-      <mat-card-header>
+      <mat-card-header class="collapsible-header" (click)="efExpanded = !efExpanded">
         <mat-icon mat-card-avatar class="ef-avatar-icon">speed</mat-icon>
         <mat-card-title>Efficiency Factor</mat-card-title>
+        <mat-icon class="collapse-icon" [class.collapsed]="!efExpanded">expand_more</mat-icon>
       </mat-card-header>
-      <mat-card-content>
+      <mat-card-content *ngIf="efExpanded">
         <div class="ef-display">
           <span class="ef-value" [style.color]="getEfColor(activityMetrics.efficiencyFactor!)">
             {{ getEfFormatted(activityMetrics.efficiencyFactor) }}
@@ -425,12 +428,13 @@
     <!-- Aerobic Decoupling (Strava, sobald berechnet) -->
     <mat-card class="info-section info-section--decoupling" appearance="outlined"
               *ngIf="activityMetrics && isStrava() && activityMetrics.decouplingEligible != null">
-      <mat-card-header>
+      <mat-card-header class="collapsible-header" (click)="decouplingExpanded = !decouplingExpanded">
         <mat-icon mat-card-avatar class="decoupling-avatar-icon">compare_arrows</mat-icon>
         <mat-card-title>Aerobic Decoupling</mat-card-title>
         <mat-card-subtitle>HR-Drift: 2. Hälfte vs. 1. Hälfte</mat-card-subtitle>
+        <mat-icon class="collapse-icon" [class.collapsed]="!decouplingExpanded">expand_more</mat-icon>
       </mat-card-header>
-      <mat-card-content>
+      <mat-card-content *ngIf="decouplingExpanded">
 
         <!-- Computed and eligible -->
         <div class="decoupling-display" *ngIf="activityMetrics.decouplingEligible; else decouplingIneligible">

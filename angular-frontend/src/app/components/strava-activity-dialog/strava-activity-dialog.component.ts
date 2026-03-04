@@ -53,6 +53,11 @@ export class StravaActivityDialogComponent implements OnInit {
   trainingTypeSaving = false;
   trainingTypeSaved = false;
 
+  zonesExpanded = false;
+  strainExpanded = false;
+  efExpanded = false;
+  decouplingExpanded = false;
+
   constructor(
     private dialogRef: MatDialogRef<StravaActivityDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: CompletedTrainingDialogData,
