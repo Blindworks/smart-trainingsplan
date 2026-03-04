@@ -110,8 +110,15 @@
               <span *ngIf="completed.source === 'STRAVA'" class="strava-badge">Strava</span>
               <mat-icon *ngIf="completed.source !== 'STRAVA'" class="completed-icon">check_circle</mat-icon>
             </div>
+            <div *ngIf="completed.trainingType" class="completed-training-type">
+              {{ completed.trainingType }}
+            </div>
 
             <div class="training-details">
+              <span *ngIf="completed.uploadDate" class="training-time">
+                <mat-icon>access_time</mat-icon>
+                {{ formatStartTime(completed.uploadDate) }}
+              </span>
               <span *ngIf="completed.durationSeconds" class="training-time">
                 <mat-icon>schedule</mat-icon>
                 {{ formatDuration(completed.durationSeconds) }}

@@ -249,15 +249,20 @@ public class CompletedTrainingController {
     public ResponseEntity<List<String>> getTrainingTypes() {
         return ResponseEntity.ok(List.of(
             "Langer Lauf",
-            "Intervalle",
-            "Tempo",
+            "Intervalltraining",
+            "Tempodauerlauf",
+            "Grundlagenausdauer 1",
+            "Grundlagenausdauer 2",
             "Fahrtspiel",
             "Regenerationslauf",
+            "Warm-/Auslaufen",
+            "Bergtraining",
+            "Lauf ABC",
+            "Koppeltraining",
+            "Hügellauf",
+            "Steigerungen",
             "Wettkampf",
-            "Krafttraining",
-            "Schwimmen",
-            "Radfahren",
-            "Allgemein"
+                "Pendeln"
         ));
     }
 

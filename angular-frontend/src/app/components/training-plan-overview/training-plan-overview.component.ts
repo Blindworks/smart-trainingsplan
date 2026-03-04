@@ -371,6 +371,14 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     return intensity ? this.intensityColors[intensity] || '#9e9e9e' : '#9e9e9e';
   }
 
+  formatStartTime(dateTimeString: string): string {
+    const isoMatch = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})/.exec(dateTimeString);
+    if (isoMatch) return `${isoMatch[2]}:${isoMatch[3]}`;
+    const date = new Date(dateTimeString);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  }
+
   formatDuration(seconds: number): string {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);

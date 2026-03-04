@@ -912,26 +912,48 @@ $ef-green: #4caf50;
   line-height: 1.4;
 }
 
-// ─── Trainingstyp ─────────────────────────────────────────────────────────────
+// ─── Trainingstyp im Header ────────────────────────────────────────────────────
 
-.info-section--type .mat-mdc-card-avatar {
-  background-color: rgba(25, 118, 210, 0.1) !important;
-  color: $accent-blue !important;
-}
-
-.info-section--type:hover {
-  border-color: rgba(25, 118, 210, 0.3) !important;
-}
-
-.training-type-row {
+.activity-meta-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 4px 0;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.training-type-select {
-  width: 100%;
+.header-type-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.type-select-native {
+  appearance: auto;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color, rgba(0,0,0,0.23));
+  border-radius: 8px;
+  padding: 4px 10px 4px 10px;
+  cursor: pointer;
+  outline: none;
+
+  &:hover {
+    border-color: var(--text-primary);
+  }
+
+  &:focus {
+    border-color: $accent-blue;
+  }
+}
+
+.type-saved-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #4caf50;
+  flex-shrink: 0;
 }
 
 // ─── Responsive ───────────────────────────────────────────────────────────────
