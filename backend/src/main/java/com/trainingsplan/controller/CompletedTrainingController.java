@@ -2,6 +2,7 @@ package com.trainingsplan.controller;
 
 import com.trainingsplan.dto.ActivityComparisonItemDto;
 import com.trainingsplan.dto.ProfileCompletionDto;
+import com.trainingsplan.dto.TrainingStatsDto;
 import com.trainingsplan.entity.ActivityMetrics;
 import com.trainingsplan.entity.CompletedTraining;
 import com.trainingsplan.entity.User;
@@ -10,6 +11,7 @@ import com.trainingsplan.repository.CompletedTrainingRepository;
 import com.trainingsplan.security.SecurityUtils;
 import com.trainingsplan.service.CompletedTrainingService;
 import com.trainingsplan.service.StravaService;
+import com.trainingsplan.service.TrainingStatsService;
 import com.trainingsplan.service.UserProfileValidationService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,9 @@ public class CompletedTrainingController {
 
     @Autowired
     private UserProfileValidationService userProfileValidationService;
+
+    @Autowired
+    private TrainingStatsService trainingStatsService;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFitFile(
@@ -281,6 +286,39 @@ public class CompletedTrainingController {
                     return ResponseEntity.ok(ct);
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<TrainingStatsDto> getStats(
+            @RequestParam(required = false) String period,
+            @RequestParam(required = false) String trainingType,
+            @RequestParam(required = false) String sport) {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        TrainingStatsDto stats = trainingStatsService.getStats(user.getId(), period, trainingType, sport);
+        return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/training-types-used")
+    public ResponseEntity<List<String>> getTrainingTypesUsed() {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<String> types = completedTrainingRepository.findDistinctTrainingTypesByUserId(user.getId());
+        return ResponseEntity.ok(types);
+    }
+
+    @GetMapping("/sports-used")
+    public ResponseEntity<List<String>> getSportsUsed() {
+        User user = securityUtils.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<String> sports = completedTrainingRepository.findDistinctSportsByUserId(user.getId());
+        return ResponseEntity.ok(sports);
     }
 
     @DeleteMapping("/{id}")

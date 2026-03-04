@@ -374,3 +374,20 @@ export interface PaceZones {
   thresholdPaceSecPerKm: number;
   zones: PaceZone[];
 }
+
+export interface TrainingStatsBucket {
+  label: string;
+  startDate: string;
+  endDate: string;
+  distanceKm: number;
+  durationSeconds: number;
+  elevationGainM: number;
+  activityCount: number;
+}
+
+export interface TrainingStatsDto {
+  buckets: TrainingStatsBucket[];
+  totalDistanceKm: number;
+  totalDurationSeconds: number;
+  totalActivityCount: number;
+}

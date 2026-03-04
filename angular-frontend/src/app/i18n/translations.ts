@@ -23,6 +23,7 @@ export const TRANSLATIONS: Record<Language, Record<string, unknown>> = {
       body: 'Koerper',
       bodyData: 'Koerperdaten',
       comparison: 'Vergleich',
+      statistics: 'Statistiken',
       admin: 'Admin',
       usersAdmin: 'Benutzerverwaltung',
       racesAdmin: 'Rennverwaltung',
@@ -254,6 +255,26 @@ export const TRANSLATIONS: Record<Language, Record<string, unknown>> = {
       blocked: 'Dein Konto ist blockiert. Bitte kontaktiere den Support.',
       inactive: 'Dein Konto ist inaktiv. Bitte kontaktiere den Support.',
       active: 'Dein Konto ist aktiv.'
+    },
+    statistics: {
+      title: 'Trainingsstatistiken',
+      period: 'Zeitraum',
+      week: 'Woche',
+      month: 'Monat',
+      year: 'Jahr',
+      all: 'Gesamt',
+      trainingType: 'Trainingstyp',
+      sport: 'Sportart',
+      all_types: 'Alle Typen',
+      all_sports: 'Alle Sportarten',
+      distance: 'Distanz',
+      duration: 'Dauer',
+      elevation: 'Hoehenmeter',
+      activities: 'Aktivitaeten',
+      km: 'km',
+      total_distance: 'Gesamtdistanz',
+      total_activities: 'Aktivitaeten gesamt',
+      no_data: 'Keine Daten fuer diesen Zeitraum'
     }
   },
   en: {
@@ -274,6 +295,7 @@ export const TRANSLATIONS: Record<Language, Record<string, unknown>> = {
       body: 'Body',
       bodyData: 'Body Data',
       comparison: 'Comparison',
+      statistics: 'Statistics',
       admin: 'Admin',
       usersAdmin: 'User Management',
       racesAdmin: 'Race Management',
@@ -505,6 +527,26 @@ export const TRANSLATIONS: Record<Language, Record<string, unknown>> = {
       blocked: 'Your account is blocked. Please contact support.',
       inactive: 'Your account is inactive. Please contact support.',
       active: 'Your account is active.'
+    },
+    statistics: {
+      title: 'Training Statistics',
+      period: 'Period',
+      week: 'Week',
+      month: 'Month',
+      year: 'Year',
+      all: 'Total',
+      trainingType: 'Training Type',
+      sport: 'Sport',
+      all_types: 'All Types',
+      all_sports: 'All Sports',
+      distance: 'Distance',
+      duration: 'Duration',
+      elevation: 'Elevation',
+      activities: 'Activities',
+      km: 'km',
+      total_distance: 'Total Distance',
+      total_activities: 'Total Activities',
+      no_data: 'No data for this period'
     }
   }
 };

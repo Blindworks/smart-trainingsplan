@@ -48,6 +48,12 @@ public interface CompletedTrainingRepository extends JpaRepository<CompletedTrai
 
     Optional<CompletedTraining> findByIdAndUserId(Long id, Long userId);
 
+    @Query("SELECT DISTINCT c.trainingType FROM CompletedTraining c WHERE c.user.id = :userId AND c.trainingType IS NOT NULL ORDER BY c.trainingType")
+    List<String> findDistinctTrainingTypesByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT DISTINCT c.sport FROM CompletedTraining c WHERE c.user.id = :userId AND c.sport IS NOT NULL ORDER BY c.sport")
+    List<String> findDistinctSportsByUserId(@Param("userId") Long userId);
+
     /**
      * One-time migration: assigns the current user to any Strava activities that were
      * synced before per-user tracking was added (user_id = NULL).

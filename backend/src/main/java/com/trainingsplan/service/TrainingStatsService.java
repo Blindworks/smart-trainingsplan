@@ -1,0 +1,257 @@
+package com.trainingsplan.service;
+
+import com.trainingsplan.dto.TrainingStatsDto;
+import com.trainingsplan.entity.CompletedTraining;
+import com.trainingsplan.repository.CompletedTrainingRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.YearMonth;
+import java.time.format.TextStyle;
+import java.time.temporal.IsoFields;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+
+@Service
+public class TrainingStatsService {
+
+    @Autowired
+    private CompletedTrainingRepository completedTrainingRepository;
+
+    public TrainingStatsDto getStats(Long userId, String period, String trainingType, String sport) {
+        LocalDate today = LocalDate.now();
+        LocalDate from = resolveFromDate(period, today);
+
+        List<CompletedTraining> trainings = completedTrainingRepository
+                .findByUserIdAndTrainingDateBetweenOrderByTrainingDate(userId, from, today);
+
+        trainings = applyFilters(trainings, trainingType, sport);
+
+        List<TrainingStatsDto.Bucket> buckets = buildBuckets(period, trainings, from, today);
+
+        double totalDistanceKm = buckets.stream().mapToDouble(TrainingStatsDto.Bucket::getDistanceKm).sum();
+        int totalDurationSeconds = buckets.stream().mapToInt(TrainingStatsDto.Bucket::getDurationSeconds).sum();
+        int totalActivityCount = buckets.stream().mapToInt(TrainingStatsDto.Bucket::getActivityCount).sum();
+
+        totalDistanceKm = Math.round(totalDistanceKm * 100.0) / 100.0;
+
+        return new TrainingStatsDto(buckets, totalDistanceKm, totalDurationSeconds, totalActivityCount);
+    }
+
+    private LocalDate resolveFromDate(String period, LocalDate today) {
+        if (period == null) {
+            return today.minusMonths(12);
+        }
+        return switch (period) {
+            case "week"  -> today.minusWeeks(12);
+            case "year"  -> LocalDate.of(2000, 1, 1);
+            case "all"   -> LocalDate.of(2000, 1, 1);
+            default      -> today.minusMonths(12); // "month" and unknown
+        };
+    }
+
+    private List<CompletedTraining> applyFilters(List<CompletedTraining> trainings,
+                                                  String trainingType, String sport) {
+        List<CompletedTraining> result = trainings;
+
+        if (trainingType != null && !trainingType.isBlank()) {
+            result = result.stream()
+                    .filter(ct -> trainingType.equalsIgnoreCase(ct.getTrainingType()))
+                    .toList();
+        }
+
+        if (sport != null && !sport.isBlank()) {
+            result = result.stream()
+                    .filter(ct -> sport.equalsIgnoreCase(ct.getSport()))
+                    .toList();
+        }
+
+        return result;
+    }
+
+    private List<TrainingStatsDto.Bucket> buildBuckets(String period,
+                                                        List<CompletedTraining> trainings,
+                                                        LocalDate from, LocalDate today) {
+        if ("all".equals(period)) {
+            return buildAllBucket(trainings, from, today);
+        }
+        if ("week".equals(period)) {
+            return buildWeekBuckets(trainings, from, today);
+        }
+        if ("year".equals(period)) {
+            return buildYearBuckets(trainings, from, today);
+        }
+        // default: month
+        return buildMonthBuckets(trainings, from, today);
+    }
+
+    // -------------------------------------------------------------------------
+    // "all" — single aggregate bucket
+    // -------------------------------------------------------------------------
+
+    private List<TrainingStatsDto.Bucket> buildAllBucket(List<CompletedTraining> trainings,
+                                                          LocalDate from, LocalDate today) {
+        double distanceKm = 0.0;
+        int durationSeconds = 0;
+        int elevationGainM = 0;
+
+        for (CompletedTraining ct : trainings) {
+            distanceKm    += Optional.ofNullable(ct.getDistanceKm()).orElse(0.0);
+            durationSeconds += Optional.ofNullable(ct.getDurationSeconds()).orElse(0);
+            elevationGainM  += Optional.ofNullable(ct.getElevationGainM()).orElse(0);
+        }
+
+        distanceKm = Math.round(distanceKm * 100.0) / 100.0;
+
+        TrainingStatsDto.Bucket bucket = new TrainingStatsDto.Bucket(
+                "Gesamt",
+                from.toString(),
+                today.toString(),
+                distanceKm,
+                durationSeconds,
+                elevationGainM,
+                trainings.size()
+        );
+
+        return List.of(bucket);
+    }
+
+    // -------------------------------------------------------------------------
+    // "week" — group by ISO week
+    // -------------------------------------------------------------------------
+
+    private List<TrainingStatsDto.Bucket> buildWeekBuckets(List<CompletedTraining> trainings,
+                                                             LocalDate from, LocalDate today) {
+        // Key: "YYYY-WW" — preserves insertion order via LinkedHashMap
+        Map<String, TrainingStatsDto.Bucket> bucketMap = new LinkedHashMap<>();
+
+        // Pre-populate all weeks in range so empty weeks appear in result
+        LocalDate weekStart = from.minusDays(from.getDayOfWeek().getValue() - 1);
+        while (!weekStart.isAfter(today)) {
+            LocalDate weekEnd = weekStart.plusDays(6);
+            String key = isoWeekKey(weekStart);
+            if (!bucketMap.containsKey(key)) {
+                bucketMap.put(key, new TrainingStatsDto.Bucket(
+                        weekLabel(weekStart),
+                        weekStart.toString(),
+                        weekEnd.isAfter(today) ? today.toString() : weekEnd.toString(),
+                        0.0, 0, 0, 0
+                ));
+            }
+            weekStart = weekStart.plusWeeks(1);
+        }
+
+        for (CompletedTraining ct : trainings) {
+            LocalDate date = ct.getTrainingDate();
+            String key = isoWeekKey(date);
+            TrainingStatsDto.Bucket bucket = bucketMap.get(key);
+            if (bucket == null) {
+                // Activity outside the pre-populated range — skip (shouldn't happen)
+                continue;
+            }
+            accumulate(bucket, ct);
+        }
+
+        return new ArrayList<>(bucketMap.values());
+    }
+
+    private String isoWeekKey(LocalDate date) {
+        int week = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+        int year = date.get(IsoFields.WEEK_BASED_YEAR);
+        return year + "-" + String.format("%02d", week);
+    }
+
+    private String weekLabel(LocalDate mondayOfWeek) {
+        int week = mondayOfWeek.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+        int year = mondayOfWeek.get(IsoFields.WEEK_BASED_YEAR);
+        return String.format("KW %d %d", week, year);
+    }
+
+    // -------------------------------------------------------------------------
+    // "month" — group by YearMonth
+    // -------------------------------------------------------------------------
+
+    private List<TrainingStatsDto.Bucket> buildMonthBuckets(List<CompletedTraining> trainings,
+                                                              LocalDate from, LocalDate today) {
+        Map<YearMonth, TrainingStatsDto.Bucket> bucketMap = new LinkedHashMap<>();
+
+        // Pre-populate all months in range
+        YearMonth current = YearMonth.from(from);
+        YearMonth end = YearMonth.from(today);
+        while (!current.isAfter(end)) {
+            LocalDate monthStart = current.atDay(1);
+            LocalDate monthEnd   = current.atEndOfMonth();
+            bucketMap.put(current, new TrainingStatsDto.Bucket(
+                    monthLabel(current),
+                    monthStart.toString(),
+                    monthEnd.isAfter(today) ? today.toString() : monthEnd.toString(),
+                    0.0, 0, 0, 0
+            ));
+            current = current.plusMonths(1);
+        }
+
+        for (CompletedTraining ct : trainings) {
+            YearMonth ym = YearMonth.from(ct.getTrainingDate());
+            TrainingStatsDto.Bucket bucket = bucketMap.get(ym);
+            if (bucket == null) {
+                continue;
+            }
+            accumulate(bucket, ct);
+        }
+
+        return new ArrayList<>(bucketMap.values());
+    }
+
+    private String monthLabel(YearMonth ym) {
+        String monthName = Month.of(ym.getMonthValue()).getDisplayName(TextStyle.FULL, Locale.GERMAN);
+        return monthName + " " + ym.getYear();
+    }
+
+    // -------------------------------------------------------------------------
+    // "year" — group by year
+    // -------------------------------------------------------------------------
+
+    private List<TrainingStatsDto.Bucket> buildYearBuckets(List<CompletedTraining> trainings,
+                                                             LocalDate from, LocalDate today) {
+        Map<Integer, TrainingStatsDto.Bucket> bucketMap = new LinkedHashMap<>();
+
+        // Only pre-populate years that actually contain data (avoids showing 2000–2024 empties)
+        for (CompletedTraining ct : trainings) {
+            int year = ct.getTrainingDate().getYear();
+            bucketMap.computeIfAbsent(year, y -> new TrainingStatsDto.Bucket(
+                    String.valueOf(y),
+                    LocalDate.of(y, 1, 1).toString(),
+                    LocalDate.of(y, 12, 31).isAfter(today) ? today.toString() : LocalDate.of(y, 12, 31).toString(),
+                    0.0, 0, 0, 0
+            ));
+            accumulate(bucketMap.get(year), ct);
+        }
+
+        return new ArrayList<>(bucketMap.values());
+    }
+
+    // -------------------------------------------------------------------------
+    // Shared accumulator
+    // -------------------------------------------------------------------------
+
+    private void accumulate(TrainingStatsDto.Bucket bucket, CompletedTraining ct) {
+        double newDistance = bucket.getDistanceKm()
+                + Optional.ofNullable(ct.getDistanceKm()).orElse(0.0);
+        newDistance = Math.round(newDistance * 100.0) / 100.0;
+        bucket.setDistanceKm(newDistance);
+
+        bucket.setDurationSeconds(bucket.getDurationSeconds()
+                + Optional.ofNullable(ct.getDurationSeconds()).orElse(0));
+
+        bucket.setElevationGainM(bucket.getElevationGainM()
+                + Optional.ofNullable(ct.getElevationGainM()).orElse(0));
+
+        bucket.setActivityCount(bucket.getActivityCount() + 1);
+    }
+}

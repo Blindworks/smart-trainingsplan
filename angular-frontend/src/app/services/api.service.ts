@@ -25,7 +25,8 @@ import {
   DailyMetrics,
   DecouplingHistoryPoint,
   PaceZones,
-  ActivityComparisonItem
+  ActivityComparisonItem,
+  TrainingStatsDto
 } from '../models/competition.model';
 import { StravaStatus, StravaActivity } from '../models/strava.model';
 import { DashboardDto } from '../models/dashboard.model';
@@ -428,5 +429,21 @@ export class ApiService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ imported: number; skipped: number }>(`${this.baseUrl}/sleep-data/import`, formData);
+  }
+
+  // Training Statistics API
+  getTrainingStats(period: string, trainingType?: string, sport?: string): Observable<TrainingStatsDto> {
+    let params = new HttpParams().set('period', period);
+    if (trainingType) params = params.set('trainingType', trainingType);
+    if (sport) params = params.set('sport', sport);
+    return this.http.get<TrainingStatsDto>(`${this.baseUrl}/completed-trainings/stats`, { params });
+  }
+
+  getTrainingTypesUsed(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/completed-trainings/training-types-used`);
+  }
+
+  getSportsUsed(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/completed-trainings/sports-used`);
   }
 }

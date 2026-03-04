@@ -71,6 +71,13 @@ export const routes: Routes = [
         .then(m => m.TrainingComparisonComponent)
   },
   {
+    path: 'statistics',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/statistics/statistics.component')
+        .then(m => m.StatisticsComponent)
+  },
+  {
     path: 'body-measurements',
     canActivate: [authGuard],
     loadComponent: () =>
