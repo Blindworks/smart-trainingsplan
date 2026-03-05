@@ -31,6 +31,10 @@ public class WeekSimulationService {
         this.athleteStateService = athleteStateService;
     }
 
+    public WeekSimulationResultDTO simulateTrainingWeek(String userId, List<Workout> workouts) {
+        return simulateTrainingWeek(parseNumericUserId(userId), workouts);
+    }
+
     public WeekSimulationResultDTO simulateTrainingWeek(UUID userId, List<Workout> workouts) {
         if (userId == null) {
             throw new IllegalArgumentException("userId is required");
@@ -55,6 +59,18 @@ public class WeekSimulationService {
 
         attachRiskFlags(simulation, riskFlags);
         return simulation;
+    }
+
+    private Long parseNumericUserId(String userId) {
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("userId is required");
+        }
+
+        try {
+            return Long.parseLong(userId.trim());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("userId must be a numeric id", ex);
+        }
     }
 
     private void attachRiskFlags(WeekSimulationResultDTO simulation, List<String> additionalFlags) {

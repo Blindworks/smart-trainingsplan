@@ -72,6 +72,38 @@ class WeekSimulationServiceTest {
     }
 
     @Test
+    void simulateTrainingWeek_withStringUserId_runsPipeline() {
+        Long userId = 42L;
+        LocalDate day = LocalDate.of(2026, 3, 2);
+        List<Workout> workouts = List.of(new Workout(day, "Tempo", 10.0, 50, 310, 158));
+
+        AthleteStateDTO athleteStateDTO = new AthleteStateDTO();
+        athleteStateDTO.setFatigueScore(30);
+        athleteStateDTO.setEfficiencyScore(0.024);
+        athleteStateDTO.setLongRunCapacityMinutes(90);
+
+        WeekSimulationResultDTO simulation = WeekSimulationResultDTO.builder().riskFlags(List.of()).build();
+
+        when(athleteStateService.getAthleteState(userId)).thenReturn(athleteStateDTO);
+        when(weekSimulationEngine.simulateWeek(eq(workouts), any(AthleteState.class))).thenReturn(simulation);
+        when(weekRiskAnalyzer.analyzeWeek(workouts, simulation)).thenReturn(List.of());
+
+        WeekSimulationResultDTO result = service.simulateTrainingWeek(" 42 ", workouts);
+
+        assertEquals(simulation, result);
+    }
+
+    @Test
+    void simulateTrainingWeek_withInvalidStringUserId_throws() {
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.simulateTrainingWeek("abc", List.of())
+        );
+
+        assertTrue(ex.getMessage().contains("numeric id"));
+    }
+
+    @Test
     void simulateTrainingWeek_withUuid_throwsUnsupportedMessage() {
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
@@ -83,6 +115,8 @@ class WeekSimulationServiceTest {
 
     @Test
     void simulateTrainingWeek_missingUserId_throws() {
+        assertThrows(IllegalArgumentException.class, () -> service.simulateTrainingWeek((String) null, List.of()));
+        assertThrows(IllegalArgumentException.class, () -> service.simulateTrainingWeek("  ", List.of()));
         assertThrows(IllegalArgumentException.class, () -> service.simulateTrainingWeek((Long) null, List.of()));
         assertThrows(IllegalArgumentException.class, () -> service.simulateTrainingWeek((UUID) null, List.of()));
     }
