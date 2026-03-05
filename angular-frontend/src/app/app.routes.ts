@@ -64,6 +64,13 @@ export const routes: Routes = [
   { path: 'overview', component: TrainingPlanOverviewComponent, canActivate: [authGuard] },
   { path: 'body-status', component: BodyStatusComponent, canActivate: [authGuard] },
   {
+    path: 'ai-plan',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/ai-training-plan/ai-training-plan.component')
+        .then(m => m.AiTrainingPlanComponent)
+  },
+  {
     path: 'compare',
     canActivate: [authGuard],
     loadComponent: () =>

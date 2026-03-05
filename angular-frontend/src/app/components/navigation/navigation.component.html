@@ -36,6 +36,10 @@
         <mat-icon>bar_chart</mat-icon>
         <span>{{ 'nav.statistics' | t }}</span>
       </a>
+      <a class="nav-link" routerLink="/ai-plan" routerLinkActive="active">
+        <mat-icon>auto_awesome</mat-icon>
+        <span>AI Plan</span>
+      </a>
       @if (isAdmin()) {
         <div class="nav-admin-menu">
           <a class="nav-link" routerLink="/admin" routerLinkActive="active">
@@ -120,6 +124,10 @@
       <a class="nav-link" routerLink="/statistics" routerLinkActive="active" (click)="closeMobileMenu()">
         <mat-icon>bar_chart</mat-icon>
         <span>{{ 'nav.statistics' | t }}</span>
+      </a>
+      <a class="nav-link" routerLink="/ai-plan" routerLinkActive="active" (click)="closeMobileMenu()">
+        <mat-icon>auto_awesome</mat-icon>
+        <span>AI Plan</span>
       </a>
       @if (isAdmin()) {
         <a class="nav-link" routerLink="/admin" routerLinkActive="active" (click)="closeMobileMenu()">
