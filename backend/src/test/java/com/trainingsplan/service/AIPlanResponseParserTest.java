@@ -55,6 +55,40 @@ class AIPlanResponseParserTest {
     }
 
     @Test
+    void parse_withWeekSummary_returnsPlanDto() {
+        String json = """
+                {
+                  "weekStartDate": "2026-03-02",
+                  "status": "DRAFT",
+                  "weekSummary": {
+                    "totalVolumMinutes": 365,
+                    "coachNote": "Base focus"
+                  },
+                  "days": [
+                    {
+                      "date": "2026-03-02",
+                      "workouts": [
+                        {
+                          "type": "EASY",
+                          "targetZone": "Z2",
+                          "durationMinutes": 45,
+                          "description": "Easy run"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """;
+
+        var result = parser.parse(json);
+
+        assertNotNull(result);
+        assertNotNull(result.getWeekSummary());
+        assertEquals(365, result.getWeekSummary().get("totalVolumMinutes").asInt());
+        assertEquals(1, result.getDays().size());
+    }
+
+    @Test
     void parse_invalidJson_throwsAIResponseParsingException() {
         String invalidJson = "{ \"weekStartDate\": \"2026-03-02\", \"days\": [";
 

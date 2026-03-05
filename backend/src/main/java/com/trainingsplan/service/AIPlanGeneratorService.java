@@ -77,7 +77,8 @@ public class AIPlanGeneratorService {
 
         String prompt = promptBuilder.buildWeeklyPlanPrompt(
                 mapAthleteState(athleteStateDto),
-                mapWorkouts(recentWorkoutDtos)
+                mapWorkouts(recentWorkoutDtos),
+                weekStart
         );
 
         String validationResult = "NOT_RUN";
@@ -166,3 +167,5 @@ public class AIPlanGeneratorService {
         return Math.max(min, Math.min(max, value));
     }
 }
+
+

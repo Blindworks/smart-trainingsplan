@@ -69,7 +69,7 @@ class AIPlanGeneratorServiceTest {
 
         when(athleteStateService.getAthleteState(userId)).thenReturn(athleteState);
         when(recentWorkoutService.getRecentWorkouts(userId)).thenReturn(List.of(workout));
-        when(promptBuilder.buildWeeklyPlanPrompt(any(), any())).thenReturn("PROMPT");
+        when(promptBuilder.buildWeeklyPlanPrompt(any(), any(), any())).thenReturn("PROMPT");
         when(llmClientService.generateText("PROMPT")).thenReturn("{\"weekStartDate\":\"2026-03-02\",\"days\":[]}");
         when(aiPlanResponseParser.parse(any())).thenReturn(parsedPlan);
 
@@ -90,7 +90,7 @@ class AIPlanGeneratorServiceTest {
         );
         inOrder.verify(athleteStateService).getAthleteState(userId);
         inOrder.verify(recentWorkoutService).getRecentWorkouts(userId);
-        inOrder.verify(promptBuilder).buildWeeklyPlanPrompt(any(), any());
+        inOrder.verify(promptBuilder).buildWeeklyPlanPrompt(any(), any(), any());
         inOrder.verify(llmClientService).generateText("PROMPT");
         inOrder.verify(aiPlanResponseParser).parse(any());
         inOrder.verify(aiPlanValidator).validate(parsedPlan, weekStart);
@@ -113,3 +113,4 @@ class AIPlanGeneratorServiceTest {
         assertThrows(IllegalArgumentException.class, () -> service.generateWeeklyPlan(1L, null));
     }
 }
+

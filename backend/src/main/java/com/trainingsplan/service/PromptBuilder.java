@@ -59,7 +59,7 @@ public class PromptBuilder {
      * @param recentWorkouts workouts from the past 2–4 weeks, ordered by date descending
      * @return fully populated prompt string ready to send to an LLM
      */
-    public String buildWeeklyPlanPrompt(AthleteState state, List<Workout> recentWorkouts) {
+    public String buildWeeklyPlanPrompt(AthleteState state, List<Workout> recentWorkouts, java.time.LocalDate weekStartDate) {
         return template
                 .replace("{{goal}}", state.goal())
                 .replace("{{weeksToRace}}", String.valueOf(state.weeksToRace()))
@@ -68,7 +68,8 @@ public class PromptBuilder {
                 .replace("{{efficiency}}", String.format("%.4f", state.efficiency()))
                 .replace("{{longRunCapacity}}", String.valueOf(state.longRunCapacity()))
                 .replace("{{zones}}", formatZones(state.zones()))
-                .replace("{{recentWorkouts}}", formatWorkouts(recentWorkouts));
+                .replace("{{recentWorkouts}}", formatWorkouts(recentWorkouts))
+                .replace("{{weekStartDate}}", weekStartDate != null ? weekStartDate.toString() : "");
     }
 
     // -------------------------------------------------------------------------
@@ -132,3 +133,5 @@ public class PromptBuilder {
         return value != null ? value : fallback;
     }
 }
+
+

@@ -1,6 +1,7 @@
 package com.trainingsplan.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.trainingsplan.entity.AiTrainingPlan;
 import com.trainingsplan.entity.AiTrainingPlanStatus;
 import jakarta.validation.Valid;
@@ -27,6 +28,8 @@ public class AITrainingPlanDTO {
     private String modelVersion;
 
     private AiTrainingPlanStatus status;
+
+    private JsonNode weekSummary;
 
     @Valid
     @NotEmpty(message = "A plan must contain at least one day")
@@ -63,6 +66,9 @@ public class AITrainingPlanDTO {
 
     public AiTrainingPlanStatus getStatus() { return status; }
     public void setStatus(AiTrainingPlanStatus status) { this.status = status; }
+
+    public JsonNode getWeekSummary() { return weekSummary; }
+    public void setWeekSummary(JsonNode weekSummary) { this.weekSummary = weekSummary; }
 
     public List<AITrainingDayDTO> getDays() { return days; }
     public void setDays(List<AITrainingDayDTO> days) { this.days = days; }
