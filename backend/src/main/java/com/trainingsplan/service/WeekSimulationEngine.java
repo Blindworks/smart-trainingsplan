@@ -23,9 +23,11 @@ public class WeekSimulationEngine {
     private static final double REST_DAY_RECOVERY = 0.05;
 
     private final TrainingImpactEngine trainingImpactEngine;
+    private final WeekRiskAnalyzer weekRiskAnalyzer;
 
-    public WeekSimulationEngine(TrainingImpactEngine trainingImpactEngine) {
+    public WeekSimulationEngine(TrainingImpactEngine trainingImpactEngine, WeekRiskAnalyzer weekRiskAnalyzer) {
         this.trainingImpactEngine = trainingImpactEngine;
+        this.weekRiskAnalyzer = weekRiskAnalyzer;
     }
 
     public WeekSimulationResultDTO simulateWeek(List<Workout> workouts, AthleteState initialState) {
@@ -69,11 +71,20 @@ public class WeekSimulationEngine {
             timeline.add(new FatiguePointDTO(day, fatigue));
         }
 
-        return WeekSimulationResultDTO.builder()
+        WeekSimulationResultDTO result = WeekSimulationResultDTO.builder()
                 .fatigueTimeline(timeline)
                 .peakFatigue(peakFatigue)
                 .riskFlags(riskFlags)
                 .build();
+
+        List<String> patternFlags = weekRiskAnalyzer.analyzeWeek(safeWorkouts, result);
+        if (!patternFlags.isEmpty()) {
+            List<String> mergedFlags = new ArrayList<>(result.getRiskFlags());
+            mergedFlags.addAll(patternFlags);
+            result.setRiskFlags(mergedFlags);
+        }
+
+        return result;
     }
 
     private AthleteState withUpdatedFatigue(AthleteState baseState, double fatigue) {

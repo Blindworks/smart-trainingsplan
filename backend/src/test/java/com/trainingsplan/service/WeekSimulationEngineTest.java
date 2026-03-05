@@ -12,6 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WeekSimulationEngineTest {
 
@@ -25,7 +26,7 @@ class WeekSimulationEngineTest {
                 new RecoveryModel(),
                 new InjuryRiskModel()
         );
-        weekSimulationEngine = new WeekSimulationEngine(trainingImpactEngine);
+        weekSimulationEngine = new WeekSimulationEngine(trainingImpactEngine, new WeekRiskAnalyzer());
     }
 
     @Test
@@ -65,7 +66,8 @@ class WeekSimulationEngineTest {
 
         assertEquals(1.0, result.getFatigueTimeline().get(0).getFatigue(), 1e-9);
         assertEquals(1.0, result.getPeakFatigue(), 1e-9);
-        assertEquals(1, result.getRiskFlags().size());
+        assertEquals(2, result.getRiskFlags().size());
+        assertTrue(result.getRiskFlags().contains(WeekRiskAnalyzer.OVERTRAINING_RISK));
     }
 
     @Test
