@@ -1,6 +1,6 @@
 package com.trainingsplan.config;
 
-import com.trainingsplan.security.JwtAuthenticationFilter;
+import com.trainingsplan.logging.CorrelationIdFilter;`r`nimport com.trainingsplan.security.JwtAuthenticationFilter;
 import com.trainingsplan.security.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -29,15 +29,14 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final JwtAuthenticationFilter jwtAuthFilter;`r`n    private final CorrelationIdFilter correlationIdFilter;
     private final UserDetailsServiceImpl userDetailsService;
 
     @Value("${app.cors.allowed-origins:http://localhost:4200}")
     private String allowedOriginsStr;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, UserDetailsServiceImpl userDetailsService) {
-        this.jwtAuthFilter = jwtAuthFilter;
-        this.userDetailsService = userDetailsService;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, CorrelationIdFilter correlationIdFilter, UserDetailsServiceImpl userDetailsService) {
+        this.jwtAuthFilter = jwtAuthFilter;`r`n        this.correlationIdFilter = correlationIdFilter;`r`n        this.userDetailsService = userDetailsService;
     }
 
     @Bean
@@ -54,8 +53,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .authenticationProvider(authenticationProvider())`r`n            .addFilterBefore(correlationIdFilter, JwtAuthenticationFilter.class)`r`n            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -70,7 +68,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(true);`r`n        configuration.setExposedHeaders(List.of(CorrelationIdFilter.CORRELATION_ID_HEADER));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -94,3 +92,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
+

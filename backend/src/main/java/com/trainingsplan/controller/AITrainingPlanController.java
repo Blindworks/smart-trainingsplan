@@ -3,8 +3,8 @@ package com.trainingsplan.controller;
 import com.trainingsplan.dto.AITrainingPlanDTO;
 import com.trainingsplan.dto.AITrainingPlanGenerateRequest;
 import com.trainingsplan.dto.MessageResponse;
+import com.trainingsplan.service.AIPlanGeneratorService;
 import com.trainingsplan.service.AIPlanPersistenceService;
-import com.trainingsplan.service.TrainingAIService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,12 +25,12 @@ public class AITrainingPlanController {
 
     private static final Logger log = LoggerFactory.getLogger(AITrainingPlanController.class);
 
-    private final TrainingAIService trainingAIService;
+    private final AIPlanGeneratorService aiPlanGeneratorService;
     private final AIPlanPersistenceService aiPlanPersistenceService;
 
-    public AITrainingPlanController(TrainingAIService trainingAIService,
+    public AITrainingPlanController(AIPlanGeneratorService aiPlanGeneratorService,
                                     AIPlanPersistenceService aiPlanPersistenceService) {
-        this.trainingAIService = trainingAIService;
+        this.aiPlanGeneratorService = aiPlanGeneratorService;
         this.aiPlanPersistenceService = aiPlanPersistenceService;
     }
 
@@ -47,16 +47,18 @@ public class AITrainingPlanController {
     public ResponseEntity<?> generate(@Valid @RequestBody AITrainingPlanGenerateRequest request) {
         long startNanos = System.nanoTime();
         try {
-            AITrainingPlanDTO generatedPlan = trainingAIService.generateWeeklyPlan(
-                    request.userId(),
-                    request.weekStartDate()
+            Long numericUserId = parseUserId(request.userId());
+            AITrainingPlanDTO generatedPlan = aiPlanGeneratorService.generateWeeklyPlan(
+                    numericUserId,
+                    request.weekStart()
             );
-            AITrainingPlanDTO savedPlan = aiPlanPersistenceService.save(generatedPlan, request.userId());
+            AITrainingPlanDTO savedPlan = aiPlanPersistenceService.save(generatedPlan, numericUserId);
+
             long generationTimeMs = (System.nanoTime() - startNanos) / 1_000_000;
             log.info(
-                    "event=ai_training_plan_generated userId={} weekStartDate={} modelName={} generationTimeMs={} planId={}",
+                    "event=ai_training_plan_generated userId={} weekStart={} modelName={} generationTimeMs={} planId={}",
                     request.userId(),
-                    request.weekStartDate(),
+                    request.weekStart(),
                     savedPlan.getModelName(),
                     generationTimeMs,
                     savedPlan.getId()
@@ -64,6 +66,14 @@ public class AITrainingPlanController {
             return ResponseEntity.status(HttpStatus.CREATED).body(savedPlan);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
+
+    private Long parseUserId(String userId) {
+        try {
+            return Long.parseLong(userId);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("userId must be a numeric user id");
         }
     }
 }

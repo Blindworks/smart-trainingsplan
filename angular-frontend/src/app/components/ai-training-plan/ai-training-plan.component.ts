@@ -48,7 +48,10 @@ export class AiTrainingPlanComponent {
     this.error = null;
     this.plan = null;
 
-    this.aiService.generatePlan(userId, this.weekStartDate).pipe(
+    this.aiService.generatePlan({
+      userId: String(userId),
+      weekStart: this.weekStartDate
+    }).pipe(
       catchError(err => {
         this.error = err?.error?.message ?? 'Failed to generate plan.';
         return of(null);

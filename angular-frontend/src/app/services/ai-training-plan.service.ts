@@ -26,6 +26,11 @@ export interface AITrainingPlanDTO {
   days: AITrainingDayDTO[];
 }
 
+export interface AITrainingPlanGenerateRequest {
+  userId: string;
+  weekStart: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -34,8 +39,8 @@ export class AiTrainingPlanService {
 
   constructor(private http: HttpClient) {}
 
-  generatePlan(userId: number, weekStartDate: string): Observable<AITrainingPlanDTO> {
-    return this.http.post<AITrainingPlanDTO>(`${this.baseUrl}/generate`, { userId, weekStartDate });
+  generatePlan(request: AITrainingPlanGenerateRequest): Observable<AITrainingPlanDTO> {
+    return this.http.post<AITrainingPlanDTO>(`${this.baseUrl}/generate`, request);
   }
 
   getPlan(planId: string): Observable<AITrainingPlanDTO> {
