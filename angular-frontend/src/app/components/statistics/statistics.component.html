@@ -142,31 +142,6 @@
         </div>
       </div>
 
-      <!-- Per-bucket detail table for smaller periods -->
-      <div class="bucket-table" *ngIf="stats!.buckets.length <= 12">
-        <div class="bucket-row bucket-row--header">
-          <span>{{ 'statistics.period' | t }}</span>
-          <span>{{ 'statistics.distance' | t }}</span>
-          <span>{{ 'statistics.duration' | t }}</span>
-          <span>{{ 'statistics.elevation' | t }}</span>
-          <span>{{ 'statistics.activities' | t }}</span>
-        </div>
-        <div
-          class="bucket-row"
-          *ngFor="let bucket of stats!.buckets; trackBy: trackByIndex"
-          [class.bucket-row--empty]="bucket.distanceKm === 0">
-          <span class="bucket-row__label">{{ bucket.label }}</span>
-          <span class="bucket-row__value">
-            {{ bucket.distanceKm | number:'1.1-1' }} {{ 'statistics.km' | t }}
-          </span>
-          <span class="bucket-row__value">{{ formatDuration(bucket.durationSeconds) }}</span>
-          <span class="bucket-row__value">
-            <ng-container *ngIf="bucket.elevationGainM > 0">+{{ bucket.elevationGainM | number:'1.0-0' }}m</ng-container>
-            <ng-container *ngIf="bucket.elevationGainM === 0">—</ng-container>
-          </span>
-          <span class="bucket-row__value">{{ bucket.activityCount }}</span>
-        </div>
-      </div>
     </div>
 
     <!-- Empty State -->

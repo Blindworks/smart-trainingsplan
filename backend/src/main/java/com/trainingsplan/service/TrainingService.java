@@ -5,6 +5,7 @@ import com.trainingsplan.repository.TrainingRepository;
 import com.trainingsplan.repository.TrainingPlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -31,6 +32,26 @@ public class TrainingService {
 
     public Training save(Training training) {
         return trainingRepository.save(training);
+    }
+
+    @Transactional
+    public Training update(Long id, Training incoming) {
+        Training existing = trainingRepository.findById(id).orElseThrow();
+
+        existing.setName(incoming.getName());
+        existing.setTrainingType(incoming.getTrainingType());
+        existing.setIntensityLevel(incoming.getIntensityLevel());
+        existing.setWeekNumber(incoming.getWeekNumber());
+        existing.setDayOfWeek(incoming.getDayOfWeek());
+        existing.setDurationMinutes(incoming.getDurationMinutes());
+        existing.setWorkPace(incoming.getWorkPace());
+        existing.setWorkTimeSeconds(incoming.getWorkTimeSeconds());
+        existing.setWorkDistanceMeters(incoming.getWorkDistanceMeters());
+        existing.setRecoveryPace(incoming.getRecoveryPace());
+        existing.setRecoveryTimeSeconds(incoming.getRecoveryTimeSeconds());
+        existing.setRecoveryDistanceMeters(incoming.getRecoveryDistanceMeters());
+
+        return existing; // managed entity → Hibernate schreibt bei Transaktionsende automatisch
     }
 
     public void deleteById(Long id) {

@@ -41,6 +41,7 @@ export class StatisticsComponent implements OnInit {
   readonly periods = [
     { value: 'day',   labelKey: 'statistics.day' },
     { value: 'week',  labelKey: 'statistics.week' },
+    { value: 'currentWeek', labelKey: 'statistics.current_week' },
     { value: 'month', labelKey: 'statistics.month' },
     { value: 'year',  labelKey: 'statistics.year' },
     { value: 'all',   labelKey: 'statistics.all' },

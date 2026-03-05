@@ -50,10 +50,9 @@ public class TrainingController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Training> updateTraining(@PathVariable Long id,
-                                                   @Valid @RequestBody Training training) {
+                                                   @Valid @RequestBody Training incoming) {
         if (trainingService.findById(id) == null) return ResponseEntity.notFound().build();
-        training.setId(id);
-        return ResponseEntity.ok(trainingService.save(training));
+        return ResponseEntity.ok(trainingService.update(id, incoming));
     }
 
     @DeleteMapping("/{id}")

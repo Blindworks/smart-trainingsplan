@@ -105,6 +105,7 @@
   display: flex;
   gap: 4px;
   align-items: center;
+  overflow: visible;
 }
 
 // ─── Edit section ─────────────────────────────────────────────────────────────
@@ -334,7 +335,7 @@
 
 .t-row {
   display: grid;
-  grid-template-columns: 60px 90px 2fr 120px 120px 70px 40px;
+  grid-template-columns: 60px 90px 2fr 120px 120px 70px 72px;
   gap: 8px;
   padding: 8px 14px;
   align-items: center;
