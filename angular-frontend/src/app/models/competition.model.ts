@@ -92,6 +92,31 @@ export interface TrainingImpactResponse {
   recoveryHours: number;
   injuryRisk: 'LOW' | 'MEDIUM' | 'HIGH';
 }
+
+export interface WeekSimulationWorkout {
+  date: string;
+  activityName: string;
+  distanceKm?: number | null;
+  durationMinutes: number;
+  averagePaceSecondsPerKm?: number | null;
+  averageHeartRate?: number | null;
+}
+
+export interface WeekSimulationRequest {
+  userId: string;
+  workouts: WeekSimulationWorkout[];
+}
+
+export interface FatiguePoint {
+  date: string;
+  fatigue: number;
+}
+
+export interface WeekSimulationResponse {
+  fatigueTimeline: FatiguePoint[];
+  peakFatigue: number;
+  riskFlags: string[];
+}
 export interface UserTrainingEntry {
   id: number;
   trainingDate: string;          // "YYYY-MM-DD"
@@ -263,7 +288,7 @@ export interface DailyMetrics {
   acwr?: number;
   acwrFlag?: 'BLUE' | 'GREEN' | 'ORANGE' | 'RED';
   acwrMessage?: string;
-  readinessScore?: number;                              // 0–100
+  readinessScore?: number;                              // 0Ã¢â‚¬â€œ100
   recommendation?: 'EASY' | 'MODERATE' | 'HARD' | 'REST';
   reasonsJson?: string;                                 // JSON string like ["reason1","reason2"]
   coachTitle?: string;                                  // e.g. "Easy day recommended"
@@ -357,7 +382,7 @@ export interface BodyMeasurement {
   id?: number;
   measuredAt: string;        // "YYYY-MM-DD"
   weightKg?: number;         // Gewicht in kg
-  fatPercentage?: number;    // Körperfettanteil %
+  fatPercentage?: number;    // KÃƒÂ¶rperfettanteil %
   waterPercentage?: number;  // Wasseranteil %
   muscleMassKg?: number;     // Muskelmasse in kg
   boneMassKg?: number;       // Knochenmasse in kg
@@ -384,17 +409,17 @@ export interface SleepData {
   restingHeartRate?: number;       // Ruheherzfrequenz (bpm)
   bodyBattery?: number;            // Body Battery
   spO2?: number;                   // Pulsoximeter (%)
-  breathingRate?: number;          // Atemfrequenz (Atemzüge/min)
+  breathingRate?: number;          // Atemfrequenz (AtemzÃƒÂ¼ge/min)
   hrvStatus?: string;              // HFV-Status
-  sleepQuality?: string;           // Qualität (z.B. "Gut", "Fair", "Schlecht")
+  sleepQuality?: string;           // QualitÃƒÂ¤t (z.B. "Gut", "Fair", "Schlecht")
   sleepDurationMinutes?: number;   // Schlafdauer in Minuten
-  sleepNeedMinutes?: number;       // Schlafbedürfnis in Minuten
+  sleepNeedMinutes?: number;       // SchlafbedÃƒÂ¼rfnis in Minuten
   bedtime?: string;                // Schlafenszeit "HH:mm"
   wakeTime?: string;               // Aufstehzeit "HH:mm"
 }
 
 export interface PaceZone {
-  zone: number;                       // 1–5
+  zone: number;                       // 1Ã¢â‚¬â€œ5
   name: string;                       // z.B. "Schwelle"
   description: string;
   fastestPaceSecPerKm: number | null; // untere Grenze (schneller), null bei Zone 5

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewChecked, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -15,11 +15,15 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { ApiService } from '../../services/api.service';
-import { Competition, Training, UserTrainingEntry, CompletedTraining, DailyMetrics } from '../../models/competition.model';
+import { Competition, Training, UserTrainingEntry, CompletedTraining, DailyMetrics, WeekSimulationResponse, WeekSimulationWorkout } from '../../models/competition.model';
 import { TrainingDetailsDialogComponent } from '../training-details-dialog/training-details-dialog.component';
 import { StravaActivityDialogComponent, CompletedTrainingDialogData } from '../strava-activity-dialog/strava-activity-dialog.component';
 import { CreateTrainingDialogComponent } from '../create-training-dialog/create-training-dialog.component';
 import { Subject, takeUntil, catchError, of, switchMap } from 'rxjs';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import { AuthService } from '../../services/auth.service';
+
+Chart.register(...registerables);
 
 interface DayTraining {
   date: string;
@@ -57,8 +61,9 @@ interface WeekData {
   templateUrl: './training-plan-overview.component.html',
   styleUrl: './training-plan-overview.component.scss'
 })
-export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
+export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, OnDestroy {
   private destroy$ = new Subject<void>();
+  @ViewChild('fatigueCurveCanvas') fatigueCurveCanvas?: ElementRef<HTMLCanvasElement>;
   
   competitions: Competition[] = [];
   selectedCompetitions: number[] = [];
@@ -67,6 +72,13 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
   loading = false;
   showEmptyDays = true;
   dailyStrainMap: Map<string, number> = new Map();
+
+  fatigueSimulation: WeekSimulationResponse | null = null;
+  fatigueSimulationLoading = false;
+  fatigueSimulationError = '';
+
+  private fatigueChart?: Chart;
+  private chartRenderPending = false;
 
   // FIT File Upload
   showFitUploadModal = false;
@@ -104,16 +116,25 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
   constructor(
     private apiService: ApiService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.loadCompetitions();
   }
 
+  ngAfterViewChecked(): void {
+    if (this.chartRenderPending) {
+      this.renderFatigueChart();
+      this.chartRenderPending = false;
+    }
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.fatigueChart?.destroy();
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -150,7 +171,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
           this.loadWeekData();
         },
         error: (error) => {
-          this.snackBar.open('Fehler beim Laden der Wettkämpfe', 'Schließen', { duration: 3000 });
+          this.snackBar.open('Fehler beim Laden der WettkÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤mpfe', 'SchlieÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸en', { duration: 3000 });
         }
       });
   }
@@ -182,7 +203,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
                 this.loading = false;
               },
               error: () => {
-                this.snackBar.open('Fehler beim Laden der Trainingsdaten', 'Schließen', { duration: 3000 });
+                this.snackBar.open('Fehler beim Laden der Trainingsdaten', 'SchlieÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸en', { duration: 3000 });
                 this.loading = false;
               }
             });
@@ -210,6 +231,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
 
     this.syncStravaAndLoadCompleted(weekData);
     this.weekData = weekData;
+    this.simulateWeekFatigue(weekData);
   }
 
   private mapEntryToTraining(entry: UserTrainingEntry): Training {
@@ -243,6 +265,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     this.syncStravaAndLoadCompleted(weekData);
 
     this.weekData = weekData;
+    this.simulateWeekFatigue(weekData);
   }
 
   private createWeekDays(startDate: Date): DayTraining[] {
@@ -500,7 +523,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(saved => {
       if (saved) {
         const msg = training ? 'Training aktualisiert' : 'Training erstellt';
-        this.snackBar.open(msg, 'Schließen', { duration: 2000 });
+        this.snackBar.open(msg, 'SchlieÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸en', { duration: 2000 });
         this.loadWeekData();
       }
     });
@@ -533,6 +556,222 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
     return '#66bb6a';
   }
 
+  private simulateWeekFatigue(weekData: WeekData): void {
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      this.fatigueSimulationLoading = false;
+      this.fatigueSimulation = null;
+      this.fatigueSimulationError = '';
+      this.fatigueChart?.destroy();
+      return;
+    }
+
+    const workouts = this.mapWeekDataToSimulationWorkouts(weekData);
+    this.fatigueSimulationLoading = true;
+    this.fatigueSimulationError = '';
+
+    this.apiService.simulateTrainingWeek({
+      userId: userId.toString(),
+      workouts
+    }).pipe(
+      takeUntil(this.destroy$),
+      catchError(() => {
+        this.fatigueSimulationError = 'Fatigue-Simulation konnte nicht geladen werden.';
+        return of(null);
+      })
+    ).subscribe(simulation => {
+      this.fatigueSimulationLoading = false;
+      this.fatigueSimulation = simulation;
+      this.chartRenderPending = true;
+    });
+  }
+
+  private mapWeekDataToSimulationWorkouts(weekData: WeekData): WeekSimulationWorkout[] {
+    return weekData.days.flatMap(day =>
+      day.trainings.flatMap(training => {
+        const durationMinutes = training.duration ?? training.durationMinutes;
+        if (durationMinutes == null || durationMinutes <= 0) {
+          return [];
+        }
+
+        const zone = this.resolveSimulationZone(training);
+        const baseName = training.description || training.name || 'Training';
+
+        return [{
+          date: day.date,
+          activityName: zone + ' ' + baseName,
+          distanceKm: null,
+          durationMinutes,
+          averagePaceSecondsPerKm: null,
+          averageHeartRate: null
+        }];
+      })
+    );
+  }
+
+  private resolveSimulationZone(training: Training): 'Z1' | 'Z2' | 'Z3' | 'Z4' | 'Z5' {
+    const intensity = (training.intensity || training.intensityLevel || '').toLowerCase();
+    if (intensity === 'high') return 'Z4';
+    if (intensity === 'medium') return 'Z3';
+    if (intensity === 'low') return 'Z2';
+    if (intensity === 'recovery' || intensity === 'rest') return 'Z1';
+
+    const text = ((training.description || '') + ' ' + (training.name || '')).toUpperCase();
+    const zoneMatch = text.match(/\b(Z[1-5])\b/);
+    if (zoneMatch) {
+      return zoneMatch[1] as 'Z1' | 'Z2' | 'Z3' | 'Z4' | 'Z5';
+    }
+
+    if (text.includes('GA1')) return 'Z2';
+    if (text.includes('GA2')) return 'Z3';
+    if (text.includes('VO2') || text.includes('INTERVALL') || text.includes('INTERVAL')) return 'Z4';
+    if (text.includes('SCHWELLE') || text.includes('TEMPO')) return 'Z4';
+    if (text.includes('REGENERATION') || text.includes('RECOVERY') || text.includes('REST')) return 'Z1';
+
+    return 'Z2';
+  }
+
+  private extractRiskDate(flag: string): string | null {
+    const match = /^(\d{4}-\d{2}-\d{2}):/.exec(flag);
+    return match ? match[1] : null;
+  }
+
+  formatRiskFlag(flag: string): string {
+    const dated = /^(\d{4}-\d{2}-\d{2}):\s*(.*)$/.exec(flag);
+    if (dated) {
+      const cleaned = dated[2].replace(/_/g, ' ').toLowerCase();
+      return dated[1] + ': ' + cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    }
+
+    const cleaned = flag.replace(/_/g, ' ').toLowerCase();
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+
+  riskFlagClass(flag: string): string {
+    const upper = flag.toUpperCase();
+    if (upper.includes('HIGH') || upper.includes('OVERTRAINING')) return 'high';
+    if (upper.includes('MEDIUM') || upper.includes('SPIKE')) return 'medium';
+    return 'neutral';
+  }
+
+  riskFlagIcon(flag: string): string {
+    const cls = this.riskFlagClass(flag);
+    if (cls === 'high') return 'dangerous';
+    if (cls === 'medium') return 'warning_amber';
+    return 'info';
+  }
+
+  private renderFatigueChart(): void {
+    const canvas = this.fatigueCurveCanvas?.nativeElement;
+    const timeline = this.fatigueSimulation?.fatigueTimeline ?? [];
+
+    if (!canvas || !timeline.length || this.fatigueSimulationLoading || !!this.fatigueSimulationError) {
+      return;
+    }
+
+    this.fatigueChart?.destroy();
+
+    const labels = timeline.map(point => this.formatDayName(point.date));
+    const values = timeline.map(point => point.fatigue);
+    const peak = this.fatigueSimulation?.peakFatigue ?? Math.max(...values);
+
+    const riskDates = new Set(
+      (this.fatigueSimulation?.riskFlags ?? [])
+        .map(flag => this.extractRiskDate(flag))
+        .filter((date): date is string => !!date)
+    );
+
+    const riskIndexSet = new Set(
+      timeline
+        .map((point, index) => ({ point, index }))
+        .filter(item => riskDates.has(item.point.date))
+        .map(item => item.index)
+    );
+
+    this.fatigueChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Fatigue Curve',
+          data: values,
+          borderColor: '#2d7bff',
+          backgroundColor: 'rgba(45, 123, 255, 0.2)',
+          tension: 0.28,
+          borderWidth: 2,
+          pointRadius: values.map((value, index) => (value === peak || riskIndexSet.has(index) ? 5 : 3)),
+          pointHoverRadius: values.map((value, index) => (value === peak || riskIndexSet.has(index) ? 7 : 5)),
+          pointBackgroundColor: values.map((value, index) => {
+            if (riskIndexSet.has(index)) return '#ef5350';
+            if (value === peak) return '#ffb300';
+            return '#2d7bff';
+          }),
+          pointBorderColor: values.map((value, index) => {
+            if (riskIndexSet.has(index)) return '#ffcdd2';
+            if (value === peak) return '#ffd54f';
+            return '#d7e7ff';
+          }),
+          pointBorderWidth: values.map((value, index) => (value === peak || riskIndexSet.has(index) ? 2 : 1)),
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#111a2e',
+            borderColor: 'rgba(80, 102, 140, 0.55)',
+            borderWidth: 1,
+            titleColor: '#e9efff',
+            bodyColor: '#d6e2ff',
+            displayColors: false,
+            padding: 10,
+            callbacks: {
+              title: (items) => items[0]?.label ?? '',
+              label: (context) => 'Fatigue: ' + (Number(context.raw) * 100).toFixed(0) + '%'
+            }
+          }
+        },
+        layout: {
+          padding: { top: 6, right: 6, bottom: 2, left: 4 }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 1,
+            ticks: {
+              color: '#9fb0c4',
+              callback: (value) => Math.round(Number(value) * 100) + '%'
+            },
+            title: {
+              display: true,
+              text: 'Fatigue',
+              color: '#9fb0c4'
+            },
+            grid: {
+              color: 'rgba(120, 137, 160, 0.25)'
+            }
+          },
+          x: {
+            ticks: { color: '#9fb0c4' },
+            title: {
+              display: true,
+              text: 'Tage',
+              color: '#9fb0c4'
+            },
+            grid: { color: 'rgba(120, 137, 160, 0.08)' }
+          }
+        }
+      } as ChartConfiguration<'line'>['options']
+    });
+  }
   private syncStravaAndLoadCompleted(weekData: WeekData): void {
     const startDate = weekData.days[0].date;
     const endDate = weekData.days[6].date;
@@ -586,11 +825,11 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
       next: () => {
         training.completed = newCompletionStatus;
         const message = newCompletionStatus ? 'Training als abgeschlossen markiert' : 'Training als offen markiert';
-        this.snackBar.open(message, 'Schließen', { duration: 2000 });
+        this.snackBar.open(message, 'SchlieÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸en', { duration: 2000 });
         this.loadWeekData();
       },
       error: () => {
-        this.snackBar.open('Fehler beim Aktualisieren des Training-Status', 'Schließen', { duration: 3000 });
+        this.snackBar.open('Fehler beim Aktualisieren des Training-Status', 'SchlieÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸en', { duration: 3000 });
       }
     });
   }
@@ -642,7 +881,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
 
   selectFile(file: File): void {
     if (!file.name.toLowerCase().endsWith('.fit')) {
-      this.snackBar.open('Bitte wählen Sie eine FIT-Datei aus', 'Schließen', { duration: 3000 });
+      this.snackBar.open('Bitte wÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤hlen Sie eine FIT-Datei aus', 'SchlieÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸en', { duration: 3000 });
       return;
     }
     this.selectedFile = file;
@@ -681,7 +920,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
         next: (response) => {
           clearInterval(progressInterval);
           this.uploadProgress = 100;
-          this.snackBar.open('FIT-Datei erfolgreich hochgeladen', 'Schließen', { duration: 3000 });
+          this.snackBar.open('FIT-Datei erfolgreich hochgeladen', 'SchlieÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸en', { duration: 3000 });
           this.closeFitUploadModal();
           this.loadWeekData(); // Reload to show completed training
         },
@@ -706,7 +945,7 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
             }
           }
           
-          this.snackBar.open('Fehler beim Upload: ' + errorMessage, 'Schließen', { duration: 5000 });
+          this.snackBar.open('Fehler beim Upload: ' + errorMessage, 'SchlieÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸en', { duration: 5000 });
         }
       });
   }

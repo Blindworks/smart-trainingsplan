@@ -28,7 +28,9 @@ import {
   ActivityComparisonItem,
   TrainingStatsDto,
   TrainingImpactRequest,
-  TrainingImpactResponse
+  TrainingImpactResponse,
+  WeekSimulationRequest,
+  WeekSimulationResponse
 } from '../models/competition.model';
 import { StravaStatus, StravaActivity } from '../models/strava.model';
 import { DashboardDto } from '../models/dashboard.model';
@@ -177,6 +179,11 @@ export class ApiService {
 
   getTrainingImpact(request: TrainingImpactRequest): Observable<TrainingImpactResponse> {
     return this.http.post<TrainingImpactResponse>(`${this.baseUrl}/training/impact`, request);
+  }
+
+
+  simulateTrainingWeek(request: WeekSimulationRequest): Observable<WeekSimulationResponse> {
+    return this.http.post<WeekSimulationResponse>(`${this.baseUrl}/training/week/simulate`, request);
   }
 
   deleteTraining(id: number): Observable<void> {
