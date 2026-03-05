@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +49,8 @@ public interface CompletedTrainingRepository extends JpaRepository<CompletedTrai
     Optional<CompletedTraining> findTopByUserIdOrderByTrainingDateDescUploadDateDesc(Long userId);
 
     Optional<CompletedTraining> findByIdAndUserId(Long id, Long userId);
+
+    List<CompletedTraining> findByUserIdOrderByTrainingDateDescUploadDateDesc(Long userId, Pageable pageable);
 
     @Query("SELECT DISTINCT c.trainingType FROM CompletedTraining c WHERE c.user.id = :userId AND c.trainingType IS NOT NULL ORDER BY c.trainingType")
     List<String> findDistinctTrainingTypesByUserId(@Param("userId") Long userId);

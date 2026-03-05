@@ -15,6 +15,8 @@ public interface ActivityMetricsRepository extends JpaRepository<ActivityMetrics
     Optional<ActivityMetrics> findByCompletedTrainingId(Long completedTrainingId);
     void deleteByCompletedTrainingId(Long completedTrainingId);
 
+    List<ActivityMetrics> findByCompletedTrainingIdIn(List<Long> completedTrainingIds);
+
     /** Returns the most recent activities with eligible decoupling data for the given user. */
     @Query("SELECT am FROM ActivityMetrics am " +
            "JOIN FETCH am.completedTraining ct " +
