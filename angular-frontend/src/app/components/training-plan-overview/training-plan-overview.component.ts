@@ -570,7 +570,6 @@ export class TrainingPlanOverviewComponent implements OnInit, OnDestroy {
       });
     });
   }
-
   // Training Completion Methods
   toggleTrainingCompletion(training: Training): void {
     const newCompletionStatus = !training.completed;

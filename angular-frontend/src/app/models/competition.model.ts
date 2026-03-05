@@ -71,6 +71,27 @@ export interface Training {
   rating?: number;
 }
 
+export interface TrainingImpactWorkout {
+  date: string;
+  activityName: string;
+  distanceKm?: number | null;
+  durationMinutes: number;
+  averagePaceSecondsPerKm?: number | null;
+  averageHeartRate?: number | null;
+}
+
+export interface TrainingImpactRequest {
+  userId: string;
+  workout: TrainingImpactWorkout;
+}
+
+export interface TrainingImpactResponse {
+  predictedTRIMP: number;
+  fatigueIncrease: number;
+  predictedFatigue?: number;
+  recoveryHours: number;
+  injuryRisk: 'LOW' | 'MEDIUM' | 'HIGH';
+}
 export interface UserTrainingEntry {
   id: number;
   trainingDate: string;          // "YYYY-MM-DD"

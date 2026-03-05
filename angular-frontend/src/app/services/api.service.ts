@@ -26,7 +26,9 @@ import {
   DecouplingHistoryPoint,
   PaceZones,
   ActivityComparisonItem,
-  TrainingStatsDto
+  TrainingStatsDto,
+  TrainingImpactRequest,
+  TrainingImpactResponse
 } from '../models/competition.model';
 import { StravaStatus, StravaActivity } from '../models/strava.model';
 import { DashboardDto } from '../models/dashboard.model';
@@ -171,6 +173,10 @@ export class ApiService {
 
   updateTrainingFeedback(id: number, feedback: TrainingFeedback): Observable<Training> {
     return this.http.put<Training>(`${this.baseUrl}/trainings/${id}/feedback`, feedback);
+  }
+
+  getTrainingImpact(request: TrainingImpactRequest): Observable<TrainingImpactResponse> {
+    return this.http.post<TrainingImpactResponse>(`${this.baseUrl}/training/impact`, request);
   }
 
   deleteTraining(id: number): Observable<void> {

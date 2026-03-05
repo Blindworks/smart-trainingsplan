@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, DestroyRef, Inject, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -8,13 +8,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, distinctUntilChanged, EMPTY, finalize, map, startWith, switchMap, tap } from 'rxjs';
 
 import { ApiService } from '../../services/api.service';
-import { Training, TrainingDescription } from '../../models/competition.model';
+import { AuthService } from '../../services/auth.service';
+import { Training, TrainingDescription, TrainingImpactRequest, TrainingImpactResponse } from '../../models/competition.model';
 
 export interface CreateTrainingDialogData {
   date: string;       // YYYY-MM-DD
-  training?: Training; // wenn gesetzt → Edit-Modus
+  training?: Training; // wenn gesetzt -> Edit-Modus
 }
 
 @Component({
@@ -37,6 +40,11 @@ export class CreateTrainingDialogComponent {
   form: FormGroup;
   saving = false;
   isEditMode: boolean;
+  impactPreview: TrainingImpactResponse | null = null;
+  impactLoading = false;
+  impactError: string | null = null;
+
+  private readonly destroyRef = inject(DestroyRef);
 
   trainingTypes = [
     { value: 'endurance', label: 'Ausdauer' },
@@ -63,6 +71,7 @@ export class CreateTrainingDialogComponent {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<CreateTrainingDialogComponent>,
     private apiService: ApiService,
+    private authService: AuthService,
     @Inject(MAT_DIALOG_DATA) public data: CreateTrainingDialogData
   ) {
     this.isEditMode = !!data.training;
@@ -83,6 +92,8 @@ export class CreateTrainingDialogComponent {
       tips:                    [desc?.tips ?? ''],
       difficultyLevel:         [desc?.difficultyLevel ?? '']
     });
+
+    this.setupImpactPreview();
   }
 
   formatDate(dateString: string): string {
@@ -101,6 +112,19 @@ export class CreateTrainingDialogComponent {
     return !!(v.detailedInstructions?.trim() || v.warmupInstructions?.trim() ||
               v.cooldownInstructions?.trim() || v.equipment?.trim() ||
               v.tips?.trim() || v.difficultyLevel?.trim());
+  }
+
+  formatInjuryRisk(risk?: 'LOW' | 'MEDIUM' | 'HIGH'): string {
+    switch (risk) {
+      case 'LOW':
+        return 'Low';
+      case 'MEDIUM':
+        return 'Medium';
+      case 'HIGH':
+        return 'High';
+      default:
+        return '-';
+    }
   }
 
   onSave(): void {
@@ -148,5 +172,85 @@ export class CreateTrainingDialogComponent {
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  private setupImpactPreview(): void {
+    this.form.valueChanges.pipe(
+      startWith(this.form.value),
+      debounceTime(350),
+      map(() => this.buildImpactRequest()),
+      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+      switchMap((request) => {
+        if (!request) {
+          this.impactPreview = null;
+          this.impactError = null;
+          this.impactLoading = false;
+          return EMPTY;
+        }
+
+        this.impactLoading = true;
+        return this.apiService.getTrainingImpact(request).pipe(
+          tap((preview) => {
+            this.impactPreview = preview;
+            this.impactError = null;
+          }),
+          catchError(() => {
+            this.impactPreview = null;
+            this.impactError = 'Preview currently unavailable';
+            return EMPTY;
+          }),
+          finalize(() => {
+            this.impactLoading = false;
+          })
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe();
+  }
+
+  private buildImpactRequest(): TrainingImpactRequest | null {
+    const currentUserId = this.authService.getCurrentUserId();
+    const durationValue = Number(this.form.get('durationMinutes')?.value);
+
+    if (!currentUserId || !Number.isFinite(durationValue) || durationValue < 1) {
+      return null;
+    }
+
+    const inputName = (this.form.get('name')?.value ?? '').trim();
+    const intensity = String(this.form.get('intensityLevel')?.value ?? 'medium');
+    const zone = this.resolvePreviewZone(intensity);
+
+    const baseName = inputName || 'Workout';
+    const activityName = /\bZ[1-5]\b/i.test(baseName)
+      ? baseName
+      : `${baseName} ${zone}`;
+
+    return {
+      userId: String(currentUserId),
+      workout: {
+        date: this.data.date,
+        activityName,
+        distanceKm: null,
+        durationMinutes: Math.round(durationValue),
+        averagePaceSecondsPerKm: null,
+        averageHeartRate: null
+      }
+    };
+  }
+
+  private resolvePreviewZone(intensity: string): string {
+    switch (intensity) {
+      case 'high':
+        return 'Z4';
+      case 'medium':
+        return 'Z3';
+      case 'low':
+        return 'Z2';
+      case 'recovery':
+      case 'rest':
+        return 'Z1';
+      default:
+        return 'Z2';
+    }
   }
 }

@@ -9,7 +9,9 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 
-import { Training, TrainingDescription } from '../../models/competition.model';
+import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
+import { Training, TrainingImpactRequest, TrainingImpactResponse } from '../../models/competition.model';
 
 export interface TrainingDetailsDialogData {
   training: Training;
@@ -33,6 +35,10 @@ export interface TrainingDetailsDialogData {
 })
 export class TrainingDetailsDialogComponent {
   training: Training;
+  impactPreview: TrainingImpactResponse | null = null;
+  impactLoading = false;
+  impactError: string | null = null;
+  impactUsedFallback = false;
 
   // Training type colors matching the main component
   trainingTypeColors: { [key: string]: string } = {
@@ -58,10 +64,13 @@ export class TrainingDetailsDialogComponent {
   };
 
   constructor(
+    private apiService: ApiService,
+    private authService: AuthService,
     private dialogRef: MatDialogRef<TrainingDetailsDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: TrainingDetailsDialogData
   ) {
     this.training = data.training;
+    this.loadTrainingImpact();
   }
 
   onClose(): void {
@@ -82,9 +91,9 @@ export class TrainingDetailsDialogComponent {
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('de-DE', { 
+    return date.toLocaleDateString('de-DE', {
       weekday: 'long',
-      day: '2-digit', 
+      day: '2-digit',
       month: 'long',
       year: 'numeric'
     });
@@ -92,10 +101,10 @@ export class TrainingDetailsDialogComponent {
 
   formatDuration(minutes: number | undefined): string {
     if (!minutes) return 'Nicht angegeben';
-    
+
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    
+
     if (hours > 0) {
       return `${hours}h ${remainingMinutes}min`;
     } else {
@@ -169,4 +178,109 @@ export class TrainingDetailsDialogComponent {
     }
     return '#ff9800';
   }
+
+  formatImpactRisk(risk?: 'LOW' | 'MEDIUM' | 'HIGH'): string {
+    switch (risk) {
+      case 'LOW':
+        return 'Low';
+      case 'MEDIUM':
+        return 'Medium';
+      case 'HIGH':
+        return 'High';
+      default:
+        return '-';
+    }
+  }
+
+  private loadTrainingImpact(): void {
+    if (this.training.isCompleted || this.training.completed) {
+      return;
+    }
+
+    const request = this.buildImpactRequest();
+    if (!request) {
+      return;
+    }
+
+    this.impactLoading = true;
+    this.apiService.getTrainingImpact(request).subscribe({
+      next: (impact) => {
+        this.impactPreview = impact;
+        this.impactError = null;
+        this.impactLoading = false;
+      },
+      error: () => {
+        this.impactPreview = null;
+        this.impactError = 'Preview aktuell nicht verfuegbar';
+        this.impactLoading = false;
+      }
+    });
+  }
+
+  private buildImpactRequest(): TrainingImpactRequest | null {
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      this.impactError = 'Kein Benutzerkontext fuer Impact-Preview';
+      return null;
+    }
+
+    const plannedDuration = this.training.durationMinutes
+      ?? this.training.duration
+      ?? this.training.trainingDescription?.estimatedDurationMinutes;
+    let durationMinutes = plannedDuration != null ? Number(plannedDuration) : NaN;
+
+    this.impactUsedFallback = false;
+    if (!Number.isFinite(durationMinutes) || durationMinutes < 1) {
+      durationMinutes = this.training.trainingType === 'recovery' ? 30 : 45;
+      this.impactUsedFallback = true;
+    }
+
+    const date = this.training.trainingDate ?? this.training.date ?? this.todayIso();
+    if (!this.training.trainingDate && !this.training.date) {
+      this.impactUsedFallback = true;
+    }
+
+    const baseName = (this.training.name ?? this.training.description ?? this.training.trainingType ?? 'Workout').trim();
+    const intensity = this.training.intensityLevel ?? this.training.intensity ?? 'medium';
+    const zone = this.resolveImpactZone(String(intensity));
+    const activityName = /\bZ[1-5]\b/i.test(baseName) ? baseName : `${baseName} ${zone}`;
+
+    return {
+      userId: String(userId),
+      workout: {
+        date,
+        activityName,
+        distanceKm: null,
+        durationMinutes: Math.round(durationMinutes),
+        averagePaceSecondsPerKm: null,
+        averageHeartRate: null
+      }
+    };
+  }
+
+  private todayIso(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  private resolveImpactZone(intensity: string): string {
+    switch (intensity) {
+      case 'high':
+        return 'Z4';
+      case 'medium':
+        return 'Z3';
+      case 'low':
+        return 'Z2';
+      case 'recovery':
+      case 'rest':
+        return 'Z1';
+      default:
+        return 'Z2';
+    }
+  }
 }
+
+
+
+
+
+

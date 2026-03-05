@@ -45,6 +45,40 @@
         <mat-error *ngIf="form.get('durationMinutes')?.hasError('min')">Mind. 1 Minute</mat-error>
       </mat-form-field>
 
+      <section class="impact-preview" *ngIf="impactLoading || impactPreview || impactError">
+        <div class="impact-preview-header">
+          <mat-icon>insights</mat-icon>
+          <span>Training Impact Preview</span>
+        </div>
+
+        <div class="impact-preview-state" *ngIf="impactLoading">
+          Calculating preview...
+        </div>
+
+        <div class="impact-preview-state impact-preview-error" *ngIf="impactError">
+          {{ impactError }}
+        </div>
+
+        <div class="impact-preview-grid" *ngIf="impactPreview && !impactLoading">
+          <div class="impact-item">
+            <div class="impact-label">Expected TRIMP</div>
+            <div class="impact-value">{{ impactPreview.predictedTRIMP | number:'1.0-1' }}</div>
+          </div>
+          <div class="impact-item">
+            <div class="impact-label">Fatigue increase</div>
+            <div class="impact-value">+{{ impactPreview.fatigueIncrease * 100 | number:'1.0-1' }}%</div>
+          </div>
+          <div class="impact-item">
+            <div class="impact-label">Recovery hours</div>
+            <div class="impact-value">{{ impactPreview.recoveryHours }}</div>
+          </div>
+          <div class="impact-item">
+            <div class="impact-label">Injury risk</div>
+            <div class="impact-value">{{ formatInjuryRisk(impactPreview.injuryRisk) }}</div>
+          </div>
+        </div>
+      </section>
+
       <!-- Description (TrainingDescription.name) -->
       <mat-form-field appearance="outline">
         <mat-label>Beschreibung</mat-label>

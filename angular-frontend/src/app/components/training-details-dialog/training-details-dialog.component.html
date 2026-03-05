@@ -74,6 +74,37 @@
       </mat-card-content>
     </mat-card>
 
+    <mat-card class="info-section impact-section" appearance="outlined"
+              *ngIf="!(training.isCompleted || training.completed) && (impactLoading || impactPreview || impactError)">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>insights</mat-icon>
+        <mat-card-title>Training Impact Preview</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="impact-state" *ngIf="impactLoading">Wird berechnet...</div>
+        <div class="impact-state impact-error" *ngIf="impactError && !impactLoading">{{ impactError }}</div>
+
+        <div class="impact-grid" *ngIf="impactPreview && !impactLoading">
+          <div class="impact-item">
+            <span class="impact-label">Expected TRIMP</span>
+            <span class="impact-value">{{ impactPreview.predictedTRIMP | number:'1.0-1' }}</span>
+          </div>
+          <div class="impact-item">
+            <span class="impact-label">Fatigue increase</span>
+            <span class="impact-value">+{{ impactPreview.fatigueIncrease * 100 | number:'1.0-1' }}%</span>
+          </div>
+          <div class="impact-item">
+            <span class="impact-label">Recovery hours</span>
+            <span class="impact-value">{{ impactPreview.recoveryHours }}h</span>
+          </div>
+          <div class="impact-item">
+            <span class="impact-label">Injury risk</span>
+            <span class="impact-value">{{ formatImpactRisk(impactPreview.injuryRisk) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
     <!-- Description Section -->
     <mat-card class="info-section" appearance="outlined" *ngIf="training.description">
       <mat-card-header>
