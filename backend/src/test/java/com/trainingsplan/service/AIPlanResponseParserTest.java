@@ -22,7 +22,7 @@ class AIPlanResponseParserTest {
         objectMapper.registerModule(new JavaTimeModule());
 
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        parser = new AIPlanResponseParser(objectMapper, validator);
+        parser = new AIPlanResponseParser(objectMapper, validator, new AIPlanValidator());
     }
 
     @Test
@@ -37,6 +37,7 @@ class AIPlanResponseParserTest {
                       "workouts": [
                         {
                           "type": "EASY",
+                          "targetZone": "Z2",
                           "durationMinutes": 45,
                           "description": "Easy run"
                         }
@@ -75,7 +76,9 @@ class AIPlanResponseParserTest {
                       "date": "2026-03-02",
                       "workouts": [
                         {
-                          "type": "EASY"
+                          "type": "EASY",
+                          "targetZone": "Z2",
+                          "durationMinutes": 30
                         }
                       ]
                     }
@@ -102,7 +105,9 @@ class AIPlanResponseParserTest {
                       "date": "2026-03-02",
                       "workouts": [
                         {
-                          "type": "EASY"
+                          "type": "EASY",
+                          "targetZone": "Z2",
+                          "durationMinutes": 30
                         }
                       ]
                     }
@@ -117,5 +122,34 @@ class AIPlanResponseParserTest {
 
         assertTrue(ex.getMessage().contains("Missing or invalid required fields"));
         assertTrue(ex.getMessage().contains("weekStartDate"));
+    }
+
+    @Test
+    void parse_invalidTargetZone_throwsAIResponseParsingException() {
+        String invalidZoneJson = """
+                {
+                  "weekStartDate": "2026-03-02",
+                  "days": [
+                    {
+                      "date": "2026-03-02",
+                      "workouts": [
+                        {
+                          "type": "EASY",
+                          "targetZone": "Z9",
+                          "durationMinutes": 30
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """;
+
+        AIResponseParsingException ex = assertThrows(
+                AIResponseParsingException.class,
+                () -> parser.parse(invalidZoneJson)
+        );
+
+        assertTrue(ex.getMessage().contains("AI plan validation failed"));
+        assertTrue(ex.getMessage().contains("targetZone"));
     }
 }

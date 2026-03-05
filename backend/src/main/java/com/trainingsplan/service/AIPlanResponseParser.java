@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.trainingsplan.dto.AITrainingPlanDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -17,10 +18,13 @@ public class AIPlanResponseParser {
 
     private final ObjectMapper objectMapper;
     private final Validator validator;
+    private final AIPlanValidator aiPlanValidator;
 
-    public AIPlanResponseParser(ObjectMapper objectMapper, Validator validator) {
+    @Autowired
+    public AIPlanResponseParser(ObjectMapper objectMapper, Validator validator, AIPlanValidator aiPlanValidator) {
         this.objectMapper = objectMapper;
         this.validator = validator;
+        this.aiPlanValidator = aiPlanValidator;
     }
 
     public AITrainingPlanDTO parse(String llmJsonResponse) {
@@ -34,7 +38,8 @@ public class AIPlanResponseParser {
                     .with(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                     .readValue(llmJsonResponse);
 
-            validate(plan);
+            validateBeanConstraints(plan);
+            validatePlanRules(plan);
             return plan;
         } catch (UnrecognizedPropertyException e) {
             throw new AIResponseParsingException("Unexpected field in AI response: " + e.getPropertyName(), e);
@@ -43,7 +48,7 @@ public class AIPlanResponseParser {
         }
     }
 
-    private void validate(AITrainingPlanDTO plan) {
+    private void validateBeanConstraints(AITrainingPlanDTO plan) {
         Set<ConstraintViolation<AITrainingPlanDTO>> violations = validator.validate(plan);
         if (violations.isEmpty()) {
             return;
@@ -55,5 +60,14 @@ public class AIPlanResponseParser {
                 .collect(Collectors.joining("; "));
 
         throw new AIResponseParsingException("Missing or invalid required fields: " + validationMessage);
+    }
+
+    private void validatePlanRules(AITrainingPlanDTO plan) {
+        ValidationResult result = aiPlanValidator.validate(plan);
+        if (result.isValid()) {
+            return;
+        }
+
+        throw new AIResponseParsingException("AI plan validation failed: " + String.join("; ", result.getErrors()));
     }
 }
