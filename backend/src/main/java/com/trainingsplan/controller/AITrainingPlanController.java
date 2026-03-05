@@ -3,11 +3,13 @@ package com.trainingsplan.controller;
 import com.trainingsplan.dto.AITrainingPlanDTO;
 import com.trainingsplan.dto.AITrainingPlanGenerateRequest;
 import com.trainingsplan.dto.MessageResponse;
+import com.trainingsplan.logging.CorrelationIdFilter;
 import com.trainingsplan.service.AIPlanGeneratorService;
 import com.trainingsplan.service.AIPlanPersistenceService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,10 +58,10 @@ public class AITrainingPlanController {
 
             long generationTimeMs = (System.nanoTime() - startNanos) / 1_000_000;
             log.info(
-                    "event=ai_training_plan_generated userId={} weekStart={} modelName={} generationTimeMs={} planId={}",
-                    request.userId(),
+                    "event=ai_training_plan_generated correlationId={} userId={} weekStart={} generationTimeMs={} planId={}",
+                    MDC.get(CorrelationIdFilter.CORRELATION_ID_MDC_KEY),
+                    numericUserId,
                     request.weekStart(),
-                    savedPlan.getModelName(),
                     generationTimeMs,
                     savedPlan.getId()
             );

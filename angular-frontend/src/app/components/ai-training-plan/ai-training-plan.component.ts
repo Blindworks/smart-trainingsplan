@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AiTrainingPlanService, AITrainingPlanDTO } from '../../services/ai-training-plan.service';
 import { AuthService } from '../../services/auth.service';
 import { catchError, of } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-ai-training-plan',
@@ -53,7 +54,7 @@ export class AiTrainingPlanComponent {
       weekStart: this.weekStartDate
     }).pipe(
       catchError(err => {
-        this.error = err?.error?.message ?? 'Failed to generate plan.';
+        this.error = this.buildErrorMessage(err, 'Failed to generate plan.');
         return of(null);
       })
     ).subscribe(result => {
@@ -70,7 +71,7 @@ export class AiTrainingPlanComponent {
 
     this.aiService.getPlan(this.loadPlanId.trim()).pipe(
       catchError(err => {
-        this.error = err?.error?.message ?? 'Plan not found.';
+        this.error = this.buildErrorMessage(err, 'Plan not found.');
         return of(null);
       })
     ).subscribe(result => {
@@ -104,5 +105,23 @@ export class AiTrainingPlanComponent {
     const diff = (day === 0 ? -6 : 1 - day);
     d.setDate(d.getDate() + diff);
     return d.toISOString().split('T')[0];
+  }
+
+  private buildErrorMessage(err: unknown, fallback: string): string {
+    if (!(err instanceof HttpErrorResponse)) {
+      return fallback;
+    }
+
+    let detail = '';
+    if (typeof err.error === 'string') {
+      detail = err.error;
+    } else if (err.error?.message) {
+      detail = err.error.message;
+    } else if (err.error?.error) {
+      detail = err.error.error;
+    }
+
+    const statusPart = err.status ? `HTTP ${err.status}` : 'HTTP error';
+    return detail ? `${statusPart}: ${detail}` : `${statusPart}: ${fallback}`;
   }
 }

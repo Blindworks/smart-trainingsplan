@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 
 export interface AIWorkoutDTO {
   type: string;
@@ -37,13 +38,30 @@ export interface AITrainingPlanGenerateRequest {
 export class AiTrainingPlanService {
   private readonly baseUrl = `${environment.apiUrl}/ai/training-plan`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
   generatePlan(request: AITrainingPlanGenerateRequest): Observable<AITrainingPlanDTO> {
-    return this.http.post<AITrainingPlanDTO>(`${this.baseUrl}/generate`, request);
+    return this.http.post<AITrainingPlanDTO>(
+      `${this.baseUrl}/generate`,
+      request,
+      this.createAuthOptions()
+    );
   }
 
   getPlan(planId: string): Observable<AITrainingPlanDTO> {
-    return this.http.get<AITrainingPlanDTO>(`${this.baseUrl}/${planId}`);
+    return this.http.get<AITrainingPlanDTO>(`${this.baseUrl}/${planId}`, this.createAuthOptions());
+  }
+
+  private createAuthOptions(): { headers?: HttpHeaders } {
+    const token = this.authService.getToken();
+    if (!token) {
+      return {};
+    }
+    return {
+      headers: new HttpHeaders({ Authorization: `Bearer ${token}` })
+    };
   }
 }
