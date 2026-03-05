@@ -1,4 +1,4 @@
-﻿package com.trainingsplan.service;
+package com.trainingsplan.service;
 
 import org.springframework.stereotype.Service;
 

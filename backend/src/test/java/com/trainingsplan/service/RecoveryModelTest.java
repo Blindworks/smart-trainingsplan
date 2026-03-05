@@ -1,4 +1,4 @@
-﻿package com.trainingsplan.service;
+package com.trainingsplan.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
