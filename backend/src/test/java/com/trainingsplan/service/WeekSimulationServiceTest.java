@@ -5,6 +5,7 @@ import com.trainingsplan.dto.AthleteStateDTO;
 import com.trainingsplan.dto.Workout;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import pacr.training.simulation.dto.WeekSimulationResultDTO;
 
 import java.time.LocalDate;
@@ -68,7 +69,9 @@ class WeekSimulationServiceTest {
         order.verify(weekSimulationEngine).simulateWeek(eq(workouts), any(AthleteState.class));
         order.verify(weekRiskAnalyzer).analyzeWeek(workouts, simulation);
 
-        verify(weekSimulationEngine).simulateWeek(eq(workouts), any(AthleteState.class));
+        ArgumentCaptor<AthleteState> stateCaptor = ArgumentCaptor.forClass(AthleteState.class);
+        verify(weekSimulationEngine).simulateWeek(eq(workouts), stateCaptor.capture());
+        assertEquals(0.35, stateCaptor.getValue().fatigue(), 1e-9);
     }
 
     @Test

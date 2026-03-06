@@ -11,6 +11,7 @@ public class TrainingImpactService {
 
     private static final String DEFAULT_GOAL = "Improve aerobic running fitness";
     private static final int DEFAULT_WEEKS_TO_RACE = 8;
+    private static final double FATIGUE_SCORE_SCALE = 100.0;
 
     private final AthleteStateService athleteStateService;
     private final TrainingImpactEngine trainingImpactEngine;
@@ -49,11 +50,12 @@ public class TrainingImpactService {
         if (dto.getTrimpMetrics() != null) {
             fitness = clamp(dto.getTrimpMetrics().getRolling28DayAverage(), 0.0, 100.0);
         }
+        double fatigue = clamp(dto.getFatigueScore() / FATIGUE_SCORE_SCALE, 0.0, 1.0);
 
         return new AthleteState(
                 DEFAULT_GOAL,
                 DEFAULT_WEEKS_TO_RACE,
-                dto.getFatigueScore(),
+                fatigue,
                 fitness,
                 dto.getEfficiencyScore(),
                 dto.getLongRunCapacityMinutes(),

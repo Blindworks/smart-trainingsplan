@@ -67,7 +67,7 @@ class TrainingImpactServiceTest {
         AthleteState mappedState = stateCaptor.getValue();
         assertEquals("Improve aerobic running fitness", mappedState.goal());
         assertEquals(8, mappedState.weeksToRace());
-        assertEquals(42.0, mappedState.fatigue());
+        assertEquals(0.42, mappedState.fatigue());
         assertEquals(55.0, mappedState.fitness());
         assertEquals(0.024, mappedState.efficiency());
         assertEquals(110, mappedState.longRunCapacity());
@@ -87,3 +87,4 @@ class TrainingImpactServiceTest {
         verifyNoInteractions(athleteStateService, trainingImpactEngine);
     }
 }
+

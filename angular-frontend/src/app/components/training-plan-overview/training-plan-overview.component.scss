@@ -261,7 +261,7 @@
       }
 
       &::after {
-        content: 'Ã¢Å“â€œ';
+        content: '\2713';
         position: absolute;
         top: 6px;
         right: 6px;
@@ -873,5 +873,3 @@
     box-shadow: none;
   }
 }
-
-
