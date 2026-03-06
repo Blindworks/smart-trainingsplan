@@ -635,6 +635,22 @@ export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, 
     const match = /^(\d{4}-\d{2}-\d{2}):/.exec(flag);
     return match ? match[1] : null;
   }
+  private toLocalDateKey(value: string): string {
+    const plainDateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    if (plainDateMatch) {
+      return value;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value.slice(0, 10);
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 
   formatRiskFlag(flag: string): string {
     const dated = /^(\d{4}-\d{2}-\d{2}):\s*(.*)$/.exec(flag);
@@ -654,6 +670,36 @@ export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, 
     return 'neutral';
   }
 
+  riskFlagStyle(flag: string): Record<string, string> {
+    const base: Record<string, string> = {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '6px 10px',
+      borderRadius: '8px',
+      marginBottom: '6px',
+      color: '#dbe7ff',
+      background: 'rgba(28, 44, 80, 0.45)'
+    };
+
+    const cls = this.riskFlagClass(flag);
+    if (cls === 'high') {
+      return {
+        ...base,
+        border: '1px solid rgba(255, 108, 108, 0.4)',
+        background: 'rgba(106, 31, 31, 0.36)'
+      };
+    }
+    if (cls === 'medium') {
+      return {
+        ...base,
+        border: '1px solid rgba(255, 185, 98, 0.45)',
+        background: 'rgba(105, 74, 18, 0.32)'
+      };
+    }
+
+    return base;
+  }
   riskFlagIcon(flag: string): string {
     const cls = this.riskFlagClass(flag);
     if (cls === 'high') return 'dangerous';
@@ -664,16 +710,26 @@ export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, 
   private renderFatigueChart(): void {
     const canvas = this.fatigueCurveCanvas?.nativeElement;
     const timeline = this.fatigueSimulation?.fatigueTimeline ?? [];
+    const weekDates = this.weekData?.days.map(day => day.date) ?? [];
 
-    if (!canvas || !timeline.length || this.fatigueSimulationLoading || !!this.fatigueSimulationError) {
+    if (!canvas || !timeline.length || !weekDates.length || this.fatigueSimulationLoading || !!this.fatigueSimulationError) {
       return;
     }
 
     this.fatigueChart?.destroy();
 
-    const labels = timeline.map(point => this.formatDayName(point.date));
-    const values = timeline.map(point => point.fatigue);
-    const peak = this.fatigueSimulation?.peakFatigue ?? Math.max(...values);
+    const timelineByDate = new Map<string, number>(
+      timeline.map(point => [this.toLocalDateKey(point.date), point.fatigue])
+    );
+
+    const labels = weekDates.map(date => `${this.formatDayName(date)} ${this.formatDate(date)}`);
+    const values = weekDates.map(date => timelineByDate.get(date) ?? null);
+    const numericValues = values.filter((value): value is number => value != null);
+    if (!numericValues.length) {
+      return;
+    }
+
+    const peak = this.fatigueSimulation?.peakFatigue ?? Math.max(...numericValues);
 
     const riskDates = new Set(
       (this.fatigueSimulation?.riskFlags ?? [])
@@ -682,9 +738,9 @@ export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, 
     );
 
     const riskIndexSet = new Set(
-      timeline
-        .map((point, index) => ({ point, index }))
-        .filter(item => riskDates.has(item.point.date))
+      weekDates
+        .map((date, index) => ({ date, index }))
+        .filter(item => riskDates.has(item.date))
         .map(item => item.index)
     );
 
@@ -694,13 +750,13 @@ export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, 
         labels,
         datasets: [{
           label: 'Fatigue Curve',
-          data: values,
+          data: values as number[],
           borderColor: '#2d7bff',
           backgroundColor: 'rgba(45, 123, 255, 0.2)',
           tension: 0.28,
           borderWidth: 2,
-          pointRadius: values.map((value, index) => (value === peak || riskIndexSet.has(index) ? 5 : 3)),
-          pointHoverRadius: values.map((value, index) => (value === peak || riskIndexSet.has(index) ? 7 : 5)),
+          pointRadius: values.map((value, index) => (value != null && (value === peak || riskIndexSet.has(index)) ? 5 : 3)),
+          pointHoverRadius: values.map((value, index) => (value != null && (value === peak || riskIndexSet.has(index)) ? 7 : 5)),
           pointBackgroundColor: values.map((value, index) => {
             if (riskIndexSet.has(index)) return '#ef5350';
             if (value === peak) return '#ffb300';
@@ -711,7 +767,7 @@ export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, 
             if (value === peak) return '#ffd54f';
             return '#d7e7ff';
           }),
-          pointBorderWidth: values.map((value, index) => (value === peak || riskIndexSet.has(index) ? 2 : 1)),
+          pointBorderWidth: values.map((value, index) => (value != null && (value === peak || riskIndexSet.has(index)) ? 2 : 1)),
           fill: true
         }]
       },
@@ -734,8 +790,17 @@ export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, 
             displayColors: false,
             padding: 10,
             callbacks: {
-              title: (items) => items[0]?.label ?? '',
-              label: (context) => 'Fatigue: ' + (Number(context.raw) * 100).toFixed(0) + '%'
+              title: (items) => {
+                const index = items[0]?.dataIndex;
+                if (index == null) return '';
+                const date = weekDates[index];
+                return date ? `${this.formatDayName(date)}, ${this.formatDate(date)}` : '';
+              },
+              label: (context) => {
+                const raw = context.raw as number | null;
+                if (raw == null) return 'Fatigue: -';
+                return 'Fatigue: ' + (raw * 100).toFixed(0) + '%';
+              }
             }
           }
         },
@@ -772,6 +837,7 @@ export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, 
       } as ChartConfiguration<'line'>['options']
     });
   }
+
   private syncStravaAndLoadCompleted(weekData: WeekData): void {
     const startDate = weekData.days[0].date;
     const endDate = weekData.days[6].date;
@@ -951,3 +1017,8 @@ export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, 
   }
 
 }
+
+
+
+
+
