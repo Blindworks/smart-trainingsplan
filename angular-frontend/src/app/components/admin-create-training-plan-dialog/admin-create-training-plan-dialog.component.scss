@@ -188,6 +188,49 @@
   padding: 7px 10px;
 }
 
+.t-row--pace-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px 10px 8px;
+  background: rgba(45, 123, 255, 0.03);
+  border-bottom: 1px solid var(--border);
+  border-left: 2px solid rgba(45, 123, 255, 0.3);
+}
+
+.pace-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.pace-row-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-blue);
+  width: 70px;
+  flex-shrink: 0;
+  padding-bottom: 6px;
+}
+
+.pace-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.pace-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
 // ─── Compact cell inputs ──────────────────────────────────────────────────────
 
 .cell-input,

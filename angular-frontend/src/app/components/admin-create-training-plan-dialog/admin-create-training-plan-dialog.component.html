@@ -1,4 +1,4 @@
-<div class="dialog-container" mat-dialog-content>
+﻿<div class="dialog-container" mat-dialog-content>
 
   <!-- Header -->
   <div class="dialog-header">
@@ -104,6 +104,39 @@
               <mat-icon>close</mat-icon>
             </button>
           </div>
+
+          <div class="t-row--pace-edit">
+            <div class="pace-row">
+              <span class="pace-row-label">Belastung</span>
+              <div class="pace-group">
+                <label class="pace-label">Pace (min/km)</label>
+                <app-pace-input [(ngModel)]="row.workPace" (ngModelChange)="onPaceFieldChanged(row, 'work', 'pace')" placeholder="z.B. 04:30" />
+              </div>
+              <div class="pace-group">
+                <label class="pace-label">Zeit (HH:mm:ss)</label>
+                <input class="cell-input" type="text" maxlength="8" pattern="\d{2}:\d{2}:\d{2}" [(ngModel)]="row.workTimeText" (ngModelChange)="onPaceFieldChanged(row, 'work', 'time')" placeholder="HH:mm:ss" />
+              </div>
+              <div class="pace-group">
+                <label class="pace-label">Distanz (km)</label>
+                <input class="cell-input" type="number" min="0.01" step="0.01" [(ngModel)]="row.workDistanceKm" (ngModelChange)="onPaceFieldChanged(row, 'work', 'distance')" placeholder="0.40" />
+              </div>
+            </div>
+            <div class="pace-row">
+              <span class="pace-row-label">Erholung</span>
+              <div class="pace-group">
+                <label class="pace-label">Pace (min/km)</label>
+                <app-pace-input [(ngModel)]="row.recoveryPace" (ngModelChange)="onPaceFieldChanged(row, 'recovery', 'pace')" placeholder="z.B. 06:00" />
+              </div>
+              <div class="pace-group">
+                <label class="pace-label">Zeit (HH:mm:ss)</label>
+                <input class="cell-input" type="text" maxlength="8" pattern="\d{2}:\d{2}:\d{2}" [(ngModel)]="row.recoveryTimeText" (ngModelChange)="onPaceFieldChanged(row, 'recovery', 'time')" placeholder="HH:mm:ss" />
+              </div>
+              <div class="pace-group">
+                <label class="pace-label">Distanz (km)</label>
+                <input class="cell-input" type="number" min="0.01" step="0.01" [(ngModel)]="row.recoveryDistanceKm" (ngModelChange)="onPaceFieldChanged(row, 'recovery', 'distance')" placeholder="0.20" />
+              </div>
+            </div>
+          </div>
         }
       </div>
     }
@@ -124,3 +157,7 @@
     Erstellen
   </button>
 </div>
+
+
+
+

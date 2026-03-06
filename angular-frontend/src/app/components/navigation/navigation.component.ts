@@ -2,10 +2,12 @@ import { Component, HostListener } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../services/auth.service';
 import { TranslatePipe } from '../../i18n/translate.pipe';
 import { I18nService } from '../../services/i18n.service';
 import { Language } from '../../i18n/translations';
+import { PaceConverterDialogComponent } from '../pace-converter-dialog/pace-converter-dialog.component';
 
 @Component({
   selector: 'app-navigation',
@@ -24,7 +26,8 @@ export class NavigationComponent {
 
   constructor(
     private authService: AuthService,
-    private i18nService: I18nService
+    private i18nService: I18nService,
+    private dialog: MatDialog
   ) {
     this.languages = this.i18nService.getSupportedLanguages();
   }
@@ -78,5 +81,14 @@ export class NavigationComponent {
     const current = this.i18nService.getLanguage();
     const next = this.languages.find(l => l !== current) ?? this.languages[0];
     this.i18nService.setLanguage(next);
+  }
+
+  openPaceConverterDialog(): void {
+    this.closeMobileMenu();
+    this.dialog.open(PaceConverterDialogComponent, {
+      width: '800px',
+      maxWidth: '95vw',
+      maxHeight: '92vh'
+    });
   }
 }

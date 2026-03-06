@@ -82,6 +82,10 @@
             <mat-icon>scale</mat-icon>
             <span>{{ 'nav.bodyData' | t }}</span>
           </a>
+          <button class="nav-link nav-sub-link" (click)="openPaceConverterDialog()">
+            <mat-icon>speed</mat-icon>
+            <span>{{ 'nav.converter' | t }}</span>
+          </button>
           <button class="nav-link nav-sub-link" (click)="logout()">
             <mat-icon>logout</mat-icon>
             <span>{{ 'nav.logout' | t }}</span>
@@ -163,6 +167,10 @@
       </a>
 
       @if (isLoggedIn()) {
+        <button class="nav-link nav-sub-link" (click)="openPaceConverterDialog()">
+          <mat-icon>speed</mat-icon>
+          <span>{{ 'nav.converter' | t }}</span>
+        </button>
         <button mat-stroked-button class="mobile-logout-btn" (click)="logout()">
           <mat-icon>logout</mat-icon>
           {{ 'nav.logout' | t }}
