@@ -7,13 +7,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, finalize, map, startWith, switchMap, tap } from 'rxjs';
 
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
-import { Training, TrainingDescription, TrainingImpactRequest, TrainingImpactResponse } from '../../models/competition.model';
+import { Training, TrainingImpactRequest, TrainingImpactResponse } from '../../models/competition.model';
 
 export interface CreateTrainingDialogData {
   date: string;       // YYYY-MM-DD
@@ -30,8 +29,7 @@ export interface CreateTrainingDialogData {
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
-    MatExpansionModule
+    MatSelectModule
   ],
   templateUrl: './create-training-dialog.component.html',
   styleUrl: './create-training-dialog.component.scss'
@@ -76,21 +74,13 @@ export class CreateTrainingDialogComponent {
   ) {
     this.isEditMode = !!data.training;
     const t = data.training;
-    const desc = t?.trainingDescription;
 
     this.form = this.fb.group({
       name:                 [t?.name ?? '',                              Validators.required],
       trainingType:         [t?.trainingType ?? 'endurance',            Validators.required],
       intensityLevel:       [t?.intensityLevel ?? 'medium',             Validators.required],
       durationMinutes:      [t?.durationMinutes ?? null,                [Validators.min(1), Validators.max(999)]],
-      // TrainingDescription fields
-      descName:                [desc?.name ?? ''],
-      detailedInstructions:    [desc?.detailedInstructions ?? ''],
-      warmupInstructions:      [desc?.warmupInstructions ?? ''],
-      cooldownInstructions:    [desc?.cooldownInstructions ?? ''],
-      equipment:               [desc?.equipment ?? ''],
-      tips:                    [desc?.tips ?? ''],
-      difficultyLevel:         [desc?.difficultyLevel ?? '']
+      description:          [t?.description ?? '']
     });
 
     this.setupImpactPreview();
@@ -105,13 +95,6 @@ export class CreateTrainingDialogComponent {
       month: 'long',
       year: 'numeric'
     });
-  }
-
-  hasDescriptionDetails(): boolean {
-    const v = this.form.value;
-    return !!(v.detailedInstructions?.trim() || v.warmupInstructions?.trim() ||
-              v.cooldownInstructions?.trim() || v.equipment?.trim() ||
-              v.tips?.trim() || v.difficultyLevel?.trim());
   }
 
   formatInjuryRisk(risk?: 'LOW' | 'MEDIUM' | 'HIGH'): string {
@@ -134,30 +117,14 @@ export class CreateTrainingDialogComponent {
     const v = this.form.value;
     const trim = (s: string) => s?.trim() || undefined;
 
-    const descName             = trim(v.descName);
-    const detailedInstructions = trim(v.detailedInstructions);
-    const warmupInstructions   = trim(v.warmupInstructions);
-    const cooldownInstructions = trim(v.cooldownInstructions);
-    const equipment            = trim(v.equipment);
-    const tips                 = trim(v.tips);
-    const difficultyLevel      = trim(v.difficultyLevel);
-
-    const hasDesc = descName || detailedInstructions || warmupInstructions ||
-                    cooldownInstructions || equipment || tips || difficultyLevel;
-
-    const trainingDescription: TrainingDescription | undefined = hasDesc
-      ? { name: descName ?? '', detailedInstructions, warmupInstructions,
-          cooldownInstructions, equipment, tips, difficultyLevel }
-      : undefined;
-
     const training: Training = {
       name:             v.name.trim(),
+      description:      trim(v.description),
       trainingDate:     this.data.date,
       trainingType:     v.trainingType,
       intensityLevel:   v.intensityLevel,
       durationMinutes:  v.durationMinutes || undefined,
-      isCompleted:      this.data.training?.isCompleted ?? false,
-      trainingDescription
+      isCompleted:      this.data.training?.isCompleted ?? false
     };
 
     const request$ = this.isEditMode

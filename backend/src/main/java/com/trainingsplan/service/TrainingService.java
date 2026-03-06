@@ -39,6 +39,7 @@ public class TrainingService {
         Training existing = trainingRepository.findById(id).orElseThrow();
 
         existing.setName(incoming.getName());
+        existing.setDescription(incoming.getDescription());
         existing.setTrainingType(incoming.getTrainingType());
         existing.setIntensityLevel(incoming.getIntensityLevel());
         existing.setWeekNumber(incoming.getWeekNumber());

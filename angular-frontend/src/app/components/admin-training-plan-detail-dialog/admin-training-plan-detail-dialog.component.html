@@ -211,7 +211,7 @@
                 <span class="t-week">{{ t.weekNumber ?? '–' }}</span>
                 <span class="t-day">{{ t.dayOfWeek ?? '–' }}</span>
                 <span class="t-name">
-                  {{ t.trainingDescription?.name ?? t.name }}
+                  {{ t.description ?? t.name }}
                   @if (t.workPace) {
                     <span class="pace-hint"> · {{ t.workPace }}/km</span>
                   }

@@ -8,7 +8,6 @@ import {
   TrainingPlanDto,
   Training,
   UserTrainingEntry,
-  TrainingDescription,
   CompletedTraining,
   TrainingFeedback,
   DailyTrainingCompletion,

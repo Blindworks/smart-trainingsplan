@@ -49,5 +49,6 @@
     <include file="db/changelog/changes/043-add-pace-fields-to-training-descriptions.xml"/>
     <include file="db/changelog/changes/044-add-pace-fields-to-trainings.xml"/>
     <include file="db/changelog/changes/045-add-ai-training-plan.xml"/>
+    <include file="db/changelog/changes/046-remove-training-descriptions.xml"/>
 
 </databaseChangeLog>

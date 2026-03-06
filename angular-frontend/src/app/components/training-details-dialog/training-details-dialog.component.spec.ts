@@ -79,16 +79,9 @@ describe('TrainingDetailsDialogComponent', () => {
     expect(component.getIntensityColor(undefined)).toBe('#9e9e9e');
   });
 
-  it('should detect detailed information correctly', () => {
-    component.training.trainingDescription = {
-      id: 1,
-      name: 'Test Description',
-      detailedInstructions: 'Test instructions'
-    };
-    expect(component.hasDetailedInformation()).toBeTruthy();
-
-    component.training.trainingDescription = undefined;
-    expect(component.hasDetailedInformation()).toBeFalsy();
+  it('should format seconds correctly', () => {
+    expect(component.formatSeconds(60)).toBe('1min');
+    expect(component.formatSeconds(65)).toBe('1min 5s');
   });
 
   it('should get correct completion status', () => {

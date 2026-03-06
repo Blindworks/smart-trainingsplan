@@ -246,7 +246,7 @@ export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, 
       completed: entry.completed,
       isCompleted: entry.completed,
       completionStatus: entry.completionStatus,
-      description: entry.training.trainingDescription?.name || entry.training.name,
+      description: entry.training.description || entry.training.name,
     };
   }
 
@@ -315,7 +315,7 @@ export class TrainingPlanOverviewComponent implements OnInit, AfterViewChecked, 
       intensity: training.intensityLevel,
       duration: training.durationMinutes,
       completed: training.isCompleted,
-      description: training.trainingDescription?.name || training.name,
+      description: training.description || training.name,
       trainingPlanName: training.trainingPlanName,
       trainingPlanId: training.trainingPlanId
     };

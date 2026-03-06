@@ -41,7 +41,7 @@ export interface TrainingPlan {
 export interface Training {
   id?: number;
   name: string;
-  trainingDescription?: TrainingDescription;
+  description?: string;
   trainingDate?: string;
   weekNumber?: number;
   dayOfWeek?: string;
@@ -61,7 +61,6 @@ export interface Training {
   trainingPlanId?: number;
   trainingPlanName?: string;
   // Legacy fields for compatibility
-  description?: string;
   date?: string;
   type?: string;
   intensity?: string;
@@ -126,24 +125,6 @@ export interface UserTrainingEntry {
   training: Training;            // embedded Training template
   registrationId?: number;
   competitionId?: number;
-}
-
-export interface TrainingDescription {
-  id?: number;
-  name: string;
-  detailedInstructions?: string;
-  warmupInstructions?: string;
-  cooldownInstructions?: string;
-  equipment?: string;
-  tips?: string;
-  estimatedDurationMinutes?: number;
-  difficultyLevel?: string;
-  workPace?: string;
-  workTimeSeconds?: number;
-  workDistanceMeters?: number;
-  recoveryPace?: string;
-  recoveryTimeSeconds?: number;
-  recoveryDistanceMeters?: number;
 }
 
 export interface CompletedTraining {

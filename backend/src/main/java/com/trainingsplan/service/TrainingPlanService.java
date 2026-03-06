@@ -4,11 +4,9 @@ import com.trainingsplan.dto.TrainingPlanDto;
 import com.trainingsplan.entity.Competition;
 import com.trainingsplan.entity.CompetitionRegistration;
 import com.trainingsplan.entity.Training;
-import com.trainingsplan.entity.TrainingDescription;
 import com.trainingsplan.entity.TrainingPlan;
 import com.trainingsplan.repository.CompetitionRegistrationRepository;
 import com.trainingsplan.repository.CompetitionRepository;
-import com.trainingsplan.repository.TrainingDescriptionRepository;
 import com.trainingsplan.repository.TrainingPlanRepository;
 import com.trainingsplan.repository.TrainingRepository;
 import com.trainingsplan.security.SecurityUtils;
@@ -37,9 +35,6 @@ public class TrainingPlanService {
 
     @Autowired
     private TrainingRepository trainingRepository;
-
-    @Autowired
-    private TrainingDescriptionRepository trainingDescriptionRepository;
 
     @Autowired
     private CompetitionRegistrationRepository registrationRepository;
@@ -213,8 +208,7 @@ public class TrainingPlanService {
 
                 Training template = new Training();
                 template.setName(trainingNode.path("name").asText("Training"));
-                template.setTrainingDescription(
-                        findOrCreateTrainingDescription(trainingNode.path("description").asText("")));
+                template.setDescription(trainingNode.path("description").asText(""));
                 template.setWeekNumber(weekNumber);
                 template.setDayOfWeek(dayOfWeek);
                 template.setTrainingType(trainingNode.path("type").asText(""));
@@ -254,8 +248,8 @@ public class TrainingPlanService {
                 if ("Ruhetag".equals(workout) || "0%".equals(intensity)) continue;
 
                 Training template = new Training();
-                template.setName(capitalizeFirstLetter(weekdayNames[dayIndex]) + " - Woche " + weekNumber);
-                template.setTrainingDescription(findOrCreateTrainingDescription(workout));
+                template.setName(workout);
+                template.setDescription(workout);
                 template.setWeekNumber(weekNumber);
                 template.setDayOfWeek(weekdays[dayIndex]);
                 template.setTrainingType(extractTrainingType(workout));
@@ -316,21 +310,6 @@ public class TrainingPlanService {
             }
         } catch (Exception ignored) {}
         return null;
-    }
-
-    private TrainingDescription findOrCreateTrainingDescription(String description) {
-        if (description == null || description.trim().isEmpty()) {
-            return null;
-        }
-        String normalized = description.trim();
-        List<TrainingDescription> existing = trainingDescriptionRepository.findAllByNameOrderByIdAsc(normalized);
-        if (!existing.isEmpty()) {
-            return existing.get(0);
-        }
-        TrainingDescription newDescription = new TrainingDescription();
-        newDescription.setName(normalized);
-        newDescription.setDetailedInstructions(normalized);
-        return trainingDescriptionRepository.save(newDescription);
     }
 
     private String extractTrainingType(String workout) {

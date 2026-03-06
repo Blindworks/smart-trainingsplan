@@ -13,14 +13,12 @@
   <form [formGroup]="form" class="dialog-form" (ngSubmit)="onSave()">
     <div class="form-body">
 
-      <!-- Name -->
       <mat-form-field appearance="outline">
         <mat-label>Name</mat-label>
         <input matInput formControlName="name" placeholder="z.B. Langer Dauerlauf" autocomplete="off">
         <mat-error *ngIf="form.get('name')?.hasError('required')">Name ist erforderlich</mat-error>
       </mat-form-field>
 
-      <!-- Type & Intensity -->
       <div class="form-row">
         <mat-form-field appearance="outline">
           <mat-label>Trainingsart</mat-label>
@@ -30,14 +28,13 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Intensität</mat-label>
+          <mat-label>Intensit�t</mat-label>
           <mat-select formControlName="intensityLevel">
             <mat-option *ngFor="let i of intensityLevels" [value]="i.value">{{ i.label }}</mat-option>
           </mat-select>
         </mat-form-field>
       </div>
 
-      <!-- Duration -->
       <mat-form-field appearance="outline">
         <mat-label>Dauer (Min)</mat-label>
         <input matInput type="number" formControlName="durationMinutes" placeholder="60" min="1" max="999">
@@ -79,67 +76,12 @@
         </div>
       </section>
 
-      <!-- Description (TrainingDescription.name) -->
       <mat-form-field appearance="outline">
         <mat-label>Beschreibung</mat-label>
-        <textarea matInput formControlName="descName" rows="2"
+        <textarea matInput formControlName="description" rows="3"
                   placeholder="Kurze Beschreibung des Trainings"></textarea>
         <mat-hint>Optional</mat-hint>
       </mat-form-field>
-
-      <!-- Detailed description fields -->
-      <mat-expansion-panel class="details-panel">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon>article</mat-icon>
-            Detailbeschreibung
-          </mat-panel-title>
-          <mat-panel-description *ngIf="hasDescriptionDetails()">
-            ausgefüllt
-          </mat-panel-description>
-        </mat-expansion-panel-header>
-
-        <div class="expansion-fields">
-          <mat-form-field appearance="outline">
-            <mat-label>Detaillierte Anweisungen</mat-label>
-            <textarea matInput formControlName="detailedInstructions" rows="3"
-                      placeholder="z.B. 5×1000m mit 2min Pause, Pace 4:00/km"></textarea>
-          </mat-form-field>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline">
-              <mat-label>Aufwärmen</mat-label>
-              <textarea matInput formControlName="warmupInstructions" rows="2"
-                        placeholder="z.B. 15min locker einlaufen"></textarea>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Abkühlen</mat-label>
-              <textarea matInput formControlName="cooldownInstructions" rows="2"
-                        placeholder="z.B. 10min auslaufen + Dehnen"></textarea>
-            </mat-form-field>
-          </div>
-
-          <div class="form-row">
-            <mat-form-field appearance="outline">
-              <mat-label>Ausrüstung</mat-label>
-              <input matInput formControlName="equipment" placeholder="z.B. Laufschuhe, Pulsuhr">
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Schwierigkeitsgrad</mat-label>
-              <input matInput formControlName="difficultyLevel" placeholder="z.B. Mittel">
-            </mat-form-field>
-          </div>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Tipps & Hinweise</mat-label>
-            <textarea matInput formControlName="tips" rows="2"
-                      placeholder="z.B. Trinken nicht vergessen"></textarea>
-          </mat-form-field>
-
-        </div>
-      </mat-expansion-panel>
 
     </div>
 

@@ -139,19 +139,6 @@ export class TrainingDetailsDialogComponent {
     return intensity ? intensityMap[intensity] || intensity : 'Nicht angegeben';
   }
 
-  hasDetailedInformation(): boolean {
-    const desc = this.training.trainingDescription;
-    return !!(desc && (
-      desc.detailedInstructions ||
-      desc.warmupInstructions ||
-      desc.cooldownInstructions ||
-      desc.equipment ||
-      desc.tips ||
-      desc.workPace ||
-      desc.recoveryPace
-    ));
-  }
-
   formatSeconds(seconds: number): string {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -225,8 +212,7 @@ export class TrainingDetailsDialogComponent {
     }
 
     const plannedDuration = this.training.durationMinutes
-      ?? this.training.duration
-      ?? this.training.trainingDescription?.estimatedDurationMinutes;
+      ?? this.training.duration;
     let durationMinutes = plannedDuration != null ? Number(plannedDuration) : NaN;
 
     this.impactUsedFallback = false;

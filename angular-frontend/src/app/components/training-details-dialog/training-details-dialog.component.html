@@ -116,113 +116,6 @@
       </mat-card-content>
     </mat-card>
 
-    <!-- Detailed Instructions Section -->
-    <div class="detailed-info" *ngIf="hasDetailedInformation()">
-      
-      <!-- Main Instructions -->
-      <mat-card class="info-section" appearance="outlined" 
-                *ngIf="training.trainingDescription?.detailedInstructions">
-        <mat-card-header>
-          <mat-icon mat-card-avatar>list_alt</mat-icon>
-          <mat-card-title>Detaillierte Anweisungen</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="instruction-text">{{ training.trainingDescription?.detailedInstructions }}</div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Warmup Instructions -->
-      <mat-card class="info-section" appearance="outlined" 
-                *ngIf="training.trainingDescription?.warmupInstructions">
-        <mat-card-header>
-          <mat-icon mat-card-avatar class="warmup-icon">wb_sunny</mat-icon>
-          <mat-card-title>Aufwärmen</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="instruction-text">{{ training.trainingDescription?.warmupInstructions }}</div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Cooldown Instructions -->
-      <mat-card class="info-section" appearance="outlined" 
-                *ngIf="training.trainingDescription?.cooldownInstructions">
-        <mat-card-header>
-          <mat-icon mat-card-avatar class="cooldown-icon">ac_unit</mat-icon>
-          <mat-card-title>Abkühlen</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="instruction-text">{{ training.trainingDescription?.cooldownInstructions }}</div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Equipment Section -->
-      <mat-card class="info-section" appearance="outlined" 
-                *ngIf="training.trainingDescription?.equipment">
-        <mat-card-header>
-          <mat-icon mat-card-avatar>build</mat-icon>
-          <mat-card-title>Benötigte Ausrüstung</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="equipment-text">{{ training.trainingDescription?.equipment }}</div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Tips Section -->
-      <mat-card class="info-section" appearance="outlined"
-                *ngIf="training.trainingDescription?.tips">
-        <mat-card-header>
-          <mat-icon mat-card-avatar class="tips-icon">lightbulb</mat-icon>
-          <mat-card-title>Tipps & Hinweise</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="tips-text">{{ training.trainingDescription?.tips }}</div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Pace Section -->
-      <mat-card class="info-section" appearance="outlined"
-                *ngIf="training.trainingDescription?.workPace || training.trainingDescription?.recoveryPace">
-        <mat-card-header>
-          <mat-icon mat-card-avatar>speed</mat-icon>
-          <mat-card-title>Pace-Vorgaben</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="info-grid">
-            <div class="info-item" *ngIf="training.trainingDescription?.workPace">
-              <mat-icon class="info-icon">directions_run</mat-icon>
-              <div class="info-content">
-                <span class="info-label">Belastungs-Pace</span>
-                <span class="info-value">
-                  {{ training.trainingDescription?.workPace }} min/km
-                  <span *ngIf="training.trainingDescription?.workTimeSeconds">
-                    &nbsp;· {{ formatSeconds(training.trainingDescription!.workTimeSeconds!) }}
-                  </span>
-                  <span *ngIf="training.trainingDescription?.workDistanceMeters">
-                    &nbsp;· {{ training.trainingDescription?.workDistanceMeters }} m
-                  </span>
-                </span>
-              </div>
-            </div>
-            <div class="info-item" *ngIf="training.trainingDescription?.recoveryPace">
-              <mat-icon class="info-icon">self_improvement</mat-icon>
-              <div class="info-content">
-                <span class="info-label">Erholungs-Pace</span>
-                <span class="info-value">
-                  {{ training.trainingDescription?.recoveryPace }} min/km
-                  <span *ngIf="training.trainingDescription?.recoveryTimeSeconds">
-                    &nbsp;· {{ formatSeconds(training.trainingDescription!.recoveryTimeSeconds!) }}
-                  </span>
-                  <span *ngIf="training.trainingDescription?.recoveryDistanceMeters">
-                    &nbsp;· {{ training.trainingDescription?.recoveryDistanceMeters }} m
-                  </span>
-                </span>
-              </div>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-
     <!-- Training-level Pace -->
     <mat-card class="info-section" appearance="outlined"
               *ngIf="training.workPace || training.recoveryPace">
@@ -257,19 +150,6 @@
         </div>
       </mat-card-content>
     </mat-card>
-
-    <!-- Difficulty Level -->
-    <mat-card class="info-section" appearance="outlined"
-              *ngIf="training.trainingDescription?.difficultyLevel">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>trending_up</mat-icon>
-        <mat-card-title>Schwierigkeitsgrad</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="difficulty-text">{{ training.trainingDescription?.difficultyLevel }}</div>
-      </mat-card-content>
-    </mat-card>
-
     <!-- Feedback Section (if completed) -->
     <mat-card class="info-section" appearance="outlined" 
               *ngIf="(training.isCompleted || training.completed) && (training.feedback || training.rating)">
@@ -312,3 +192,4 @@
     Training bearbeiten
   </button>
 </div>
+
