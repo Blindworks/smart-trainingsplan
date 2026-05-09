@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="130-1" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="group_events" columnName="run_club_id"/>
+            </not>
+        </preConditions>
+        <comment>Add run_club_id FK to group_events to link events to a Run Club</comment>
+        <addColumn tableName="group_events">
+            <column name="run_club_id" type="BIGINT"/>
+        </addColumn>
+        <addForeignKeyConstraint constraintName="fk_group_events_run_club"
+                                 baseTableName="group_events" baseColumnNames="run_club_id"
+                                 referencedTableName="run_clubs" referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+        <createIndex indexName="idx_group_events_run_club" tableName="group_events">
+            <column name="run_club_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,87 @@
+<article class="feed-post">
+  <header class="post-header">
+    <div class="avatar">
+      @if (post.authorProfileImageUrl) {
+        <img [src]="post.authorProfileImageUrl" [alt]="post.authorName" />
+      } @else {
+        <span>{{ post.authorName.charAt(0) }}</span>
+      }
+    </div>
+    <div class="meta">
+      <span class="name">{{ post.authorName }}</span>
+      <time>{{ post.createdAt | date:'MMM d, HH:mm' }}</time>
+    </div>
+    @if (canDelete) {
+      <button class="delete-btn" type="button" (click)="delete()" [title]="'COMMON.DELETE' | translate">
+        <span class="material-symbols-outlined">delete</span>
+      </button>
+    }
+  </header>
+
+  <div class="post-content">
+    <p>{{ post.content }}</p>
+
+    @if (post.linkedActivityId) {
+      <a class="link-chip" [routerLink]="['/activities', post.linkedActivityId]">
+        <span class="material-symbols-outlined">directions_run</span>
+        {{ 'RUN_CLUBS.LINKED_ACTIVITY' | translate }}
+      </a>
+    }
+    @if (post.linkedCommunityRouteId) {
+      <a class="link-chip" [routerLink]="['/community-routes', post.linkedCommunityRouteId]">
+        <span class="material-symbols-outlined">route</span>
+        {{ 'RUN_CLUBS.LINKED_ROUTE' | translate }}
+      </a>
+    }
+    @if (post.linkedGroupEventId) {
+      <a class="link-chip" [routerLink]="['/community/groups', post.linkedGroupEventId]">
+        <span class="material-symbols-outlined">event</span>
+        {{ 'RUN_CLUBS.LINKED_EVENT' | translate }}
+      </a>
+    }
+  </div>
+
+  <footer class="post-actions">
+    <button class="action-btn" type="button" [class.liked]="post.likedByMe" (click)="toggleLike()" [disabled]="liking()">
+      <span class="material-symbols-outlined" [class.filled]="post.likedByMe">favorite</span>
+      <span>{{ post.likeCount }}</span>
+    </button>
+    <button class="action-btn" type="button" (click)="toggleComments()">
+      <span class="material-symbols-outlined">chat_bubble_outline</span>
+      <span>{{ post.commentCount }}</span>
+    </button>
+  </footer>
+
+  @if (showComments()) {
+    <section class="comments-section">
+      @if (loadingComments()) {
+        <p class="loading-line">{{ 'COMMON.LOADING' | translate }}</p>
+      } @else {
+        @for (c of comments(); track c.id) {
+          <div class="comment">
+            <div class="comment-head">
+              <span class="comment-author">{{ c.authorName }}</span>
+              <time>{{ c.createdAt | date:'MMM d, HH:mm' }}</time>
+            </div>
+            <p>{{ c.content }}</p>
+            @if (canDelete) {
+              <button class="comment-delete" type="button" (click)="deleteComment(c)">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            }
+          </div>
+        }
+        <div class="comment-composer">
+          <input type="text"
+                 [ngModel]="newComment()"
+                 (ngModelChange)="newComment.set($event)"
+                 (keyup.enter)="submitComment()"
+                 [placeholder]="'RUN_CLUBS.WRITE_COMMENT' | translate" />
+          <button type="button" class="send-btn" (click)="submitComment()" [disabled]="commentSubmitting() || !newComment().trim()">
+            <span class="material-symbols-outlined">send</span>
+          </button>
+        </div>
+      }
+    </section>
+  }
+</article>

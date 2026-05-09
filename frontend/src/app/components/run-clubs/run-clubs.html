@@ -1,0 +1,134 @@
+<div class="run-clubs">
+  <div class="page-header">
+    <div class="header-left">
+      <h1>{{ 'RUN_CLUBS.TITLE' | translate }} <span class="accent">{{ 'RUN_CLUBS.TITLE_ACCENT' | translate }}</span></h1>
+      <p class="subtitle">{{ 'RUN_CLUBS.SUBTITLE' | translate }}</p>
+    </div>
+    <a routerLink="/run-clubs/new" class="header-action-btn">
+      <span class="material-symbols-outlined">add</span>
+      {{ 'RUN_CLUBS.CREATE_NEW' | translate }}
+    </a>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="search-field">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input type="text"
+             [ngModel]="searchQuery()"
+             (ngModelChange)="searchQuery.set($event)"
+             (keyup.enter)="onSearch()"
+             [placeholder]="'RUN_CLUBS.SEARCH_PLACEHOLDER' | translate" />
+    </div>
+    <div class="search-field">
+      <span class="material-symbols-outlined search-icon">location_on</span>
+      <input type="text"
+             [ngModel]="cityFilter()"
+             (ngModelChange)="cityFilter.set($event)"
+             (keyup.enter)="onSearch()"
+             [placeholder]="'RUN_CLUBS.CITY_PLACEHOLDER' | translate" />
+    </div>
+    <div class="select-wrapper">
+      <select [ngModel]="dayFilter()" (ngModelChange)="dayFilter.set($event); onSearch()">
+        <option value="">{{ 'RUN_CLUBS.ALL_DAYS' | translate }}</option>
+        @for (d of allDays; track d) {
+          <option [value]="d">{{ ('RUN_CLUBS.DAY_FULL_' + d) | translate }}</option>
+        }
+      </select>
+      <span class="material-symbols-outlined select-arrow">expand_more</span>
+    </div>
+    <button class="btn-secondary" type="button" (click)="onSearch()">
+      <span class="material-symbols-outlined">tune</span>
+      {{ 'RUN_CLUBS.APPLY' | translate }}
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-bar">
+    <button class="tab-btn" [class.active]="activeTab() === 'list'" (click)="setTab('list')" type="button">
+      <span class="material-symbols-outlined">view_list</span>
+      {{ 'RUN_CLUBS.TAB_LIST' | translate }}
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'map'" (click)="setTab('map')" type="button">
+      <span class="material-symbols-outlined">map</span>
+      {{ 'RUN_CLUBS.TAB_MAP' | translate }}
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="material-symbols-outlined spinning">progress_activity</span>
+      <p>{{ 'RUN_CLUBS.LOADING' | translate }}</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <span class="material-symbols-outlined">error</span>
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="load()">{{ 'RUN_CLUBS.TRY_AGAIN' | translate }}</button>
+    </div>
+  } @else {
+    @if (activeTab() === 'list') {
+      @if (clubs().length === 0) {
+        <div class="empty-state">
+          <span class="material-symbols-outlined">groups_3</span>
+          <h3>{{ 'RUN_CLUBS.NO_CLUBS' | translate }}</h3>
+          <p>{{ 'RUN_CLUBS.NO_CLUBS_HINT' | translate }}</p>
+        </div>
+      } @else {
+        <div class="club-grid">
+          @for (c of clubs(); track trackById($index, c)) {
+            <a class="club-card" [routerLink]="['/run-clubs', c.slug]">
+              <div class="card-cover">
+                @if (c.hasCover) {
+                  <img class="cover-img" [src]="'/api/run-clubs/' + c.id + '/cover'" [alt]="c.name" />
+                } @else {
+                  <div class="cover-placeholder"></div>
+                }
+                @if (c.verified) {
+                  <span class="verified-badge" [title]="'RUN_CLUBS.VERIFIED' | translate">
+                    <span class="material-symbols-outlined">verified</span>
+                  </span>
+                }
+              </div>
+              <div class="card-body">
+                <div class="club-logo">
+                  @if (logoUrl(c); as url) {
+                    <img [src]="url" [alt]="c.name" />
+                  } @else {
+                    <span class="club-initials">{{ initials(c.name) }}</span>
+                  }
+                </div>
+                <div class="club-info">
+                  <h3 class="club-name">{{ c.name }}</h3>
+                  @if (c.locationCity) {
+                    <p class="club-city">
+                      <span class="material-symbols-outlined">location_on</span>
+                      {{ c.locationCity }}
+                    </p>
+                  }
+                </div>
+              </div>
+              <div class="card-meta">
+                <span class="meta-chip">
+                  <span class="material-symbols-outlined">group</span>
+                  {{ c.memberCount }} {{ 'RUN_CLUBS.MEMBERS' | translate }}
+                </span>
+                @if (meetingDaysShort(c)) {
+                  <span class="meta-chip">
+                    <span class="material-symbols-outlined">event</span>
+                    {{ meetingDaysShort(c) }}
+                  </span>
+                }
+              </div>
+            </a>
+          }
+        </div>
+      }
+    } @else {
+      <div class="map-wrapper">
+        <div class="map-canvas" #mapEl></div>
+      </div>
+    }
+  }
+
+</div>

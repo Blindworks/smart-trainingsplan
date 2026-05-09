@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="129-1" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="run_club_posts"/>
+            </not>
+        </preConditions>
+        <comment>Create run_club_posts table</comment>
+        <createTable tableName="run_club_posts">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="club_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="author_id" type="BIGINT"/>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image_filename" type="VARCHAR(255)"/>
+            <column name="linked_activity_id" type="BIGINT"/>
+            <column name="linked_community_route_id" type="BIGINT"/>
+            <column name="linked_group_event_id" type="BIGINT"/>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="deleted_at" type="DATETIME"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_run_club_posts_club"
+                                 baseTableName="run_club_posts" baseColumnNames="club_id"
+                                 referencedTableName="run_clubs" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_run_club_posts_author"
+                                 baseTableName="run_club_posts" baseColumnNames="author_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+        <createIndex indexName="idx_run_club_posts_club" tableName="run_club_posts">
+            <column name="club_id"/>
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="129-2" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="run_club_post_likes"/>
+            </not>
+        </preConditions>
+        <comment>Create run_club_post_likes table</comment>
+        <createTable tableName="run_club_post_likes">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="post_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="run_club_post_likes" columnNames="post_id,user_id"
+                             constraintName="uq_run_club_post_like"/>
+        <addForeignKeyConstraint constraintName="fk_run_club_post_likes_post"
+                                 baseTableName="run_club_post_likes" baseColumnNames="post_id"
+                                 referencedTableName="run_club_posts" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_run_club_post_likes_user"
+                                 baseTableName="run_club_post_likes" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="129-3" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="run_club_post_comments"/>
+            </not>
+        </preConditions>
+        <comment>Create run_club_post_comments table</comment>
+        <createTable tableName="run_club_post_comments">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="post_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="author_id" type="BIGINT"/>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="DATETIME"/>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_run_club_post_comments_post"
+                                 baseTableName="run_club_post_comments" baseColumnNames="post_id"
+                                 referencedTableName="run_club_posts" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_run_club_post_comments_author"
+                                 baseTableName="run_club_post_comments" baseColumnNames="author_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+        <createIndex indexName="idx_run_club_post_comments_post" tableName="run_club_post_comments">
+            <column name="post_id"/>
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

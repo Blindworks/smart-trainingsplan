@@ -66,6 +66,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/coros/callback").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/run-clubs/*/logo", "/api/run-clubs/*/cover").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )

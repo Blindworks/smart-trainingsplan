@@ -24,6 +24,7 @@ export interface UserProfile {
   cycleTrackingEnabled: boolean;
   communityRoutesEnabled: boolean;
   groupEventsEnabled: boolean;
+  runClubsEnabled?: boolean;
   discoverableByOthers: boolean;
   latitude?: number | null;
   longitude?: number | null;
@@ -63,6 +64,7 @@ export interface UpdateUserRequest {
   cycleTrackingEnabled?: boolean;
   communityRoutesEnabled?: boolean;
   groupEventsEnabled?: boolean;
+  runClubsEnabled?: boolean;
   discoverableByOthers?: boolean;
   role?: string | null;
   subscriptionPlan?: string | null;

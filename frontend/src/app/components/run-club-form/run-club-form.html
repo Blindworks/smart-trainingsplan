@@ -1,0 +1,231 @@
+<div class="run-club-form">
+  <div class="form-header">
+    <button class="back-btn" type="button" (click)="cancel()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <h1>
+      @if (isEditMode()) {
+        {{ 'RUN_CLUBS.EDIT' | translate }}
+      } @else {
+        {{ 'RUN_CLUBS.CREATE_NEW' | translate }}
+      }
+    </h1>
+  </div>
+
+  @if (!isEditMode()) {
+    <div class="hint-box">
+      <span class="material-symbols-outlined">info</span>
+      <p>{{ 'RUN_CLUBS.PENDING_APPROVAL_HINT' | translate }}</p>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="loading">{{ 'RUN_CLUBS.LOADING' | translate }}</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()">
+
+      <!-- Basic info -->
+      <section class="form-section">
+        <h2>{{ 'RUN_CLUBS.SECTION_BASIC' | translate }}</h2>
+
+        <div class="field">
+          <label>{{ 'RUN_CLUBS.NAME' | translate }} *</label>
+          <input type="text" formControlName="name" />
+          @if (isFieldInvalid('name')) {
+            <span class="error-text">{{ 'RUN_CLUBS.NAME_REQUIRED' | translate }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label>{{ 'RUN_CLUBS.DESCRIPTION' | translate }}</label>
+          <textarea formControlName="description" rows="4"
+                    [placeholder]="'RUN_CLUBS.DESCRIPTION_PLACEHOLDER' | translate"></textarea>
+        </div>
+      </section>
+
+      <!-- Location -->
+      <section class="form-section">
+        <h2>{{ 'RUN_CLUBS.SECTION_LOCATION' | translate }}</h2>
+
+        <div class="row">
+          <div class="field">
+            <label>{{ 'RUN_CLUBS.CITY' | translate }}</label>
+            <div class="field-with-action">
+              <input type="text" formControlName="locationCity" />
+              <button type="button" class="btn-small" (click)="geocodeCity()" [disabled]="geocoding$()"
+                      [attr.title]="'RUN_CLUBS.LOCATE' | translate"
+                      [attr.aria-busy]="geocoding$() ? 'true' : null">
+                @if (geocoding$()) {
+                  <span class="material-symbols-outlined spinning">progress_activity</span>
+                } @else {
+                  <span class="material-symbols-outlined">location_searching</span>
+                }
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <label>{{ 'RUN_CLUBS.COUNTRY' | translate }}</label>
+            <input type="text" formControlName="locationCountry" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>{{ 'RUN_CLUBS.MEETING_POINT' | translate }}</label>
+          <input type="text" formControlName="meetingPointName"
+                 [placeholder]="'RUN_CLUBS.MEETING_POINT_PLACEHOLDER' | translate" />
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>{{ 'RUN_CLUBS.LATITUDE' | translate }}</label>
+            <input type="number" formControlName="latitude" step="0.000001" />
+          </div>
+          <div class="field">
+            <label>{{ 'RUN_CLUBS.LONGITUDE' | translate }}</label>
+            <input type="number" formControlName="longitude" step="0.000001" />
+          </div>
+        </div>
+
+        <button type="button" class="btn-secondary" (click)="openLocationPicker()">
+          <span class="material-symbols-outlined">map</span>
+          {{ 'RUN_CLUBS.PICK_ON_MAP' | translate }}
+        </button>
+      </section>
+
+      <!-- Schedule -->
+      <section class="form-section">
+        <h2>{{ 'RUN_CLUBS.SECTION_SCHEDULE' | translate }}</h2>
+
+        <div class="field">
+          <label>{{ 'RUN_CLUBS.MEETING_DAYS' | translate }}</label>
+          <div class="day-toggles">
+            @for (d of allDays; track d) {
+              <button type="button" class="day-chip"
+                      [class.selected]="isDaySelected(d)"
+                      (click)="toggleDay(d)">
+                {{ ('RUN_CLUBS.DAY_' + d.substring(0, 3)) | translate }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field field--time">
+            <label>{{ 'RUN_CLUBS.MEETING_TIME' | translate }}</label>
+            <input type="time" formControlName="meetingTime" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>{{ 'RUN_CLUBS.MEETING_SCHEDULE' | translate }}</label>
+          <textarea formControlName="meetingSchedule" rows="2"
+                    [placeholder]="'RUN_CLUBS.MEETING_SCHEDULE_PLACEHOLDER' | translate"></textarea>
+          <small class="hint">{{ 'RUN_CLUBS.MEETING_SCHEDULE_HINT' | translate }}</small>
+        </div>
+      </section>
+
+      <!-- Join policy -->
+      <section class="form-section">
+        <h2>{{ 'RUN_CLUBS.SECTION_JOIN_POLICY' | translate }}</h2>
+
+        <div class="radio-group">
+          <label class="radio-card">
+            <input type="radio" formControlName="joinPolicy" value="OPEN" />
+            <div>
+              <strong>{{ 'RUN_CLUBS.JOIN_POLICY_OPEN' | translate }}</strong>
+              <p>{{ 'RUN_CLUBS.JOIN_POLICY_OPEN_HINT' | translate }}</p>
+            </div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" formControlName="joinPolicy" value="REQUEST" />
+            <div>
+              <strong>{{ 'RUN_CLUBS.JOIN_POLICY_REQUEST' | translate }}</strong>
+              <p>{{ 'RUN_CLUBS.JOIN_POLICY_REQUEST_HINT' | translate }}</p>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Social -->
+      <section class="form-section">
+        <h2>{{ 'RUN_CLUBS.SECTION_SOCIAL' | translate }}</h2>
+
+        <div class="field">
+          <label>{{ 'RUN_CLUBS.SOCIAL_WEBSITE' | translate }}</label>
+          <input type="url" formControlName="socialWebsite" placeholder="https://..." />
+        </div>
+        <div class="field">
+          <label>{{ 'RUN_CLUBS.SOCIAL_INSTAGRAM' | translate }}</label>
+          <input type="text" formControlName="socialInstagram" placeholder="@..." />
+        </div>
+        <div class="field">
+          <label>{{ 'RUN_CLUBS.SOCIAL_STRAVA' | translate }}</label>
+          <input type="text" formControlName="socialStrava" />
+        </div>
+      </section>
+
+      <!-- Images -->
+      <section class="form-section">
+        <h2>{{ 'RUN_CLUBS.SECTION_IMAGES' | translate }}</h2>
+
+        <div class="image-row">
+          <div class="image-field">
+            <span class="image-label">{{ 'RUN_CLUBS.LOGO' | translate }}</span>
+            <label class="image-dropzone image-dropzone--logo">
+              @if (logoPreview(); as url) {
+                <img [src]="url" alt="logo" />
+                <span class="image-overlay">
+                  <span class="material-symbols-outlined">edit</span>
+                </span>
+              } @else {
+                <span class="image-placeholder">
+                  <span class="material-symbols-outlined">add_photo_alternate</span>
+                  <span class="image-placeholder-hint">{{ 'RUN_CLUBS.IMAGE_PICK' | translate }}</span>
+                </span>
+              }
+              <input type="file" accept="image/*" (change)="onLogoSelected($event)" hidden />
+            </label>
+            <p class="image-filename">{{ selectedLogo()?.name || ('RUN_CLUBS.IMAGE_NONE' | translate) }}</p>
+          </div>
+          <div class="image-field">
+            <span class="image-label">{{ 'RUN_CLUBS.COVER' | translate }}</span>
+            <label class="image-dropzone image-dropzone--cover">
+              @if (coverPreview(); as url) {
+                <img [src]="url" alt="cover" />
+                <span class="image-overlay">
+                  <span class="material-symbols-outlined">edit</span>
+                </span>
+              } @else {
+                <span class="image-placeholder">
+                  <span class="material-symbols-outlined">add_photo_alternate</span>
+                  <span class="image-placeholder-hint">{{ 'RUN_CLUBS.IMAGE_PICK' | translate }}</span>
+                </span>
+              }
+              <input type="file" accept="image/*" (change)="onCoverSelected($event)" hidden />
+            </label>
+            <p class="image-filename">{{ selectedCover()?.name || ('RUN_CLUBS.IMAGE_NONE' | translate) }}</p>
+          </div>
+        </div>
+      </section>
+
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancel()">{{ 'COMMON.CANCEL' | translate }}</button>
+        <button type="submit" class="btn-primary" [disabled]="saving()">
+          @if (saving()) {
+            {{ 'COMMON.SAVING' | translate }}
+          } @else if (isEditMode()) {
+            {{ 'COMMON.SAVE' | translate }}
+          } @else {
+            {{ 'RUN_CLUBS.SUBMIT_APPLICATION' | translate }}
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>
+
+<app-location-picker-dialog #locationPicker (confirmed)="onLocationPicked($event)"></app-location-picker-dialog>

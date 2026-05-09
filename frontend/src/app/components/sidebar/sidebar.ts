@@ -62,7 +62,7 @@ export class Sidebar implements OnInit, OnDestroy {
 
   readonly showCommunityMenu = computed(() => {
     const u = this.userService.currentUser();
-    return !!u && (!!u.communityRoutesEnabled || !!u.groupEventsEnabled || !!u.discoverableByOthers);
+    return !!u && (!!u.communityRoutesEnabled || !!u.groupEventsEnabled || !!u.runClubsEnabled || !!u.discoverableByOthers);
   });
 
   readonly membershipLabel = computed(() => {

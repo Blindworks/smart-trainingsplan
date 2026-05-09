@@ -11,6 +11,7 @@ import { UserService, UserProfile } from '../../services/user.service';
 import { NotificationPreferencesService } from '../../services/notification-preferences.service';
 import { StatisticsService } from '../../services/statistics.service';
 import { ThemeService, ThemeChoice } from '../../services/theme.service';
+import { RunClubService } from '../../services/run-club.service';
 import { LocationPickerDialogComponent } from '../location-picker-dialog/location-picker-dialog';
 
 type Integration = {
@@ -43,6 +44,7 @@ export class Settings implements OnInit, OnDestroy {
   private readonly notifPrefsService = inject(NotificationPreferencesService);
   private readonly statisticsService = inject(StatisticsService);
   private readonly themeService = inject(ThemeService);
+  private readonly runClubService = inject(RunClubService);
   private readonly translate = inject(TranslateService);
 
   private readonly autoSave$ = new Subject<void>();
@@ -90,6 +92,7 @@ export class Settings implements OnInit, OnDestroy {
   protected cycleTrackingEnabled = signal(false);
   protected communityRoutesEnabled = signal(false);
   protected groupEventsEnabled = signal(false);
+  protected runClubsEnabled = signal(false);
   protected discoverableByOthersEnabled = signal(false);
 
   protected stravaLoading = signal(false);
@@ -185,6 +188,7 @@ export class Settings implements OnInit, OnDestroy {
         this.cycleTrackingEnabled.set(user.cycleTrackingEnabled ?? false);
         this.communityRoutesEnabled.set(user.communityRoutesEnabled ?? false);
         this.groupEventsEnabled.set(user.groupEventsEnabled ?? false);
+        this.runClubsEnabled.set(user.runClubsEnabled ?? false);
         this.discoverableByOthersEnabled.set(user.discoverableByOthers ?? false);
         this.userLatitude.set(user.latitude ?? null);
         this.userLongitude.set(user.longitude ?? null);
@@ -294,6 +298,12 @@ export class Settings implements OnInit, OnDestroy {
     this.groupEventsEnabled.set(value);
     this.userService.currentUser.update(u => u ? { ...u, groupEventsEnabled: value } : null);
     this.triggerAutoSave();
+  }
+
+  protected onRunClubsChange(value: boolean): void {
+    this.runClubsEnabled.set(value);
+    this.userService.currentUser.update(u => u ? { ...u, runClubsEnabled: value } : null);
+    this.runClubService.toggleEnabled(value).subscribe({ error: () => { /* ignore */ } });
   }
 
   protected onDiscoverableByOthersChange(value: boolean): void {

@@ -78,6 +78,12 @@
                 <span>{{ 'NAV.COMMUNITY_ROUTES' | translate }}</span>
               </a>
             }
+            @if (userService.currentUser()?.runClubsEnabled) {
+              <a routerLink="/run-clubs" routerLinkActive="active" class="nav-item nav-item--sub">
+                <span class="material-symbols-outlined">groups_3</span>
+                <span>{{ 'NAV.RUN_CLUBS' | translate }}</span>
+              </a>
+            }
             @if (userService.currentUser()?.groupEventsEnabled) {
               <a routerLink="/community/groups" routerLinkActive="active" class="nav-item nav-item--sub">
                 <span class="material-symbols-outlined">groups</span>

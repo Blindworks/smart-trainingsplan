@@ -130,6 +130,14 @@ public class UserDeletionService {
         exec("DELETE FROM strava_token WHERE user_id = :uid", userId);
         exec("DELETE FROM refresh_tokens WHERE user_id = :uid", userId);
 
+        // --- Run club feed: anonymize posts and comments, hard-delete likes ---
+        exec("UPDATE run_club_post_comments SET author_id = NULL WHERE author_id = :uid", userId);
+        exec("UPDATE run_club_posts SET author_id = NULL WHERE author_id = :uid", userId);
+        exec("DELETE FROM run_club_post_likes WHERE user_id = :uid", userId);
+
+        // --- Run club memberships: delete (club itself remains; if last admin, PACR-Admin can clean up) ---
+        exec("DELETE FROM run_club_memberships WHERE user_id = :uid", userId);
+
         // --- Anonymize audit log (actor_id is a soft reference, no FK) ---
         exec("UPDATE audit_logs SET actor_id = NULL, actor_username = NULL WHERE actor_id = :uid",
                 userId);

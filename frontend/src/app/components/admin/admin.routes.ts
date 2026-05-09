@@ -131,6 +131,10 @@ export const adminRoutes: Routes = [
         loadComponent: () => import('./community-routes/admin-community-routes').then(m => m.AdminCommunityRoutes)
       },
       {
+        path: 'run-clubs',
+        loadComponent: () => import('./run-clubs/admin-run-clubs').then(m => m.AdminRunClubs)
+      },
+      {
         path: 'bot-runners',
         loadComponent: () => import('./bot-runners/bot-runner-list').then(m => m.BotRunnerList)
       },

@@ -130,5 +130,10 @@
     <include file="db/changelog/changes/125-create-ladv-import-tables.xml"/>
     <include file="db/changelog/changes/126-add-group-event-image.xml"/>
     <include file="db/changelog/changes/127-cleanup-body-metrics-duplicates.xml"/>
+    <include file="db/changelog/changes/128-add-run-clubs.xml"/>
+    <include file="db/changelog/changes/129-add-run-club-feed.xml"/>
+    <include file="db/changelog/changes/130-add-group-event-run-club-fk.xml"/>
+    <include file="db/changelog/changes/131-add-user-run-clubs-enabled.xml"/>
+    <include file="db/changelog/changes/132-add-run-club-meeting-time.xml"/>
 
 </databaseChangeLog>

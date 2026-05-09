@@ -1,0 +1,347 @@
+@if (loading()) {
+  <div class="state state--loading">
+    <span class="material-symbols-outlined spinning">progress_activity</span>
+    <p>{{ 'RUN_CLUBS.LOADING' | translate }}</p>
+  </div>
+} @else if (error()) {
+  <div class="state state--error">
+    <span class="material-symbols-outlined">error</span>
+    <p>{{ error() }}</p>
+  </div>
+} @else if (club(); as c) {
+  <div class="run-club-detail">
+
+    <!-- Hero -->
+    <div class="hero">
+      @if (coverUrl(); as url) {
+        <img class="hero-cover" [src]="url" [alt]="c.name" />
+      } @else {
+        <div class="hero-cover hero-cover--placeholder"></div>
+      }
+      <div class="hero-overlay"></div>
+
+      <div class="hero-content">
+        <div class="hero-logo">
+          @if (logoUrl(); as url) {
+            <img [src]="url" [alt]="c.name" />
+          } @else {
+            <span>{{ initials(c.name) }}</span>
+          }
+        </div>
+        <div class="hero-info">
+          <h1>
+            {{ c.name }}
+            @if (c.verified) {
+              <span class="verified" [title]="'RUN_CLUBS.VERIFIED' | translate">
+                <span class="material-symbols-outlined">verified</span>
+              </span>
+            }
+          </h1>
+          <div class="hero-meta">
+            @if (c.locationCity) {
+              <span><span class="material-symbols-outlined">location_on</span>{{ c.locationCity }}@if (c.locationCountry) {, {{ c.locationCountry }}}</span>
+            }
+            <span><span class="material-symbols-outlined">group</span>{{ c.memberCount }} {{ 'RUN_CLUBS.MEMBERS' | translate }}</span>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          @if (c.myMembershipStatus !== 'ACTIVE' || c.myRole !== 'ADMIN') {
+            <button class="btn-primary" type="button"
+                    [disabled]="actionLoading() || c.myMembershipStatus === 'PENDING'"
+                    (click)="primaryAction()">
+              {{ joinLabel() }}
+            </button>
+          }
+          @if (isAdmin()) {
+            <div class="menu-wrap">
+              <button class="btn-icon" type="button" (click)="toggleMenu()">
+                <span class="material-symbols-outlined">more_vert</span>
+              </button>
+              @if (menuOpen()) {
+                <div class="menu" (click)="closeMenu()">
+                  <button type="button" (click)="goEdit()">
+                    <span class="material-symbols-outlined">edit</span>
+                    {{ 'RUN_CLUBS.EDIT' | translate }}
+                  </button>
+                  <button type="button" (click)="deleteClub()" class="menu-danger">
+                    <span class="material-symbols-outlined">delete</span>
+                    {{ 'RUN_CLUBS.DELETE' | translate }}
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Status banner -->
+    @if (c.status === 'PENDING') {
+      <div class="status-banner status-banner--pending">
+        <span class="material-symbols-outlined">hourglass_empty</span>
+        {{ 'RUN_CLUBS.STATUS_PENDING' | translate }}
+      </div>
+    } @else if (c.status === 'REJECTED') {
+      <div class="status-banner status-banner--rejected">
+        <span class="material-symbols-outlined">block</span>
+        {{ 'RUN_CLUBS.STATUS_REJECTED' | translate }}
+        @if (c.rejectionReason) { — {{ c.rejectionReason }} }
+      </div>
+    }
+
+    <!-- Tabs -->
+    <div class="tabs-bar">
+      <button class="tab-btn" [class.active]="activeTab() === 'overview'" (click)="setTab('overview')" type="button">
+        {{ 'RUN_CLUBS.OVERVIEW' | translate }}
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'feed'" (click)="setTab('feed')" type="button">
+        {{ 'RUN_CLUBS.FEED' | translate }}
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'members'" (click)="setTab('members')" type="button">
+        {{ 'RUN_CLUBS.MEMBERS' | translate }}
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'events'" (click)="setTab('events')" type="button">
+        {{ 'RUN_CLUBS.EVENTS' | translate }}
+      </button>
+    </div>
+
+    <div class="tab-content">
+
+      <!-- Overview -->
+      @if (activeTab() === 'overview') {
+        <div class="overview-grid">
+          <div class="card">
+            <h3>{{ 'RUN_CLUBS.ABOUT' | translate }}</h3>
+            @if (c.description) {
+              <p class="about-text">{{ c.description }}</p>
+            } @else {
+              <p class="muted">{{ 'RUN_CLUBS.NO_DESCRIPTION' | translate }}</p>
+            }
+          </div>
+
+          <div class="card">
+            <h3>{{ 'RUN_CLUBS.MEETING_POINT' | translate }}</h3>
+            @if (c.meetingPointName) {
+              <p class="meeting-place">
+                <span class="material-symbols-outlined">place</span>
+                {{ c.meetingPointName }}
+              </p>
+            }
+            @if (meetingDaysList() || c.meetingTime) {
+              <div class="meeting-when">
+                @if (meetingDaysList()) {
+                  <span class="meeting-when-row">
+                    <span class="material-symbols-outlined">event</span>
+                    <span class="meeting-when-value">{{ meetingDaysList() }}</span>
+                  </span>
+                }
+                @if (c.meetingTime) {
+                  <span class="meeting-when-row">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <span class="meeting-when-value">{{ formatTime(c.meetingTime) }} {{ 'RUN_CLUBS.OCLOCK' | translate }}</span>
+                  </span>
+                }
+              </div>
+            }
+            @if (c.meetingSchedule) {
+              <p class="schedule-text">{{ c.meetingSchedule }}</p>
+            }
+            @if (c.latitude != null && c.longitude != null) {
+              <div class="mini-map" #miniMap></div>
+            }
+          </div>
+
+          @if (stats(); as s) {
+            <div class="card stats-card">
+              <h3>{{ 'RUN_CLUBS.STATS' | translate }}</h3>
+              <div class="stats-grid">
+                <div class="stat">
+                  <span class="stat-value">{{ s.memberCount }}</span>
+                  <span class="stat-label">{{ 'RUN_CLUBS.STATS_MEMBERS' | translate }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">{{ s.totalKmLifetime | number:'1.0-0' }}</span>
+                  <span class="stat-label">{{ 'RUN_CLUBS.STATS_LIFETIME_KM' | translate }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">{{ s.totalKmLast30d | number:'1.0-0' }}</span>
+                  <span class="stat-label">{{ 'RUN_CLUBS.STATS_LAST_30D_KM' | translate }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">{{ s.totalEventCount }}</span>
+                  <span class="stat-label">{{ 'RUN_CLUBS.STATS_EVENTS' | translate }}</span>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (c.socialWebsite || c.socialInstagram || c.socialStrava) {
+            <div class="card">
+              <h3>{{ 'RUN_CLUBS.SOCIAL' | translate }}</h3>
+              <div class="social-list">
+                @if (c.socialWebsite) {
+                  <a [href]="c.socialWebsite" target="_blank" rel="noopener" class="social-link">
+                    <span class="material-symbols-outlined">language</span>
+                    {{ c.socialWebsite }}
+                  </a>
+                }
+                @if (c.socialInstagram) {
+                  <a [href]="'https://instagram.com/' + c.socialInstagram.replace('@','')" target="_blank" rel="noopener" class="social-link">
+                    <span class="material-symbols-outlined">photo_camera</span>
+                    {{ c.socialInstagram }}
+                  </a>
+                }
+                @if (c.socialStrava) {
+                  <a [href]="c.socialStrava" target="_blank" rel="noopener" class="social-link">
+                    <span class="material-symbols-outlined">directions_run</span>
+                    Strava
+                  </a>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Feed -->
+      @if (activeTab() === 'feed') {
+        <div class="feed-tab">
+          @if (canPost()) {
+            <app-run-club-post-composer [clubId]="c.id" (posted)="onPostCreated($event)"></app-run-club-post-composer>
+          }
+          @if (postsLoading()) {
+            <p class="muted center">{{ 'COMMON.LOADING' | translate }}</p>
+          } @else if (posts().length === 0) {
+            <p class="muted center">{{ 'RUN_CLUBS.NO_POSTS' | translate }}</p>
+          } @else {
+            @for (p of posts(); track p.id) {
+              <app-run-club-feed-post
+                [post]="p"
+                [canDelete]="isAdmin()"
+                (deleted)="onPostDeleted($event)">
+              </app-run-club-feed-post>
+            }
+          }
+        </div>
+      }
+
+      <!-- Members -->
+      @if (activeTab() === 'members') {
+        <div class="members-tab">
+          @if (isAdmin() && pendingMembers().length > 0) {
+            <section>
+              <h3>{{ 'RUN_CLUBS.PENDING_REQUESTS' | translate }}</h3>
+              <div class="members-list">
+                @for (m of pendingMembers(); track m.id) {
+                  <div class="member-row">
+                    <div class="member-info">
+                      <div class="member-avatar">
+                        @if (memberAvatarUrl(m); as url) {
+                          <img [src]="url" [alt]="memberDisplayName(m)" />
+                        } @else {
+                          <span>{{ memberInitial(m) }}</span>
+                        }
+                      </div>
+                      <span class="member-name">{{ memberDisplayName(m) }}</span>
+                    </div>
+                    <div class="member-actions">
+                      <button class="btn-small" type="button" (click)="approveMember(m)">
+                        <span class="material-symbols-outlined">check</span>
+                        {{ 'RUN_CLUBS.ADMIN.APPROVE' | translate }}
+                      </button>
+                      <button class="btn-small btn-danger" type="button" (click)="rejectMember(m)">
+                        <span class="material-symbols-outlined">close</span>
+                        {{ 'RUN_CLUBS.ADMIN.REJECT' | translate }}
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          @if (membersLoading()) {
+            <p class="muted center">{{ 'COMMON.LOADING' | translate }}</p>
+          } @else if (members().length === 0) {
+            <p class="muted center">{{ 'RUN_CLUBS.NO_MEMBERS' | translate }}</p>
+          } @else {
+            <section>
+              <h3>{{ 'RUN_CLUBS.MEMBERS' | translate }}</h3>
+              <div class="members-grid">
+                @for (m of members(); track m.id) {
+                  <div class="member-card" [class.member-card--creator]="m.creator">
+                    @if (m.creator) {
+                      <span class="creator-ribbon" [title]="'RUN_CLUBS.CREATOR' | translate">
+                        <span class="material-symbols-outlined">workspace_premium</span>
+                      </span>
+                    }
+                    <div class="member-avatar member-avatar--lg">
+                      @if (memberAvatarUrl(m); as url) {
+                        <img [src]="url" [alt]="memberDisplayName(m)" />
+                      } @else {
+                        <span>{{ memberInitial(m) }}</span>
+                      }
+                    </div>
+                    <span class="member-name">{{ memberDisplayName(m) }}</span>
+                    <div class="member-badges">
+                      @if (m.creator) {
+                        <span class="role-badge role-badge--creator">{{ 'RUN_CLUBS.CREATOR' | translate }}</span>
+                      }
+                      @if (m.role === 'ADMIN') {
+                        <span class="role-badge">{{ 'RUN_CLUBS.ROLE_ADMIN' | translate }}</span>
+                      }
+                    </div>
+                    @if (isAdmin()) {
+                      <div class="member-actions">
+                        @if (m.role === 'MEMBER') {
+                          <button class="btn-tiny" type="button" (click)="promoteMember(m)" [title]="'RUN_CLUBS.ADMIN.PROMOTE' | translate">
+                            <span class="material-symbols-outlined">arrow_upward</span>
+                          </button>
+                        } @else {
+                          <button class="btn-tiny" type="button" (click)="demoteMember(m)" [title]="'RUN_CLUBS.ADMIN.DEMOTE' | translate">
+                            <span class="material-symbols-outlined">arrow_downward</span>
+                          </button>
+                        }
+                        <button class="btn-tiny btn-danger" type="button" (click)="kickMember(m)" [title]="'RUN_CLUBS.ADMIN.KICK' | translate">
+                          <span class="material-symbols-outlined">person_remove</span>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      }
+
+      <!-- Events -->
+      @if (activeTab() === 'events') {
+        <div class="events-tab">
+          @if (eventsLoading()) {
+            <p class="muted center">{{ 'COMMON.LOADING' | translate }}</p>
+          } @else if (events().length === 0) {
+            <div class="empty">
+              <span class="material-symbols-outlined">event_busy</span>
+              <p>{{ 'RUN_CLUBS.NO_EVENTS' | translate }}</p>
+            </div>
+          } @else {
+            <div class="events-list">
+              @for (ev of events(); track ev.id) {
+                <a class="event-row" [routerLink]="['/community/groups', ev.id]">
+                  <span class="material-symbols-outlined">event</span>
+                  <div>
+                    <strong>{{ ev.title }}</strong>
+                    <div class="muted small">{{ ev.eventDate }} · {{ ev.startTime }}</div>
+                  </div>
+                </a>
+              }
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  </div>
+}

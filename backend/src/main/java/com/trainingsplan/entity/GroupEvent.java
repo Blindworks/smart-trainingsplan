@@ -87,6 +87,12 @@ public class GroupEvent {
     @Column(name = "event_image_filename", length = 255)
     private String eventImageFilename;
 
+    /** Optional link to a Run Club. When set, this event appears in the club's events tab. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "run_club_id")
+    @JsonIgnore
+    private RunClub runClub;
+
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<GroupEventRegistration> registrations = new ArrayList<>();
@@ -175,4 +181,7 @@ public class GroupEvent {
 
     public String getEventImageFilename() { return eventImageFilename; }
     public void setEventImageFilename(String eventImageFilename) { this.eventImageFilename = eventImageFilename; }
+
+    public RunClub getRunClub() { return runClub; }
+    public void setRunClub(RunClub runClub) { this.runClub = runClub; }
 }

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="128-1" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="run_clubs"/>
+            </not>
+        </preConditions>
+        <comment>Create run_clubs table</comment>
+        <createTable tableName="run_clubs">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="slug" type="VARCHAR(60)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="logo_filename" type="VARCHAR(255)"/>
+            <column name="cover_image_filename" type="VARCHAR(255)"/>
+            <column name="location_city" type="VARCHAR(100)"/>
+            <column name="location_country" type="VARCHAR(100)"/>
+            <column name="latitude" type="DOUBLE"/>
+            <column name="longitude" type="DOUBLE"/>
+            <column name="meeting_point_name" type="VARCHAR(255)"/>
+            <column name="meeting_schedule" type="TEXT"/>
+            <column name="join_policy" type="VARCHAR(20)" defaultValue="OPEN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rejection_reason" type="TEXT"/>
+            <column name="social_instagram" type="VARCHAR(255)"/>
+            <column name="social_website" type="VARCHAR(255)"/>
+            <column name="social_strava" type="VARCHAR(255)"/>
+            <column name="created_by" type="BIGINT"/>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="approved_at" type="DATETIME"/>
+            <column name="approved_by" type="BIGINT"/>
+            <column name="verified" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_run_clubs_created_by"
+                                 baseTableName="run_clubs" baseColumnNames="created_by"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+        <addForeignKeyConstraint constraintName="fk_run_clubs_approved_by"
+                                 baseTableName="run_clubs" baseColumnNames="approved_by"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
+        <createIndex indexName="idx_run_clubs_status" tableName="run_clubs">
+            <column name="status"/>
+        </createIndex>
+        <createIndex indexName="idx_run_clubs_location" tableName="run_clubs">
+            <column name="latitude"/>
+            <column name="longitude"/>
+        </createIndex>
+        <createIndex indexName="idx_run_clubs_city" tableName="run_clubs">
+            <column name="location_city"/>
+        </createIndex>
+        <createIndex indexName="idx_run_clubs_slug" tableName="run_clubs">
+            <column name="slug"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="128-2" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="run_club_meeting_days"/>
+            </not>
+        </preConditions>
+        <comment>Create run_club_meeting_days ElementCollection table</comment>
+        <createTable tableName="run_club_meeting_days">
+            <column name="club_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="day_of_week" type="VARCHAR(10)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="run_club_meeting_days" columnNames="club_id,day_of_week"
+                       constraintName="pk_run_club_meeting_days"/>
+        <addForeignKeyConstraint constraintName="fk_run_club_meeting_days_club"
+                                 baseTableName="run_club_meeting_days" baseColumnNames="club_id"
+                                 referencedTableName="run_clubs" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="128-3" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="run_club_memberships"/>
+            </not>
+        </preConditions>
+        <comment>Create run_club_memberships table</comment>
+        <createTable tableName="run_club_memberships">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="club_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(20)" defaultValue="MEMBER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="joined_at" type="DATETIME"/>
+            <column name="requested_at" type="DATETIME"/>
+        </createTable>
+        <addUniqueConstraint tableName="run_club_memberships" columnNames="club_id,user_id"
+                             constraintName="uq_run_club_membership"/>
+        <addForeignKeyConstraint constraintName="fk_run_club_memberships_club"
+                                 baseTableName="run_club_memberships" baseColumnNames="club_id"
+                                 referencedTableName="run_clubs" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_run_club_memberships_user"
+                                 baseTableName="run_club_memberships" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <createIndex indexName="idx_run_club_memberships_club_status" tableName="run_club_memberships">
+            <column name="club_id"/>
+            <column name="status"/>
+        </createIndex>
+        <createIndex indexName="idx_run_club_memberships_user" tableName="run_club_memberships">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

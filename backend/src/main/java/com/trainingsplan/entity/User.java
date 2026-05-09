@@ -121,6 +121,10 @@ public class User implements UserDetails {
     @Column(name = "group_events_enabled", nullable = false)
     private boolean groupEventsEnabled = false;
 
+    /** Whether run clubs feature is enabled for this user. */
+    @Column(name = "run_clubs_enabled", nullable = false)
+    private boolean runClubsEnabled = true;
+
     /** Whether this user can be discovered/found by other runners. */
     @Column(name = "discoverable_by_others", nullable = false)
     private boolean discoverableByOthers = false;
@@ -427,6 +431,9 @@ public class User implements UserDetails {
 
     public boolean isGroupEventsEnabled() { return groupEventsEnabled; }
     public void setGroupEventsEnabled(boolean groupEventsEnabled) { this.groupEventsEnabled = groupEventsEnabled; }
+
+    public boolean isRunClubsEnabled() { return runClubsEnabled; }
+    public void setRunClubsEnabled(boolean runClubsEnabled) { this.runClubsEnabled = runClubsEnabled; }
 
     public boolean isDiscoverableByOthers() { return discoverableByOthers; }
     public void setDiscoverableByOthers(boolean discoverableByOthers) { this.discoverableByOthers = discoverableByOthers; }

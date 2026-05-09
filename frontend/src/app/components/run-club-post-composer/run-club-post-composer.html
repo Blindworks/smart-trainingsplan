@@ -1,0 +1,39 @@
+<div class="post-composer">
+  <textarea
+    [ngModel]="content()"
+    (ngModelChange)="content.set($event)"
+    [placeholder]="'RUN_CLUBS.WRITE_POST' | translate"
+    rows="3"></textarea>
+
+  @if (hasLink()) {
+    <div class="link-pill">
+      <span class="material-symbols-outlined">link</span>
+      <span>
+        @if (linkedActivityId()) { Activity #{{ linkedActivityId() }} }
+        @if (linkedRouteId()) { Route #{{ linkedRouteId() }} }
+        @if (linkedEventId()) { Event #{{ linkedEventId() }} }
+      </span>
+      <button type="button" (click)="clearLinks()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+  }
+
+  <div class="composer-actions">
+    <div class="link-buttons">
+      <button type="button" class="ghost-btn" (click)="promptLinkActivity()" [title]="'RUN_CLUBS.LINK_ACTIVITY' | translate">
+        <span class="material-symbols-outlined">directions_run</span>
+      </button>
+      <button type="button" class="ghost-btn" (click)="promptLinkRoute()" [title]="'RUN_CLUBS.LINK_ROUTE' | translate">
+        <span class="material-symbols-outlined">route</span>
+      </button>
+      <button type="button" class="ghost-btn" (click)="promptLinkEvent()" [title]="'RUN_CLUBS.LINK_EVENT' | translate">
+        <span class="material-symbols-outlined">event</span>
+      </button>
+    </div>
+    <button type="button" class="btn-primary" [disabled]="posting() || !content().trim()" (click)="submit()">
+      <span class="material-symbols-outlined">send</span>
+      {{ 'RUN_CLUBS.POST' | translate }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,105 @@
+<div class="list-page">
+  <div class="list-header">
+    <h2>{{ 'RUN_CLUBS.ADMIN.TITLE' | translate }}</h2>
+  </div>
+
+  <div class="status-tabs">
+    <button class="tab-btn" [class.active]="activeStatus() === 'PENDING'" (click)="setStatus('PENDING')" type="button">
+      {{ 'RUN_CLUBS.ADMIN.PENDING' | translate }}
+    </button>
+    <button class="tab-btn" [class.active]="activeStatus() === 'APPROVED'" (click)="setStatus('APPROVED')" type="button">
+      {{ 'RUN_CLUBS.ADMIN.APPROVED' | translate }}
+    </button>
+    <button class="tab-btn" [class.active]="activeStatus() === 'REJECTED'" (click)="setStatus('REJECTED')" type="button">
+      {{ 'RUN_CLUBS.ADMIN.REJECTED' | translate }}
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="loading">{{ 'ADMIN.LOADING' | translate }}</p>
+  } @else if (clubs().length === 0) {
+    <p class="empty">{{ 'RUN_CLUBS.ADMIN.EMPTY' | translate }}</p>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'RUN_CLUBS.NAME' | translate }}</th>
+          <th>{{ 'RUN_CLUBS.CITY' | translate }}</th>
+          <th>{{ 'RUN_CLUBS.MEMBERS' | translate }}</th>
+          <th>{{ 'RUN_CLUBS.ADMIN.CREATED' | translate }}</th>
+          <th>{{ 'RUN_CLUBS.VERIFIED' | translate }}</th>
+          <th>{{ 'COMMON.ACTIONS' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of clubs(); track trackById($index, c)) {
+          <tr>
+            <td>
+              <strong>{{ c.name }}</strong>
+              <div class="muted small">{{ c.slug }}</div>
+            </td>
+            <td>{{ c.locationCity || '—' }}</td>
+            <td>{{ c.memberCount }}</td>
+            <td>{{ c.createdAt | date:'dd.MM.yyyy HH:mm' }}</td>
+            <td>
+              @if (c.verified) {
+                <span class="verified-badge">
+                  <span class="material-symbols-outlined">verified</span>
+                  {{ 'RUN_CLUBS.VERIFIED' | translate }}
+                </span>
+              } @else {
+                <span class="muted">—</span>
+              }
+            </td>
+            <td class="actions">
+              @if (c.status === 'PENDING') {
+                <button class="btn-icon btn-icon--success" (click)="approve(c)"
+                        [title]="'RUN_CLUBS.ADMIN.APPROVE' | translate">
+                  <span class="material-symbols-outlined">check</span>
+                </button>
+                <button class="btn-icon btn-icon--danger" (click)="openReject(c)"
+                        [title]="'RUN_CLUBS.ADMIN.REJECT' | translate">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              }
+              @if (c.status === 'APPROVED') {
+                <button class="btn-icon" (click)="toggleVerify(c)"
+                        [title]="'RUN_CLUBS.ADMIN.VERIFY' | translate">
+                  <span class="material-symbols-outlined">verified</span>
+                </button>
+              }
+              <a class="btn-icon" [routerLink]="['/run-clubs', c.slug, 'edit']"
+                 [title]="'RUN_CLUBS.EDIT' | translate">
+                <span class="material-symbols-outlined">edit</span>
+              </a>
+              <a class="btn-icon" [routerLink]="['/run-clubs', c.slug]"
+                 [title]="'COMMON.VIEW' | translate">
+                <span class="material-symbols-outlined">open_in_new</span>
+              </a>
+              <button class="btn-icon btn-icon--danger" (click)="delete(c)"
+                      [title]="'COMMON.DELETE' | translate">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+@if (rejectDialogClubId() != null) {
+  <div class="modal-backdrop" (click)="cancelReject()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3>{{ 'RUN_CLUBS.ADMIN.REJECT' | translate }}</h3>
+      <label>{{ 'RUN_CLUBS.ADMIN.REJECT_REASON' | translate }}</label>
+      <textarea rows="4"
+                [ngModel]="rejectReason()"
+                (ngModelChange)="rejectReason.set($event)"></textarea>
+      <div class="modal-actions">
+        <button class="btn-secondary" type="button" (click)="cancelReject()">{{ 'COMMON.CANCEL' | translate }}</button>
+        <button class="btn-primary btn-danger" type="button" (click)="confirmReject()">{{ 'RUN_CLUBS.ADMIN.REJECT' | translate }}</button>
+      </div>
+    </div>
+  </div>
+}

@@ -117,6 +117,26 @@ export const routes: Routes = [
     loadComponent: () => import('./components/community-route-detail/community-route-detail').then(m => m.CommunityRouteDetail)
   },
   {
+    path: 'run-clubs',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/run-clubs/run-clubs').then(m => m.RunClubs)
+  },
+  {
+    path: 'run-clubs/new',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/run-club-form/run-club-form').then(m => m.RunClubForm)
+  },
+  {
+    path: 'run-clubs/:slug/edit',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/run-club-form/run-club-form').then(m => m.RunClubForm)
+  },
+  {
+    path: 'run-clubs/:slug',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/run-club-detail/run-club-detail').then(m => m.RunClubDetail)
+  },
+  {
     path: 'community/groups',
     canActivate: [authGuard],
     loadComponent: () => import('./components/group-events/group-events').then(m => m.GroupEvents)

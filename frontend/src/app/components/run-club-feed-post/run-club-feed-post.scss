@@ -1,0 +1,203 @@
+.feed-post {
+  background: var(--surface-2, #161616);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
+
+  .post-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--surface-3, #1f1f1f);
+      display: grid;
+      place-items: center;
+      color: var(--accent-primary, #8ffc2e);
+      font-weight: 600;
+
+      img { width: 100%; height: 100%; object-fit: cover; }
+    }
+
+    .meta {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+
+      .name {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      time {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+      }
+    }
+
+    .delete-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: transparent;
+      border: 0;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+
+      &:hover { color: #ff6b6b; background: var(--surface-3, #1f1f1f); }
+    }
+  }
+
+  .post-content {
+    p {
+      margin: 0 0 0.5rem;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  }
+
+  .link-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    background: var(--surface-3, #1f1f1f);
+    color: var(--accent-primary, #8ffc2e);
+    text-decoration: none;
+    font-size: 0.85rem;
+    margin-right: 0.4rem;
+
+    &:hover { background: rgba(143, 252, 46, 0.1); }
+
+    .material-symbols-outlined { font-size: 1rem; }
+  }
+
+  .post-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border, #2a2a2a);
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    background: transparent;
+    border: 0;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font: inherit;
+
+    &:hover { background: var(--surface-3, #1f1f1f); color: var(--text-primary); }
+
+    &.liked { color: var(--accent-primary, #8ffc2e); }
+
+    .filled {
+      font-variation-settings: 'FILL' 1;
+    }
+  }
+
+  .comments-section {
+    margin-top: 0.6rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border, #2a2a2a);
+
+    .loading-line {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin: 0 0 0.5rem;
+    }
+  }
+
+  .comment {
+    position: relative;
+    background: var(--surface-3, #1f1f1f);
+    border-radius: 10px;
+    padding: 0.5rem 0.7rem;
+    margin-bottom: 0.4rem;
+
+    .comment-head {
+      display: flex;
+      gap: 0.5rem;
+      align-items: baseline;
+      margin-bottom: 0.15rem;
+
+      .comment-author { color: var(--text-primary); font-weight: 600; font-size: 0.9rem; }
+      time { color: var(--text-secondary); font-size: 0.75rem; }
+    }
+
+    p {
+      margin: 0;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .comment-delete {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: transparent;
+      border: 0;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+
+      .material-symbols-outlined { font-size: 0.95rem; }
+
+      &:hover { color: #ff6b6b; }
+    }
+  }
+
+  .comment-composer {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+
+    input {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      background: var(--surface-3, #1f1f1f);
+      border: 1px solid var(--border, #2a2a2a);
+      border-radius: 999px;
+      color: var(--text-primary);
+      font: inherit;
+
+      &:focus { outline: none; border-color: var(--accent-primary, #8ffc2e); }
+    }
+
+    .send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent-primary, #8ffc2e);
+      color: #000;
+      border: 0;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+  }
+}
