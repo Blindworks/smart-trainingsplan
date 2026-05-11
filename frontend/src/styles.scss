@@ -21,3 +21,29 @@ html, body, app-root {
 body.mobile-nav-open .app-main {
   overflow-y: hidden;
 }
+
+/* Leaflet divIcon marker for Run Clubs map (rendered outside component scope) */
+.rc-marker {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #8ffc2e;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  display: grid;
+  place-items: center;
+  color: #000;
+  font-weight: 700;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.rc-marker--initials {
+  font-size: 0.8125rem;
+}

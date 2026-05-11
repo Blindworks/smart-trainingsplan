@@ -75,6 +75,10 @@
       "SIDE_TITLE": "Trainer Events nearby",
       "EMPTY": "No trainer events within 25 km today or tomorrow.",
       "RECURRING": "Recurring event"
+    },
+    "RUNCLUB": {
+      "CLUB_CHIP": "Club",
+      "POSTED_BY": "Posted by"
     }
   },
   "LANGUAGE": {
@@ -2267,6 +2271,8 @@
     "LINK_ACTIVITY": "Link activity",
     "LINK_ROUTE": "Link route",
     "LINK_EVENT": "Link event",
+    "ADD_IMAGES": "Add images",
+    "REMOVE_IMAGE": "Remove image",
     "LINKED_ACTIVITY": "Linked activity",
     "LINKED_ROUTE": "Linked route",
     "LINKED_EVENT": "Linked event",

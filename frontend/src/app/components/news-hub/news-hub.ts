@@ -8,13 +8,16 @@ import { FriendshipService, FriendActivity, LiveTrainingFriend } from '../../ser
 import { ActivitySocialService, ActivityKudos, ActivityComment } from '../../services/activity-social.service';
 import { UserService } from '../../services/user.service';
 import { GroupEventService, GroupEventDto } from '../../services/group-event.service';
+import { RunClubService } from '../../services/run-club.service';
+import { RunClubComment, RunClubFeedPost } from '../../models/run-club.model';
 import { RouteMiniMapComponent } from '../shared/route-mini-map/route-mini-map';
 
 interface FeedEntry {
-  type: 'news' | 'social';
+  type: 'news' | 'social' | 'runclub';
   sortTime: number;
   news?: PublicNews;
   social?: FriendActivity;
+  runclub?: RunClubFeedPost;
 }
 
 @Component({
@@ -30,6 +33,7 @@ export class NewsHub implements OnInit, OnDestroy {
   private readonly socialService = inject(ActivitySocialService);
   private readonly userService = inject(UserService);
   private readonly groupEventService = inject(GroupEventService);
+  private readonly runClubService = inject(RunClubService);
   private readonly router = inject(Router);
 
   loading = signal(true);
@@ -42,6 +46,13 @@ export class NewsHub implements OnInit, OnDestroy {
   liveTraining = signal<LiveTrainingFriend[]>([]);
   trending = signal<TrendingTopic[]>([]);
   trainerEvents = signal<GroupEventDto[]>([]);
+  /** Posts from every Run Club where the current user holds an ACTIVE membership. */
+  runClubPosts = signal<RunClubFeedPost[]>([]);
+  /** Comments per Run Club post, lazily loaded when the comment section is opened. */
+  runClubCommentsByPost = signal<Record<number, RunClubComment[]>>({});
+  runClubCommentsLoading = signal<Record<number, boolean>>({});
+  runClubCommentsExpanded = signal<Record<number, boolean>>({});
+  runClubCommentDrafts: Record<number, string> = {};
 
   kudosState = signal<Record<number, ActivityKudos>>({});
   commentsCount = signal<Record<number, number>>({});
@@ -88,6 +99,13 @@ export class NewsHub implements OnInit, OnDestroy {
         entries.push({ type: 'social', sortTime: base, social: a });
       }
     }
+    // Run-Club posts appear in 'all' and 'social' (they're community content too).
+    if (tab === 'all' || tab === 'social') {
+      for (const p of this.runClubPosts()) {
+        const t = p.createdAt ? new Date(p.createdAt).getTime() : 0;
+        entries.push({ type: 'runclub', sortTime: t, runclub: p });
+      }
+    }
     return entries.sort((x, y) => y.sortTime - x.sortTime);
   });
 
@@ -105,6 +123,37 @@ export class NewsHub implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadAll();
     this.loadNearbyTrainerEvents();
+    this.loadRunClubFeed();
+    this.loadRunClubEvents();
+  }
+
+  /** Loads aggregated posts from clubs the current user is a member of. */
+  private loadRunClubFeed(): void {
+    this.runClubService.getNewsHubFeed(0, 20).subscribe({
+      next: posts => {
+        this.runClubPosts.set(posts);
+        posts.forEach(p => { if (p.authorId != null) this.loadAvatar(p.authorId); });
+      },
+      error: () => {}
+    });
+  }
+
+  /** Loads upcoming events from clubs the user is in; merged into the trainer-events rail. */
+  private loadRunClubEvents(): void {
+    this.runClubService.getNewsHubClubEvents().subscribe({
+      next: events => {
+        if (!events.length) return;
+        const existing = this.trainerEvents();
+        const seen = new Set(existing.map(e => `${e.id}:${e.occurrenceDate ?? e.eventDate}`));
+        const merged = [...existing];
+        for (const ev of events) {
+          const key = `${ev.id}:${ev.occurrenceDate ?? ev.eventDate}`;
+          if (!seen.has(key)) merged.push(ev);
+        }
+        this.trainerEvents.set(merged);
+      },
+      error: () => {}
+    });
   }
 
   private loadNearbyTrainerEvents(): void {
@@ -438,6 +487,126 @@ export class NewsHub implements OnInit, OnDestroy {
     return this.newsList().find(n => n.id === newsId)
       ?? this.trendingNews().find(n => n.id === newsId)
       ?? (this.featured()?.id === newsId ? this.featured()! : undefined);
+  }
+
+  // ---- Run-Club post interactions ----
+
+  /** True when the comment section for a club post is expanded. */
+  isRunClubCommentsOpen(postId: number): boolean {
+    return !!this.runClubCommentsExpanded()[postId];
+  }
+
+  runClubCommentsFor(postId: number): RunClubComment[] {
+    return this.runClubCommentsByPost()[postId] ?? [];
+  }
+
+  runClubCommentsLoadingFor(postId: number): boolean {
+    return !!this.runClubCommentsLoading()[postId];
+  }
+
+  getRunClubDraft(postId: number): string {
+    return this.runClubCommentDrafts[postId] ?? '';
+  }
+
+  setRunClubDraft(postId: number, value: string): void {
+    this.runClubCommentDrafts[postId] = value;
+  }
+
+  /** URL for a club logo, served by the backend via /api/run-clubs/{clubId}/logo. */
+  runClubLogoUrl(post: RunClubFeedPost): string | null {
+    if (!post.clubLogoFilename) return null;
+    return this.runClubService.getLogoUrl(post.clubId);
+  }
+
+  /** Build the URL for the first attached image (if any). */
+  runClubPostImageUrl(post: RunClubFeedPost): string | null {
+    if (!post.imageIds || post.imageIds.length === 0) return null;
+    return this.runClubService.getPostImageUrl(post.id, post.imageIds[0]);
+  }
+
+  openRunClub(post: RunClubFeedPost): void {
+    this.router.navigate(['/community/clubs', post.clubSlug || post.clubId]);
+  }
+
+  /** Optimistically toggles a like on a club post; rolls back on error. */
+  toggleRunClubLike(post: RunClubFeedPost, event?: Event): void {
+    event?.stopPropagation();
+    const previous = { likedByMe: post.likedByMe, likeCount: post.likeCount };
+    const optimistic = {
+      likedByMe: !post.likedByMe,
+      likeCount: post.likeCount + (post.likedByMe ? -1 : 1)
+    };
+    this.applyRunClubPostUpdate(post.id, optimistic);
+
+    const request$ = post.likedByMe
+      ? this.runClubService.unlikePost(post.id)
+      : this.runClubService.likePost(post.id);
+    request$.subscribe({
+      error: () => this.applyRunClubPostUpdate(post.id, previous)
+    });
+  }
+
+  private applyRunClubPostUpdate(postId: number, patch: Partial<RunClubFeedPost>): void {
+    this.runClubPosts.update(list => list.map(p => p.id === postId ? { ...p, ...patch } : p));
+  }
+
+  toggleRunClubComments(postId: number, event?: Event): void {
+    event?.stopPropagation();
+    const open = this.isRunClubCommentsOpen(postId);
+    this.runClubCommentsExpanded.update(m => ({ ...m, [postId]: !open }));
+    if (!open && !this.runClubCommentsByPost()[postId]) {
+      this.loadRunClubComments(postId);
+    }
+  }
+
+  private loadRunClubComments(postId: number): void {
+    this.runClubCommentsLoading.update(m => ({ ...m, [postId]: true }));
+    this.runClubService.getComments(postId).subscribe({
+      next: list => {
+        this.runClubCommentsByPost.update(m => ({ ...m, [postId]: list }));
+        list.forEach(c => { if (c.authorId != null) this.loadAvatar(c.authorId); });
+        this.runClubCommentsLoading.update(m => ({ ...m, [postId]: false }));
+      },
+      error: () => this.runClubCommentsLoading.update(m => ({ ...m, [postId]: false }))
+    });
+  }
+
+  postRunClubComment(postId: number, event?: Event): void {
+    event?.stopPropagation();
+    const text = (this.runClubCommentDrafts[postId] ?? '').trim();
+    if (!text) return;
+    this.runClubService.createComment(postId, text).subscribe({
+      next: saved => {
+        this.runClubCommentDrafts[postId] = '';
+        this.runClubCommentsByPost.update(m => ({
+          ...m,
+          [postId]: [...(m[postId] ?? []), saved]
+        }));
+        if (saved.authorId != null) this.loadAvatar(saved.authorId);
+        const current = this.runClubPosts().find(p => p.id === postId);
+        this.applyRunClubPostUpdate(postId, {
+          commentCount: (current?.commentCount ?? 0) + 1
+        });
+      },
+      error: () => {}
+    });
+  }
+
+  deleteRunClubComment(postId: number, commentId: number, event?: Event): void {
+    event?.stopPropagation();
+    this.runClubService.deleteComment(commentId).subscribe({
+      next: () => {
+        this.runClubCommentsByPost.update(m => ({
+          ...m,
+          [postId]: (m[postId] ?? []).filter(c => c.id !== commentId)
+        }));
+        const current = this.runClubPosts().find(p => p.id === postId);
+        this.applyRunClubPostUpdate(postId, {
+          commentCount: Math.max(0, (current?.commentCount ?? 0) - 1)
+        });
+      },
+      error: () => {}
+    });
   }
 
   formatPace(secondsPerKm: number | null): string {

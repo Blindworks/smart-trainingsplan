@@ -224,6 +224,33 @@ public class GroupEventService {
         return result;
     }
 
+    /**
+     * Upcoming Run-Club events for the News Hub sidebar: all events linked to a Run Club
+     * where {@code currentUser} holds an ACTIVE membership. Recurring events are expanded
+     * to their occurrences within {@link #RECURRENCE_LOOKAHEAD_MONTHS}.
+     */
+    @Transactional(readOnly = true)
+    public List<GroupEventDto> getUpcomingClubEventsForMember(User currentUser) {
+        if (currentUser == null) return List.of();
+        LocalDate today = LocalDate.now();
+        LocalDate rangeEnd = today.plusMonths(RECURRENCE_LOOKAHEAD_MONTHS);
+
+        List<GroupEventDto> result = new ArrayList<>(
+                eventRepository.findUpcomingForMember(GroupEventStatus.PUBLISHED, today, currentUser.getId()).stream()
+                        .filter(e -> !e.isRecurring())
+                        .map(e -> toDto(e, currentUser, null))
+                        .toList());
+
+        List<GroupEvent> recurring = eventRepository.findRecurringForMemberInRange(
+                GroupEventStatus.PUBLISHED, today, rangeEnd, currentUser.getId());
+        for (GroupEvent ev : recurring) {
+            result.addAll(expandRecurringEvent(ev, today, rangeEnd, currentUser));
+        }
+
+        result.sort(Comparator.comparing(GroupEventDto::eventDate));
+        return result;
+    }
+
     @Transactional(readOnly = true)
     public GroupEventDto getEventDetail(Long eventId, User currentUser) {
         GroupEvent event = eventRepository.findById(eventId)
@@ -466,7 +493,10 @@ public class GroupEventService {
                 occurrenceDate,
                 event.isRecurring(),
                 event.getEventImageFilename(),
-                participantPreview
+                participantPreview,
+                event.getRunClub() != null ? event.getRunClub().getId() : null,
+                event.getRunClub() != null ? event.getRunClub().getName() : null,
+                event.getRunClub() != null ? event.getRunClub().getSlug() : null
         );
     }
 

@@ -45,7 +45,7 @@ class RunClubFeedServiceTest {
         RunClubService runClubService = new RunClubService(runClubRepository, membershipRepository,
                 groupEventRepository, imageStoragePort);
 
-        feedService = new RunClubFeedService(postRepository, likeRepository, commentRepository, runClubService);
+        feedService = new RunClubFeedService(postRepository, likeRepository, commentRepository, runClubService, imageStoragePort);
 
         alice = buildUser(1L, "alice");
         bob = buildUser(2L, "bob");

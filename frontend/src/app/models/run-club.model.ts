@@ -83,10 +83,11 @@ export interface RunClubPost {
   id: number;
   clubId: number;
   authorId: number | null;
-  authorName: string;
+  authorName: string | null;
   authorProfileImageUrl: string | null;
   content: string;
   hasImage: boolean;
+  imageIds: number[];
   linkedActivityId: number | null;
   linkedCommunityRouteId: number | null;
   linkedGroupEventId: number | null;
@@ -94,6 +95,17 @@ export interface RunClubPost {
   commentCount: number;
   likedByMe: boolean;
   createdAt: string;
+}
+
+/**
+ * Same shape as {@link RunClubPost} but enriched with the club identity so the
+ * aggregated News Hub feed can render a club header without a second request.
+ */
+export interface RunClubFeedPost extends RunClubPost {
+  clubName: string;
+  clubSlug: string;
+  /** Backend filename — use {@code RunClubService.getLogoUrl(clubId)} to build the URL. */
+  clubLogoFilename: string | null;
 }
 
 export interface RunClubComment {

@@ -5,6 +5,22 @@
     [placeholder]="'RUN_CLUBS.WRITE_POST' | translate"
     rows="3"></textarea>
 
+  @if (selectedImages().length > 0) {
+    <div class="image-previews">
+      @for (img of selectedImages(); track img.previewUrl; let i = $index) {
+        <div class="preview-thumb">
+          <img [src]="img.previewUrl" alt="">
+          <button type="button"
+                  class="remove-btn"
+                  [title]="'RUN_CLUBS.REMOVE_IMAGE' | translate"
+                  (click)="removeImage(i)">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      }
+    </div>
+  }
+
   @if (hasLink()) {
     <div class="link-pill">
       <span class="material-symbols-outlined">link</span>
@@ -19,8 +35,19 @@
     </div>
   }
 
+  <input
+    #fileInput
+    type="file"
+    accept="image/png,image/jpeg,image/webp"
+    multiple
+    hidden
+    (change)="onFilesSelected($event)">
+
   <div class="composer-actions">
     <div class="link-buttons">
+      <button type="button" class="ghost-btn" (click)="openFilePicker()" [title]="'RUN_CLUBS.ADD_IMAGES' | translate">
+        <span class="material-symbols-outlined">add_photo_alternate</span>
+      </button>
       <button type="button" class="ghost-btn" (click)="promptLinkActivity()" [title]="'RUN_CLUBS.LINK_ACTIVITY' | translate">
         <span class="material-symbols-outlined">directions_run</span>
       </button>
@@ -31,9 +58,13 @@
         <span class="material-symbols-outlined">event</span>
       </button>
     </div>
-    <button type="button" class="btn-primary" [disabled]="posting() || !content().trim()" (click)="submit()">
+    <button type="button" class="btn-primary" [disabled]="!canSubmit()" (click)="submit()">
       <span class="material-symbols-outlined">send</span>
       {{ 'RUN_CLUBS.POST' | translate }}
     </button>
   </div>
+
+  @if (error()) {
+    <p class="error-line">{{ error() }}</p>
+  }
 </div>

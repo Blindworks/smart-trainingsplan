@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { apiUrl, apiBaseUrl } from '../core/api-base';
 import {
   CreatePostRequest,
@@ -9,11 +10,13 @@ import {
   RunClub,
   RunClubComment,
   RunClubDetail,
+  RunClubFeedPost,
   RunClubMembership,
   RunClubPost,
   RunClubStats,
   UpdateRunClubRequest
 } from '../models/run-club.model';
+import { GroupEventDto } from './group-event.service';
 
 const BASE = apiUrl('/run-clubs');
 const ADMIN_BASE = apiUrl('/admin/run-clubs');
@@ -135,11 +138,26 @@ export class RunClubService {
 
   getPosts(clubId: number, page = 0): Observable<RunClubPost[]> {
     const params = new HttpParams().set('page', page);
-    return this.http.get<RunClubPost[]>(`${BASE}/${clubId}/posts`, { params });
+    // Backend returns a Spring Page<RunClubPostDto>; unwrap to its content array.
+    return this.http
+      .get<RunClubPost[] | { content: RunClubPost[] }>(`${BASE}/${clubId}/posts`, { params })
+      .pipe(map(res => Array.isArray(res) ? res : (res?.content ?? [])));
   }
 
-  createPost(clubId: number, req: CreatePostRequest): Observable<RunClubPost> {
-    return this.http.post<RunClubPost>(`${BASE}/${clubId}/posts`, req);
+  createPost(clubId: number, req: CreatePostRequest, images: File[] = []): Observable<RunClubPost> {
+    const fd = new FormData();
+    fd.append('content', req.content ?? '');
+    if (req.linkedActivityId != null) fd.append('linkedActivityId', String(req.linkedActivityId));
+    if (req.linkedCommunityRouteId != null) fd.append('linkedCommunityRouteId', String(req.linkedCommunityRouteId));
+    if (req.linkedGroupEventId != null) fd.append('linkedGroupEventId', String(req.linkedGroupEventId));
+    for (const f of images) {
+      fd.append('images', f);
+    }
+    return this.http.post<RunClubPost>(`${BASE}/${clubId}/posts`, fd);
+  }
+
+  getPostImageUrl(postId: number, imageId: number): string {
+    return `${apiBaseUrl}/run-clubs/posts/${postId}/images/${imageId}`;
   }
 
   deletePost(postId: number): Observable<void> {
@@ -172,6 +190,28 @@ export class RunClubService {
 
   getEvents(clubId: number): Observable<any[]> {
     return this.http.get<any[]>(`${BASE}/${clubId}/events`);
+  }
+
+  // ----- News Hub aggregated feed -----
+
+  /**
+   * Returns posts from every Run Club where the current user holds an ACTIVE
+   * membership, newest first. Used by the News Hub to mix club content into the
+   * main feed. Backend returns a Spring Page; we unwrap to the content array.
+   */
+  getNewsHubFeed(page = 0, size = 20): Observable<RunClubFeedPost[]> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http
+      .get<RunClubFeedPost[] | { content: RunClubFeedPost[] }>(`${BASE}/feed`, { params })
+      .pipe(map(res => Array.isArray(res) ? res : (res?.content ?? [])));
+  }
+
+  /**
+   * Returns upcoming events from every Run Club where the current user holds an
+   * ACTIVE membership. Shown in the News Hub sidebar alongside trainer events.
+   */
+  getNewsHubClubEvents(): Observable<GroupEventDto[]> {
+    return this.http.get<GroupEventDto[]>(`${BASE}/feed/upcoming-events`);
   }
 
   // ----- Me -----

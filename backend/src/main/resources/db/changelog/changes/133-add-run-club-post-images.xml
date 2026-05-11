@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="133-1" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="run_club_post_images"/>
+            </not>
+        </preConditions>
+        <comment>Multiple images per RunClub post</comment>
+        <createTable tableName="run_club_post_images">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="post_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="filename" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_run_club_post_images_post"
+                                 baseTableName="run_club_post_images" baseColumnNames="post_id"
+                                 referencedTableName="run_club_posts" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <createIndex indexName="idx_run_club_post_images_post_order" tableName="run_club_post_images">
+            <column name="post_id"/>
+            <column name="sort_order"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

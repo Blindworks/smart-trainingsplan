@@ -1,11 +1,13 @@
 package com.trainingsplan.dto.runclub;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.trainingsplan.entity.RunClubMemberRole;
 import com.trainingsplan.entity.RunClubMembershipStatus;
 
 /** Extended club view returned for the detail page; adds membership info for the current user. */
 public class RunClubDetailDto extends RunClubDto {
 
+    @JsonProperty("isMember")
     private boolean isMember;
     private RunClubMemberRole myRole;
     private RunClubMembershipStatus myMembershipStatus;
@@ -15,7 +17,10 @@ public class RunClubDetailDto extends RunClubDto {
 
     public RunClubDetailDto() {}
 
+    @JsonProperty("isMember")
     public boolean isMember() { return isMember; }
+
+    @JsonProperty("isMember")
     public void setMember(boolean member) { isMember = member; }
 
     public RunClubMemberRole getMyRole() { return myRole; }

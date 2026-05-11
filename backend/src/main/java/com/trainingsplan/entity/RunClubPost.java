@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "run_club_posts")
@@ -49,6 +51,11 @@ public class RunClubPost {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("sortOrder ASC")
+    @JsonIgnore
+    private List<RunClubPostImage> images = new ArrayList<>();
+
     public RunClubPost() {}
 
     public boolean isDeleted() { return deletedAt != null; }
@@ -85,4 +92,7 @@ public class RunClubPost {
 
     public LocalDateTime getDeletedAt() { return deletedAt; }
     public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
+
+    public List<RunClubPostImage> getImages() { return images; }
+    public void setImages(List<RunClubPostImage> images) { this.images = images; }
 }

@@ -4,6 +4,7 @@ import com.trainingsplan.dto.runclub.CreatePostRequest;
 import com.trainingsplan.dto.runclub.RunClubCommentDto;
 import com.trainingsplan.dto.runclub.RunClubPostDto;
 import com.trainingsplan.entity.*;
+import com.trainingsplan.port.ImageStoragePort;
 import com.trainingsplan.repository.RunClubPostCommentRepository;
 import com.trainingsplan.repository.RunClubPostLikeRepository;
 import com.trainingsplan.repository.RunClubPostRepository;
@@ -13,8 +14,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -28,15 +31,18 @@ public class RunClubFeedService {
     private final RunClubPostLikeRepository likeRepository;
     private final RunClubPostCommentRepository commentRepository;
     private final RunClubService runClubService;
+    private final ImageStoragePort imageStorage;
 
     public RunClubFeedService(RunClubPostRepository postRepository,
                                RunClubPostLikeRepository likeRepository,
                                RunClubPostCommentRepository commentRepository,
-                               RunClubService runClubService) {
+                               RunClubService runClubService,
+                               ImageStoragePort imageStorage) {
         this.postRepository = postRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
         this.runClubService = runClubService;
+        this.imageStorage = imageStorage;
     }
 
     @Transactional(readOnly = true)
@@ -48,14 +54,44 @@ public class RunClubFeedService {
                 .map(p -> toPostDto(p, currentUser));
     }
 
+    /**
+     * Aggregated feed for the News Hub: all posts from clubs where the user holds an
+     * ACTIVE membership. Each returned DTO has the {@code clubName/Slug/LogoFilename}
+     * fields populated so the hub can render the club header without a second request.
+     */
+    @Transactional(readOnly = true)
+    public Page<RunClubPostDto> listFeedForUser(User currentUser, int page, int size) {
+        if (currentUser == null) {
+            return Page.empty();
+        }
+        int safeSize = size <= 0 ? 20 : Math.min(size, 50);
+        return postRepository.findFeedForUser(currentUser.getId(), PageRequest.of(page, safeSize))
+                .map(p -> {
+                    RunClubPostDto dto = toPostDto(p, currentUser);
+                    RunClub club = p.getClub();
+                    if (club != null) {
+                        dto.setClubName(club.getName());
+                        dto.setClubSlug(club.getSlug());
+                        dto.setClubLogoFilename(club.getLogoFilename());
+                    }
+                    return dto;
+                });
+    }
+
     public RunClubPostDto createPost(User author, Long clubId, CreatePostRequest request) {
+        return createPost(author, clubId, request, Collections.emptyList());
+    }
+
+    public RunClubPostDto createPost(User author, Long clubId, CreatePostRequest request, List<MultipartFile> images) {
         RunClub club = runClubService.requireClub(clubId);
         requireActiveMember(club, author);
 
-        if (request.getContent() == null || request.getContent().isBlank()) {
-            throw new IllegalArgumentException("Post content cannot be empty");
+        String content = request.getContent() == null ? "" : request.getContent().trim();
+        boolean hasImages = images != null && images.stream().anyMatch(f -> f != null && !f.isEmpty());
+        if (content.isEmpty() && !hasImages) {
+            throw new IllegalArgumentException("Post must contain text or at least one image");
         }
-        if (request.getContent().length() > POST_CONTENT_MAX_LENGTH) {
+        if (content.length() > POST_CONTENT_MAX_LENGTH) {
             throw new IllegalArgumentException("Post content exceeds maximum length");
         }
         validateLinkedEntities(request);
@@ -63,11 +99,24 @@ public class RunClubFeedService {
         RunClubPost post = new RunClubPost();
         post.setClub(club);
         post.setAuthor(author);
-        post.setContent(request.getContent());
+        post.setContent(content);
         post.setLinkedActivityId(request.getLinkedActivityId());
         post.setLinkedCommunityRouteId(request.getLinkedCommunityRouteId());
         post.setLinkedGroupEventId(request.getLinkedGroupEventId());
         post.setCreatedAt(LocalDateTime.now());
+
+        if (hasImages) {
+            int order = 0;
+            for (MultipartFile file : images) {
+                if (file == null || file.isEmpty()) continue;
+                String filename = imageStorage.store(file);
+                RunClubPostImage img = new RunClubPostImage();
+                img.setPost(post);
+                img.setFilename(filename);
+                img.setSortOrder(order++);
+                post.getImages().add(img);
+            }
+        }
 
         return toPostDto(postRepository.save(post), author);
     }
@@ -162,6 +211,9 @@ public class RunClubFeedService {
         }
         dto.setContent(post.isDeleted() ? null : post.getContent());
         dto.setImageFilename(post.isDeleted() ? null : post.getImageFilename());
+        if (!post.isDeleted() && post.getImages() != null) {
+            dto.setImageIds(post.getImages().stream().map(RunClubPostImage::getId).toList());
+        }
         dto.setLinkedActivityId(post.getLinkedActivityId());
         dto.setLinkedCommunityRouteId(post.getLinkedCommunityRouteId());
         dto.setLinkedGroupEventId(post.getLinkedGroupEventId());
@@ -192,6 +244,19 @@ public class RunClubFeedService {
     }
 
     // ---- Helpers ----
+
+    @Transactional(readOnly = true)
+    public org.springframework.core.io.Resource loadPostImage(Long postId, Long imageId) {
+        RunClubPost post = requirePost(postId);
+        if (post.isDeleted()) {
+            throw new IllegalArgumentException("Post has been deleted");
+        }
+        RunClubPostImage match = post.getImages().stream()
+                .filter(img -> img.getId().equals(imageId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Image not found"));
+        return imageStorage.load(match.getFilename());
+    }
 
     private RunClubPost requirePost(Long postId) {
         return postRepository.findById(postId)

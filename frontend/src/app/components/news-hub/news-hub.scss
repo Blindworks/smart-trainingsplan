@@ -1074,3 +1074,63 @@
     font-size: 0.9em;
   }
 }
+
+/* --- Run-Club feed cards (News Hub) --- */
+.card--runclub {
+  border-left: 3px solid var(--brand-green, #8ffc2e);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .runclub-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+
+    .avatar--club {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--surface-high);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+
+      img { width: 100%; height: 100%; object-fit: cover; }
+      .material-symbols-outlined { color: var(--text-muted); }
+    }
+
+    .runclub-head-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .runclub-club-name {
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .chip--sm {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+    }
+  }
+
+  .runclub-content {
+    margin: 0;
+    color: var(--text);
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+
+  .runclub-image {
+    border-radius: 8px;
+    max-height: 360px;
+    object-fit: cover;
+  }
+}

@@ -3,7 +3,10 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnChanges,
+  OnDestroy,
   Output,
+  SimpleChanges,
   inject,
   signal
 } from '@angular/core';
@@ -13,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { RunClubService } from '../../services/run-club.service';
+import { UserService } from '../../services/user.service';
 import { RunClubComment, RunClubPost } from '../../models/run-club.model';
 
 @Component({
@@ -23,12 +27,52 @@ import { RunClubComment, RunClubPost } from '../../models/run-club.model';
   styleUrl: './run-club-feed-post.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RunClubFeedPost {
+export class RunClubFeedPost implements OnChanges, OnDestroy {
   private readonly service = inject(RunClubService);
+  private readonly userService = inject(UserService);
 
   @Input({ required: true }) post!: RunClubPost;
   @Input() canDelete = false;
   @Output() deleted = new EventEmitter<number>();
+
+  avatarUrl = signal<string | null>(null);
+  private avatarObjectUrl: string | null = null;
+  private avatarLoadedFor: number | null = null;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['post']) this.refreshAvatar();
+  }
+
+  ngOnDestroy(): void {
+    this.releaseAvatar();
+  }
+
+  private refreshAvatar(): void {
+    const authorId = this.post?.authorId ?? null;
+    const hasImage = !!this.post?.authorProfileImageUrl;
+    if (!authorId || !hasImage) {
+      this.releaseAvatar();
+      return;
+    }
+    if (this.avatarLoadedFor === authorId) return;
+    this.releaseAvatar();
+    this.avatarLoadedFor = authorId;
+    this.userService.getProfileImage(authorId).subscribe(blob => {
+      if (!blob || this.avatarLoadedFor !== authorId) return;
+      const url = URL.createObjectURL(blob);
+      this.avatarObjectUrl = url;
+      this.avatarUrl.set(url);
+    });
+  }
+
+  private releaseAvatar(): void {
+    if (this.avatarObjectUrl) {
+      URL.revokeObjectURL(this.avatarObjectUrl);
+      this.avatarObjectUrl = null;
+    }
+    this.avatarUrl.set(null);
+    this.avatarLoadedFor = null;
+  }
 
   liking = signal(false);
   showComments = signal(false);
@@ -36,6 +80,34 @@ export class RunClubFeedPost {
   loadingComments = signal(false);
   newComment = signal('');
   commentSubmitting = signal(false);
+
+  lightboxIndex = signal<number | null>(null);
+
+  imageUrl(imageId: number): string {
+    return this.service.getPostImageUrl(this.post.id, imageId);
+  }
+
+  openLightbox(index: number): void {
+    this.lightboxIndex.set(index);
+  }
+
+  closeLightbox(): void {
+    this.lightboxIndex.set(null);
+  }
+
+  prevImage(): void {
+    const ids = this.post.imageIds ?? [];
+    const i = this.lightboxIndex();
+    if (i === null || ids.length === 0) return;
+    this.lightboxIndex.set((i - 1 + ids.length) % ids.length);
+  }
+
+  nextImage(): void {
+    const ids = this.post.imageIds ?? [];
+    const i = this.lightboxIndex();
+    if (i === null || ids.length === 0) return;
+    this.lightboxIndex.set((i + 1) % ids.length);
+  }
 
   toggleLike(): void {
     if (this.liking()) return;

@@ -41,6 +41,10 @@ export interface GroupEventDto {
   isRecurring: boolean;
   eventImageFilename: string | null;
   participantPreview: GroupEventParticipantPreview[];
+  /** Populated when the event is linked to a Run Club. */
+  runClubId: number | null;
+  runClubName: string | null;
+  runClubSlug: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

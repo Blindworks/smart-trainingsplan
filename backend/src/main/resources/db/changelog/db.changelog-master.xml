@@ -135,5 +135,6 @@
     <include file="db/changelog/changes/130-add-group-event-run-club-fk.xml"/>
     <include file="db/changelog/changes/131-add-user-run-clubs-enabled.xml"/>
     <include file="db/changelog/changes/132-add-run-club-meeting-time.xml"/>
+    <include file="db/changelog/changes/133-add-run-club-post-images.xml"/>
 
 </databaseChangeLog>

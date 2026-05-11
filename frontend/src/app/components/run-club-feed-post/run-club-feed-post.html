@@ -1,14 +1,14 @@
 <article class="feed-post">
   <header class="post-header">
     <div class="avatar">
-      @if (post.authorProfileImageUrl) {
-        <img [src]="post.authorProfileImageUrl" [alt]="post.authorName" />
+      @if (avatarUrl()) {
+        <img [src]="avatarUrl()" [alt]="post.authorName ?? ''" />
       } @else {
-        <span>{{ post.authorName.charAt(0) }}</span>
+        <span>{{ (post.authorName ?? '?').charAt(0) }}</span>
       }
     </div>
     <div class="meta">
-      <span class="name">{{ post.authorName }}</span>
+      <span class="name">{{ post.authorName ?? '—' }}</span>
       <time>{{ post.createdAt | date:'MMM d, HH:mm' }}</time>
     </div>
     @if (canDelete) {
@@ -19,7 +19,19 @@
   </header>
 
   <div class="post-content">
-    <p>{{ post.content }}</p>
+    @if (post.content) {
+      <p>{{ post.content }}</p>
+    }
+
+    @if (post.imageIds && post.imageIds.length > 0) {
+      <div class="post-images" [attr.data-count]="post.imageIds.length">
+        @for (id of post.imageIds; track id; let i = $index) {
+          <button type="button" class="image-tile" (click)="openLightbox(i)">
+            <img [src]="imageUrl(id)" alt="" loading="lazy">
+          </button>
+        }
+      </div>
+    }
 
     @if (post.linkedActivityId) {
       <a class="link-chip" [routerLink]="['/activities', post.linkedActivityId]">
@@ -51,6 +63,23 @@
       <span>{{ post.commentCount }}</span>
     </button>
   </footer>
+
+  @if (lightboxIndex() !== null && post.imageIds && post.imageIds.length > 0) {
+    <div class="lightbox-overlay" (click)="closeLightbox()">
+      <button type="button" class="lightbox-close" (click)="closeLightbox(); $event.stopPropagation()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      @if (post.imageIds.length > 1) {
+        <button type="button" class="lightbox-nav prev" (click)="prevImage(); $event.stopPropagation()">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button type="button" class="lightbox-nav next" (click)="nextImage(); $event.stopPropagation()">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      }
+      <img class="lightbox-image" [src]="imageUrl(post.imageIds[lightboxIndex()!])" alt="" (click)="$event.stopPropagation()">
+    </div>
+  }
 
   @if (showComments()) {
     <section class="comments-section">

@@ -153,8 +153,10 @@ export class RunClubs implements OnInit, AfterViewInit, OnDestroy {
     const points: L.LatLngExpression[] = [];
     for (const c of this.clubs()) {
       if (c.latitude == null || c.longitude == null) continue;
+      const safeName = (c.name ?? '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+      const imgStyle = 'width:100%;height:100%;object-fit:cover;display:block;';
       const html = this.logoUrl(c)
-        ? `<div class="rc-marker"><img src="${this.logoUrl(c)}" alt="${c.name}"/></div>`
+        ? `<div class="rc-marker"><img src="${this.logoUrl(c)}" alt="${safeName}" style="${imgStyle}"/></div>`
         : `<div class="rc-marker rc-marker--initials">${this.initials(c.name)}</div>`;
       const icon = L.divIcon({
         className: '',

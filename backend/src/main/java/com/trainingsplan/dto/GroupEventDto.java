@@ -33,5 +33,8 @@ public record GroupEventDto(
         LocalDate occurrenceDate,
         boolean isRecurring,
         String eventImageFilename,
-        List<GroupEventParticipantPreviewDto> participantPreview
+        List<GroupEventParticipantPreviewDto> participantPreview,
+        Long runClubId,
+        String runClubName,
+        String runClubSlug
 ) {}

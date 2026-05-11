@@ -1,11 +1,13 @@
 package com.trainingsplan.controller;
 
+import com.trainingsplan.dto.GroupEventDto;
 import com.trainingsplan.dto.runclub.*;
 import com.trainingsplan.entity.GroupEventStatus;
 import com.trainingsplan.entity.RunClubMembershipStatus;
 import com.trainingsplan.entity.User;
 import com.trainingsplan.repository.GroupEventRepository;
 import com.trainingsplan.security.SecurityUtils;
+import com.trainingsplan.service.GroupEventService;
 import com.trainingsplan.service.UserService;
 import com.trainingsplan.service.runclub.RunClubFeedService;
 import com.trainingsplan.service.runclub.RunClubMembershipService;
@@ -31,6 +33,7 @@ public class RunClubController {
     private final RunClubFeedService feedService;
     private final RunClubStatsService statsService;
     private final GroupEventRepository groupEventRepository;
+    private final GroupEventService groupEventService;
     private final SecurityUtils securityUtils;
     private final UserService userService;
 
@@ -39,6 +42,7 @@ public class RunClubController {
                              RunClubFeedService feedService,
                              RunClubStatsService statsService,
                              GroupEventRepository groupEventRepository,
+                             GroupEventService groupEventService,
                              SecurityUtils securityUtils,
                              UserService userService) {
         this.runClubService = runClubService;
@@ -46,6 +50,7 @@ public class RunClubController {
         this.feedService = feedService;
         this.statsService = statsService;
         this.groupEventRepository = groupEventRepository;
+        this.groupEventService = groupEventService;
         this.securityUtils = securityUtils;
         this.userService = userService;
     }
@@ -365,17 +370,40 @@ public class RunClubController {
         }
     }
 
-    @PostMapping("/{id}/posts")
+    @PostMapping(value = "/{id}/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createPost(@PathVariable Long id,
-                                        @RequestBody CreatePostRequest request) {
+                                        @RequestParam("content") String content,
+                                        @RequestParam(value = "linkedActivityId", required = false) Long linkedActivityId,
+                                        @RequestParam(value = "linkedCommunityRouteId", required = false) Long linkedCommunityRouteId,
+                                        @RequestParam(value = "linkedGroupEventId", required = false) Long linkedGroupEventId,
+                                        @RequestParam(value = "images", required = false) List<MultipartFile> images) {
         User user = requireAuth();
         if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        CreatePostRequest request = new CreatePostRequest();
+        request.setContent(content);
+        request.setLinkedActivityId(linkedActivityId);
+        request.setLinkedCommunityRouteId(linkedCommunityRouteId);
+        request.setLinkedGroupEventId(linkedGroupEventId);
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(feedService.createPost(user, id, request));
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(feedService.createPost(user, id, request, images == null ? List.of() : images));
         } catch (org.springframework.security.access.AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/posts/{postId}/images/{imageId}")
+    public ResponseEntity<org.springframework.core.io.Resource> getPostImage(@PathVariable Long postId,
+                                                                              @PathVariable Long imageId) {
+        try {
+            org.springframework.core.io.Resource resource = feedService.loadPostImage(postId, imageId);
+            return ResponseEntity.ok()
+                    .cacheControl(org.springframework.http.CacheControl.maxAge(java.time.Duration.ofHours(1)))
+                    .body(resource);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -457,6 +485,33 @@ public class RunClubController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    // ---- News Hub aggregated feed ----
+
+    /**
+     * Aggregated feed for the News Hub: returns posts from every Run Club where the
+     * current user holds an ACTIVE membership, newest first. Each item is enriched
+     * with the club's name/slug/logo so the hub can render the club header inline.
+     */
+    @GetMapping("/feed")
+    public ResponseEntity<?> getNewsHubFeed(@RequestParam(defaultValue = "0") int page,
+                                            @RequestParam(defaultValue = "20") int size) {
+        User user = requireAuth();
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Page<RunClubPostDto> posts = feedService.listFeedForUser(user, page, size);
+        return ResponseEntity.ok(posts);
+    }
+
+    /**
+     * Upcoming Run-Club events for the News Hub sidebar: events linked to a Run Club
+     * where the current user holds an ACTIVE membership, recurring series expanded.
+     */
+    @GetMapping("/feed/upcoming-events")
+    public ResponseEntity<List<GroupEventDto>> getNewsHubClubEvents() {
+        User user = requireAuth();
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(groupEventService.getUpcomingClubEventsForMember(user));
     }
 
     // ---- Events ----
