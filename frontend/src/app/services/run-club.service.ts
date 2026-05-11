@@ -17,6 +17,7 @@ import {
   UpdateRunClubRequest
 } from '../models/run-club.model';
 import { GroupEventDto } from './group-event.service';
+import { CreateGroupEventRequest, UpdateGroupEventRequest } from './trainer-event.service';
 
 const BASE = apiUrl('/run-clubs');
 const ADMIN_BASE = apiUrl('/admin/run-clubs');
@@ -188,8 +189,32 @@ export class RunClubService {
 
   // ----- Linked Events -----
 
-  getEvents(clubId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${BASE}/${clubId}/events`);
+  getEvents(clubId: number): Observable<GroupEventDto[]> {
+    return this.http.get<GroupEventDto[]>(`${BASE}/${clubId}/events`);
+  }
+
+  getEvent(clubId: number, eventId: number): Observable<GroupEventDto> {
+    return this.http.get<GroupEventDto>(`${BASE}/${clubId}/events/${eventId}`);
+  }
+
+  createEvent(clubId: number, request: CreateGroupEventRequest): Observable<GroupEventDto> {
+    return this.http.post<GroupEventDto>(`${BASE}/${clubId}/events`, request);
+  }
+
+  updateEvent(clubId: number, eventId: number, request: UpdateGroupEventRequest): Observable<GroupEventDto> {
+    return this.http.put<GroupEventDto>(`${BASE}/${clubId}/events/${eventId}`, request);
+  }
+
+  publishEvent(clubId: number, eventId: number): Observable<GroupEventDto> {
+    return this.http.put<GroupEventDto>(`${BASE}/${clubId}/events/${eventId}/publish`, {});
+  }
+
+  cancelEvent(clubId: number, eventId: number): Observable<void> {
+    return this.http.put<void>(`${BASE}/${clubId}/events/${eventId}/cancel`, {});
+  }
+
+  deleteEvent(clubId: number, eventId: number): Observable<void> {
+    return this.http.delete<void>(`${BASE}/${clubId}/events/${eventId}`);
   }
 
   // ----- News Hub aggregated feed -----

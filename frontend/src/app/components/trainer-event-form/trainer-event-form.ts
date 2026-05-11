@@ -6,7 +6,10 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TrainerEventService, CreateGroupEventRequest, UpdateGroupEventRequest } from '../../services/trainer-event.service';
 import { GroupEventDto, GroupEventService } from '../../services/group-event.service';
 import { GeocodingService } from '../../services/geocoding.service';
+import { RunClubService } from '../../services/run-club.service';
 import { LocationPickerDialogComponent } from '../location-picker-dialog/location-picker-dialog';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-trainer-event-form',
@@ -22,7 +25,12 @@ export class TrainerEventForm implements OnInit {
   private readonly trainerService = inject(TrainerEventService);
   private readonly groupEventService = inject(GroupEventService);
   private readonly geocodingService = inject(GeocodingService);
+  private readonly runClubService = inject(RunClubService);
   readonly translate = inject(TranslateService);
+
+  // When set, the form operates in "Run Club" mode: events are created/updated
+  // against the Run Club endpoints and the user is redirected back to the club detail view.
+  clubContext = signal<{ id: number; slug: string; name: string } | null>(null);
 
   @ViewChild('locationPicker') locationPicker!: LocationPickerDialogComponent;
 
@@ -61,7 +69,27 @@ export class TrainerEventForm implements OnInit {
   ngOnInit(): void {
     this.initForm();
 
+    const slug = this.route.snapshot.paramMap.get('slug');
     const id = this.route.snapshot.paramMap.get('id');
+
+    if (slug) {
+      // Run-Club-Modus: Club erst laden, danach optional Event
+      this.runClubService.getBySlug(slug).subscribe({
+        next: club => {
+          this.clubContext.set({ id: club.id, slug: club.slug, name: club.name });
+          if (id) {
+            this.isEditMode.set(true);
+            this.eventId.set(Number(id));
+            this.loadEvent(Number(id));
+          }
+        },
+        error: () => {
+          this.error.set(this.translate.instant('TRAINER_EVENTS.LOAD_ERROR'));
+        }
+      });
+      return;
+    }
+
     if (id) {
       this.isEditMode.set(true);
       this.eventId.set(Number(id));
@@ -99,12 +127,16 @@ export class TrainerEventForm implements OnInit {
 
   private loadEvent(id: number): void {
     this.loading.set(true);
-    this.trainerService.getTrainerEvents().subscribe({
-      next: events => {
-        const event = events.find(e => e.id === id);
-        if (event) {
-          this.patchForm(event);
-        }
+    const club = this.clubContext();
+    const source$ = club
+      ? this.runClubService.getEvent(club.id, id)
+      : this.trainerService.getTrainerEvents().pipe(
+          // pick the matching event from the list
+          map((events: GroupEventDto[]) => events.find(e => e.id === id) as GroupEventDto)
+        );
+    source$.subscribe({
+      next: event => {
+        if (event) this.patchForm(event);
         this.loading.set(false);
       },
       error: () => {
@@ -251,12 +283,20 @@ export class TrainerEventForm implements OnInit {
       recurrenceEndDate: formValue.recurrenceEnabled && formValue.recurrenceEndDate ? formValue.recurrenceEndDate : undefined
     };
 
+    const club = this.clubContext();
+
     if (this.isEditMode() && this.eventId()) {
-      this.trainerService.updateEvent(this.eventId()!, request as UpdateGroupEventRequest).subscribe({
+      const update$: Observable<GroupEventDto> = club
+        ? this.runClubService.updateEvent(club.id, this.eventId()!, request as UpdateGroupEventRequest)
+        : this.trainerService.updateEvent(this.eventId()!, request as UpdateGroupEventRequest);
+      update$.subscribe({
         next: updated => {
           this.applyImageChanges(updated.id, () => {
             if (publish && updated.status === 'DRAFT') {
-              this.trainerService.publishEvent(updated.id).subscribe({
+              const publish$ = club
+                ? this.runClubService.publishEvent(club.id, updated.id)
+                : this.trainerService.publishEvent(updated.id);
+              publish$.subscribe({
                 next: () => this.finishSave(),
                 error: () => this.finishSave()
               });
@@ -271,11 +311,17 @@ export class TrainerEventForm implements OnInit {
         }
       });
     } else {
-      this.trainerService.createEvent(request).subscribe({
+      const create$: Observable<GroupEventDto> = club
+        ? this.runClubService.createEvent(club.id, request)
+        : this.trainerService.createEvent(request);
+      create$.subscribe({
         next: created => {
           this.applyImageChanges(created.id, () => {
             if (publish) {
-              this.trainerService.publishEvent(created.id).subscribe({
+              const publish$ = club
+                ? this.runClubService.publishEvent(club.id, created.id)
+                : this.trainerService.publishEvent(created.id);
+              publish$.subscribe({
                 next: () => this.finishSave(),
                 error: () => this.finishSave()
               });
@@ -293,6 +339,11 @@ export class TrainerEventForm implements OnInit {
   }
 
   private applyImageChanges(eventId: number, done: () => void): void {
+    // Club-Modus unterstuetzt aktuell keine Event-Bilder (separater Endpoint noetig).
+    if (this.clubContext()) {
+      done();
+      return;
+    }
     const file = this.selectedImageFile();
     if (file) {
       this.trainerService.uploadEventImage(eventId, file).subscribe({
@@ -316,7 +367,12 @@ export class TrainerEventForm implements OnInit {
 
   private finishSave(): void {
     this.saving.set(false);
-    this.router.navigate(['/trainer/events']);
+    const club = this.clubContext();
+    if (club) {
+      this.router.navigate(['/run-clubs', club.slug]);
+    } else {
+      this.router.navigate(['/trainer/events']);
+    }
   }
 
   geocodeLocation(): void {
@@ -362,7 +418,12 @@ export class TrainerEventForm implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/trainer/events']);
+    const club = this.clubContext();
+    if (club) {
+      this.router.navigate(['/run-clubs', club.slug]);
+    } else {
+      this.router.navigate(['/trainer/events']);
+    }
   }
 
   isFieldInvalid(fieldName: string): boolean {

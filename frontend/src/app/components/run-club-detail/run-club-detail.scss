@@ -504,10 +504,53 @@
 .btn-tiny  { padding: 0.3rem 0.45rem; }
 .btn-danger { color: #ff6b6b; border-color: rgba(255,107,107,0.3); }
 
+.events-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    line-height: 1;
+
+    .material-symbols-outlined {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+  }
+}
+
 .events-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.event-row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.badge-draft {
+  background: rgba(255, 193, 7, 0.18);
+  color: #ffc107;
 }
 
 .event-row {

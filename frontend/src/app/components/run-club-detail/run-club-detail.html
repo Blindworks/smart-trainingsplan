@@ -319,21 +319,40 @@
       <!-- Events -->
       @if (activeTab() === 'events') {
         <div class="events-tab">
+          @if (isAdmin()) {
+            <div class="events-toolbar">
+              <button class="btn btn-primary"
+                      [routerLink]="['/run-clubs', club()!.slug, 'events', 'new']"
+                      type="button">
+                <span class="material-symbols-outlined">add</span>
+                {{ 'RUN_CLUBS.CREATE_EVENT' | translate }}
+              </button>
+            </div>
+          }
           @if (eventsLoading()) {
             <p class="muted center">{{ 'COMMON.LOADING' | translate }}</p>
           } @else if (events().length === 0) {
             <div class="empty">
               <span class="material-symbols-outlined">event_busy</span>
               <p>{{ 'RUN_CLUBS.NO_EVENTS' | translate }}</p>
+              @if (isAdmin()) {
+                <p class="muted small">{{ 'RUN_CLUBS.NO_EVENTS_ADMIN_HINT' | translate }}</p>
+              }
             </div>
           } @else {
             <div class="events-list">
               @for (ev of events(); track ev.id) {
-                <a class="event-row" [routerLink]="['/community/groups', ev.id]">
+                <a class="event-row"
+                   [routerLink]="isAdmin() ? ['/run-clubs', club()!.slug, 'events', ev.id, 'edit'] : ['/community/groups', ev.id]">
                   <span class="material-symbols-outlined">event</span>
-                  <div>
+                  <div class="event-row-body">
                     <strong>{{ ev.title }}</strong>
-                    <div class="muted small">{{ ev.eventDate }} · {{ ev.startTime }}</div>
+                    <div class="muted small">
+                      {{ ev.eventDate }} · {{ ev.startTime }}
+                      @if (ev.status === 'DRAFT') {
+                        <span class="badge badge-draft">{{ 'RUN_CLUBS.EVENT_DRAFT' | translate }}</span>
+                      }
+                    </div>
                   </div>
                 </a>
               }

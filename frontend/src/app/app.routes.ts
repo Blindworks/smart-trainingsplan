@@ -132,6 +132,16 @@ export const routes: Routes = [
     loadComponent: () => import('./components/run-club-form/run-club-form').then(m => m.RunClubForm)
   },
   {
+    path: 'run-clubs/:slug/events/new',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/trainer-event-form/trainer-event-form').then(m => m.TrainerEventForm)
+  },
+  {
+    path: 'run-clubs/:slug/events/:id/edit',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/trainer-event-form/trainer-event-form').then(m => m.TrainerEventForm)
+  },
+  {
     path: 'run-clubs/:slug',
     canActivate: [authGuard],
     loadComponent: () => import('./components/run-club-detail/run-club-detail').then(m => m.RunClubDetail)

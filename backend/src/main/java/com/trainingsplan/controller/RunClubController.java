@@ -1,10 +1,14 @@
 package com.trainingsplan.controller;
 
+import com.trainingsplan.dto.CreateGroupEventRequest;
 import com.trainingsplan.dto.GroupEventDto;
+import com.trainingsplan.dto.UpdateGroupEventRequest;
 import com.trainingsplan.dto.runclub.*;
 import com.trainingsplan.entity.GroupEventStatus;
+import com.trainingsplan.entity.RunClub;
 import com.trainingsplan.entity.RunClubMembershipStatus;
 import com.trainingsplan.entity.User;
+import org.springframework.security.access.AccessDeniedException;
 import com.trainingsplan.repository.GroupEventRepository;
 import com.trainingsplan.security.SecurityUtils;
 import com.trainingsplan.service.GroupEventService;
@@ -521,12 +525,124 @@ public class RunClubController {
         User user = requireAuth();
         if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         try {
-            runClubService.requireClub(id); // validates club exists
+            RunClub club = runClubService.requireClub(id);
+            // Club admins also see DRAFT events so they can manage them from the tab.
+            boolean isAdmin = runClubService.isClubAdmin(club, user);
             List<?> events = groupEventRepository.findAll().stream()
-                    .filter(e -> e.getRunClub() != null && e.getRunClub().getId().equals(id)
-                            && e.getStatus() == GroupEventStatus.PUBLISHED)
+                    .filter(e -> e.getRunClub() != null && e.getRunClub().getId().equals(id))
+                    .filter(e -> isAdmin || e.getStatus() == GroupEventStatus.PUBLISHED)
                     .toList();
             return ResponseEntity.ok(events);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/{id}/events")
+    public ResponseEntity<?> createClubEvent(@PathVariable Long id,
+                                             @RequestBody CreateGroupEventRequest request) {
+        User user = requireAuth();
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            RunClub club = runClubService.requireClub(id);
+            runClubService.requireClubAdmin(club, user);
+            GroupEventDto dto = groupEventService.createClubEvent(user, club, request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only club admins can create events");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/events/{eventId}")
+    public ResponseEntity<?> updateClubEvent(@PathVariable Long id,
+                                             @PathVariable Long eventId,
+                                             @RequestBody UpdateGroupEventRequest request) {
+        User user = requireAuth();
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            RunClub club = runClubService.requireClub(id);
+            runClubService.requireClubAdmin(club, user);
+            GroupEventDto dto = groupEventService.updateClubEvent(club, eventId, request);
+            return ResponseEntity.ok(dto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only club admins can update events");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/events/{eventId}/publish")
+    public ResponseEntity<?> publishClubEvent(@PathVariable Long id, @PathVariable Long eventId) {
+        User user = requireAuth();
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            RunClub club = runClubService.requireClub(id);
+            runClubService.requireClubAdmin(club, user);
+            GroupEventDto dto = groupEventService.publishClubEvent(club, eventId);
+            return ResponseEntity.ok(dto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/events/{eventId}/cancel")
+    public ResponseEntity<?> cancelClubEvent(@PathVariable Long id, @PathVariable Long eventId) {
+        User user = requireAuth();
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            RunClub club = runClubService.requireClub(id);
+            runClubService.requireClubAdmin(club, user);
+            groupEventService.cancelClubEvent(club, eventId);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}/events/{eventId}")
+    public ResponseEntity<?> deleteClubEvent(@PathVariable Long id, @PathVariable Long eventId) {
+        User user = requireAuth();
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            RunClub club = runClubService.requireClub(id);
+            runClubService.requireClubAdmin(club, user);
+            groupEventService.deleteClubEvent(club, eventId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/events/{eventId}")
+    public ResponseEntity<?> getClubEventDetail(@PathVariable Long id, @PathVariable Long eventId) {
+        User user = requireAuth();
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            RunClub club = runClubService.requireClub(id);
+            // Members can read drafts only if admin; published always readable
+            GroupEventDto dto = groupEventService.getAllClubEvents(club).stream()
+                    .filter(e -> e.id().equals(eventId))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+            return ResponseEntity.ok(dto);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }

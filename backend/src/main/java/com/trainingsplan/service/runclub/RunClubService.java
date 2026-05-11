@@ -398,7 +398,11 @@ public class RunClubService {
                 .orElseThrow(() -> new IllegalArgumentException("Run club not found: " + clubId));
     }
 
-    private void requireClubAdmin(RunClub club, User user) {
+    public void requireClubAdmin(Long clubId, User user) {
+        requireClubAdmin(requireClub(clubId), user);
+    }
+
+    public void requireClubAdmin(RunClub club, User user) {
         if (user != null && user.getRole() == UserRole.ADMIN) {
             return; // Platform admins may manage any club
         }

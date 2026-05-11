@@ -51,7 +51,24 @@ public class GroupEventService {
         if (trainer.getRole() != UserRole.TRAINER && trainer.getRole() != UserRole.ADMIN) {
             throw new IllegalStateException("Only trainers can create events");
         }
+        GroupEvent event = buildEventFromRequest(trainer, request);
+        event = eventRepository.save(event);
+        return toDto(event, null, null);
+    }
 
+    /**
+     * Creates an event organized by a Run Club admin and linked to that club.
+     * Bypasses the global trainer-role check — authorization is done by the caller
+     * (RunClubController via RunClubService#requireClubAdmin).
+     */
+    public GroupEventDto createClubEvent(User actor, RunClub club, CreateGroupEventRequest request) {
+        GroupEvent event = buildEventFromRequest(actor, request);
+        event.setRunClub(club);
+        event = eventRepository.save(event);
+        return toDto(event, null, null);
+    }
+
+    private GroupEvent buildEventFromRequest(User trainer, CreateGroupEventRequest request) {
         GroupEvent event = new GroupEvent();
         event.setTrainer(trainer);
         event.setTitle(request.title());
@@ -77,13 +94,15 @@ public class GroupEventService {
         event.setRecurrenceEndDate(request.recurrenceEndDate());
         event.setStatus(GroupEventStatus.DRAFT);
         event.setCreatedAt(LocalDateTime.now());
-
-        event = eventRepository.save(event);
-        return toDto(event, null, null);
+        return event;
     }
 
     public GroupEventDto updateEvent(User trainer, Long eventId, UpdateGroupEventRequest request) {
         GroupEvent event = getOwnEvent(trainer, eventId);
+        return applyUpdateAndSave(event, request);
+    }
+
+    private GroupEventDto applyUpdateAndSave(GroupEvent event, UpdateGroupEventRequest request) {
         if (event.getStatus() == GroupEventStatus.CANCELLED || event.getStatus() == GroupEventStatus.COMPLETED) {
             throw new IllegalStateException("Cannot update a cancelled or completed event");
         }
@@ -109,6 +128,60 @@ public class GroupEventService {
         event.setUpdatedAt(LocalDateTime.now());
         event = eventRepository.save(event);
         return toDto(event, null, null);
+    }
+
+    // ---- Club-scoped variants (auth done by caller via RunClubService#requireClubAdmin) ----
+
+    public GroupEventDto updateClubEvent(RunClub club, Long eventId, UpdateGroupEventRequest request) {
+        GroupEvent event = requireClubEvent(club, eventId);
+        return applyUpdateAndSave(event, request);
+    }
+
+    public GroupEventDto publishClubEvent(RunClub club, Long eventId) {
+        GroupEvent event = requireClubEvent(club, eventId);
+        if (event.getStatus() != GroupEventStatus.DRAFT) {
+            throw new IllegalStateException("Only draft events can be published");
+        }
+        event.setStatus(GroupEventStatus.PUBLISHED);
+        event.setUpdatedAt(LocalDateTime.now());
+        event = eventRepository.save(event);
+        return toDto(event, null, null);
+    }
+
+    public void cancelClubEvent(RunClub club, Long eventId) {
+        GroupEvent event = requireClubEvent(club, eventId);
+        if (event.getStatus() == GroupEventStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot cancel a completed event");
+        }
+        event.setStatus(GroupEventStatus.CANCELLED);
+        event.setUpdatedAt(LocalDateTime.now());
+        eventRepository.save(event);
+    }
+
+    public void deleteClubEvent(RunClub club, Long eventId) {
+        GroupEvent event = requireClubEvent(club, eventId);
+        if (event.getStatus() != GroupEventStatus.DRAFT) {
+            throw new IllegalStateException("Only draft events can be deleted");
+        }
+        eventRepository.delete(event);
+    }
+
+    @Transactional(readOnly = true)
+    public List<GroupEventDto> getAllClubEvents(RunClub club) {
+        return eventRepository.findAll().stream()
+                .filter(e -> e.getRunClub() != null && e.getRunClub().getId().equals(club.getId()))
+                .sorted(Comparator.comparing(GroupEvent::getEventDate).reversed())
+                .map(e -> toDto(e, null, null))
+                .toList();
+    }
+
+    private GroupEvent requireClubEvent(RunClub club, Long eventId) {
+        GroupEvent event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+        if (event.getRunClub() == null || !event.getRunClub().getId().equals(club.getId())) {
+            throw new IllegalArgumentException("Event does not belong to this run club");
+        }
+        return event;
     }
 
     public GroupEventDto publishEvent(User trainer, Long eventId) {
