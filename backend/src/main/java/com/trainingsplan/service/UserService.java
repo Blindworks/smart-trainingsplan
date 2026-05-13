@@ -25,16 +25,21 @@ import java.util.Optional;
 @Service
 public class UserService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
     private final SecurityUtils securityUtils;
     private final ImageStoragePort imageStoragePort;
     private final AuditLogService auditLogService;
+    private final ForwardGeocodingService forwardGeocodingService;
 
-    public UserService(UserRepository userRepository, SecurityUtils securityUtils, ImageStoragePort imageStoragePort, AuditLogService auditLogService) {
+    public UserService(UserRepository userRepository, SecurityUtils securityUtils, ImageStoragePort imageStoragePort,
+                       AuditLogService auditLogService, ForwardGeocodingService forwardGeocodingService) {
         this.userRepository = userRepository;
         this.securityUtils = securityUtils;
         this.imageStoragePort = imageStoragePort;
         this.auditLogService = auditLogService;
+        this.forwardGeocodingService = forwardGeocodingService;
     }
 
     public User createUser(String username, String email) {
@@ -106,7 +111,9 @@ public class UserService {
                            boolean discoverableByOthers,
                            String role,
                            String subscriptionPlan, LocalDateTime subscriptionExpiresAt,
-                           String targetDistance, String weeklyVolumeKm, String theme) {
+                           String targetDistance, String weeklyVolumeKm, String theme,
+                           String addressStreet, String addressPostalCode,
+                           String addressCity, String addressCountry) {
         User user = findById(id);
         UserStatus oldStatus = user.getStatus();
         SubscriptionPlan oldPlan = user.getSubscriptionPlan();
@@ -139,6 +146,40 @@ public class UserService {
         user.setTargetDistance(targetDistance);
         user.setWeeklyVolumeKm(weeklyVolumeKm);
         user.setTheme(theme != null ? theme : "dark");
+
+        String oldStreet = user.getAddressStreet();
+        String oldPostal = user.getAddressPostalCode();
+        String oldCity   = user.getAddressCity();
+        String oldCountry = user.getAddressCountry();
+        String normStreet  = normalizeAddressPart(addressStreet);
+        String normPostal  = normalizeAddressPart(addressPostalCode);
+        String normCity    = normalizeAddressPart(addressCity);
+        String normCountry = normalizeCountry(addressCountry);
+        user.setAddressStreet(normStreet);
+        user.setAddressPostalCode(normPostal);
+        user.setAddressCity(normCity);
+        user.setAddressCountry(normCountry);
+
+        boolean addressChanged = !java.util.Objects.equals(oldStreet, normStreet)
+                || !java.util.Objects.equals(oldPostal, normPostal)
+                || !java.util.Objects.equals(oldCity, normCity)
+                || !java.util.Objects.equals(oldCountry, normCountry);
+        if (addressChanged) {
+            String addressQuery = buildAddressQuery(normStreet, normPostal, normCity, normCountry);
+            if (addressQuery != null) {
+                try {
+                    ForwardGeocodingService.LatLng hit = forwardGeocodingService.geocode(addressQuery, normCountry);
+                    if (hit != null) {
+                        user.setLatitude(hit.lat());
+                        user.setLongitude(hit.lng());
+                        user.setLocationUpdatedAt(LocalDateTime.now());
+                    }
+                } catch (Exception e) {
+                    log.warn("Forward geocoding failed for user {}: {}", id, e.getMessage());
+                }
+            }
+        }
+
         User saved = userRepository.save(user);
         User caller = securityUtils.getCurrentUser();
         auditLogService.log(caller, AuditAction.USER_UPDATED, "USER", String.valueOf(id),
@@ -154,6 +195,37 @@ public class UserService {
                     Map.of("from", oldPlan != null ? oldPlan.name() : "NONE", "to", subscriptionPlan));
         }
         return saved;
+    }
+
+    private static String normalizeAddressPart(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static String normalizeCountry(String value) {
+        String norm = normalizeAddressPart(value);
+        if (norm == null) return null;
+        return norm.length() == 2 ? norm.toUpperCase() : norm;
+    }
+
+    private static String buildAddressQuery(String street, String postal, String city, String country) {
+        StringBuilder sb = new StringBuilder();
+        if (street != null) sb.append(street);
+        if (postal != null) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(postal);
+        }
+        if (city != null) {
+            if (postal == null && sb.length() > 0) sb.append(", ");
+            else if (postal != null) sb.append(' ');
+            sb.append(city);
+        }
+        if (country != null) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(country);
+        }
+        return sb.length() == 0 ? null : sb.toString();
     }
 
     public User updatePaceZoneReference(Long userId, Double distanceM, Integer timeSeconds,

@@ -808,6 +808,133 @@
   &:hover { opacity: 0.85; }
 }
 
+// ── Run Weather Forecast ──────────────────────────────────────────
+.run-weather-card {
+  background: var(--card-bg, rgba(255, 255, 255, 0.04));
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: grid;
+  gap: 12px;
+  border-left: 4px solid #6dd36d;
+
+  &--good { border-left-color: #6dd36d; }
+  &--warn { border-left-color: #f2c84b; }
+  &--bad  { border-left-color: #ff6b6b; }
+
+  .run-weather-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .run-weather-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .run-weather-icon {
+    font-size: 28px;
+    color: var(--text);
+    opacity: 0.85;
+  }
+
+  .run-weather-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .run-weather-loc {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+    opacity: 0.7;
+  }
+
+  .run-weather-badge {
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+
+    &--good { background: rgba(120, 220, 120, 0.18); color: #6dd36d; }
+    &--warn { background: rgba(242, 200, 75, 0.18); color: #f2c84b; }
+    &--bad  { background: rgba(255, 107, 107, 0.18); color: #ff6b6b; }
+  }
+
+  .run-weather-reasons {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+  }
+
+  .run-weather-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+  }
+
+  .run-weather-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+  }
+
+  .run-weather-stat {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .run-weather-stat-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+  }
+
+  .run-weather-stat-value {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .run-weather-hint {
+    margin: 0;
+    font-size: 0.85rem;
+    opacity: 0.85;
+  }
+
+  .run-weather-empty {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .run-weather-empty-msg {
+      margin: 2px 0 8px;
+      opacity: 0.8;
+      font-size: 0.9rem;
+    }
+  }
+}
+
 // ── Responsive ────────────────────────────────────────────────────
 @include m.respond-to(v.$bp-lg) {
   .main-grid { grid-template-columns: 1fr 1fr; }

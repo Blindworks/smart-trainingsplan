@@ -6,6 +6,7 @@ import { DashboardService, DashboardData } from '../../services/dashboard.servic
 import { UserService } from '../../services/user.service';
 import { AsthmaService, BioWeatherDto } from '../../services/asthma.service';
 import { CycleSettingsService, CycleStatusDto } from '../../services/cycle-settings.service';
+import { WeatherService, RunWeatherForecastDto } from '../../services/weather.service';
 import { AcwrInfoDialogService } from '../../services/acwr-info-dialog.service';
 import { AcwrInfoDialog } from '../acwr-info-dialog/acwr-info-dialog';
 import { StrainInfoDialogService } from '../../services/strain-info-dialog.service';
@@ -27,6 +28,7 @@ export class Dashboard implements OnInit {
   private readonly userService = inject(UserService);
   private readonly asthmaService = inject(AsthmaService);
   private readonly cycleSettingsService = inject(CycleSettingsService);
+  private readonly weatherService = inject(WeatherService);
   private readonly translate = inject(TranslateService);
   protected readonly acwrInfoService = inject(AcwrInfoDialogService);
   protected readonly strainInfoService = inject(StrainInfoDialogService);
@@ -38,6 +40,8 @@ export class Dashboard implements OnInit {
   missingFields = signal<string[]>([]);
   bioWeather = signal<BioWeatherDto | null>(null);
   cycleStatus = signal<CycleStatusDto | null>(null);
+  runWeather = signal<RunWeatherForecastDto | null>(null);
+  runWeatherChecked = signal(false);
 
   private readonly FIELD_LABELS: Record<string, string> = {
     firstName: 'DASHBOARD.FIELD_FIRST_NAME',
@@ -80,6 +84,16 @@ export class Dashboard implements OnInit {
           error: err => console.warn('Cycle status load failed', err)
         });
       }
+      this.weatherService.getForecast().subscribe({
+        next: forecast => {
+          this.runWeather.set(forecast);
+          this.runWeatherChecked.set(true);
+        },
+        error: err => {
+          this.runWeatherChecked.set(true);
+          console.warn('Run-weather forecast load failed', err);
+        }
+      });
     };
 
     if (this.userService.currentUser()) {
@@ -173,6 +187,33 @@ export class Dashboard implements OnInit {
   cyclePhasePerformanceHint(): string {
     const phase = (this.cycleStatus()?.currentPhase ?? '').toUpperCase();
     return `DASHBOARD.CYCLE_HINT_${phase}`;
+  }
+
+  // ── Run-Weather Widget ──────────────────────────────────────────
+  hasLocationConfigured(): boolean {
+    const user = this.userService.currentUser();
+    return !!(user && user.latitude != null && user.longitude != null);
+  }
+
+  runWeatherVerdictClass(): 'good' | 'warn' | 'bad' {
+    const v = this.runWeather()?.verdict;
+    if (v === 'BAD') return 'bad';
+    if (v === 'CAUTION') return 'warn';
+    return 'good';
+  }
+
+  runWeatherVerdictLabel(): string {
+    const v = this.runWeather()?.verdict;
+    if (v === 'BAD') return 'DASHBOARD.WEATHER_VERDICT_BAD';
+    if (v === 'CAUTION') return 'DASHBOARD.WEATHER_VERDICT_CAUTION';
+    if (v === 'GOOD') return 'DASHBOARD.WEATHER_VERDICT_GOOD';
+    return 'DASHBOARD.WEATHER_VERDICT_UNKNOWN';
+  }
+
+  formatHourLocal(iso: string | null | undefined): string {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   }
 
   // ── Load Trend Bar Chart (aktuelle Woche Mo–So) ──────────────────

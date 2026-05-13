@@ -89,7 +89,11 @@ public class UserController {
             LocalDateTime subscriptionExpiresAt,
             String targetDistance,
             String weeklyVolumeKm,
-            String theme
+            String theme,
+            String addressStreet,
+            String addressPostalCode,
+            String addressCity,
+            String addressCountry
     ) {}
 
     @GetMapping("/me")
@@ -184,7 +188,9 @@ public class UserController {
                     Boolean.TRUE.equals(request.groupEventsEnabled()),
                     Boolean.TRUE.equals(request.discoverableByOthers()),
                     role, subscriptionPlan, subscriptionExpiresAt,
-                    request.targetDistance(), request.weeklyVolumeKm(), request.theme());
+                    request.targetDistance(), request.weeklyVolumeKm(), request.theme(),
+                    request.addressStreet(), request.addressPostalCode(),
+                    request.addressCity(), request.addressCountry());
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();

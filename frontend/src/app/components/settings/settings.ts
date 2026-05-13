@@ -36,6 +36,10 @@ export class Settings implements OnInit, OnDestroy {
 
   protected userLatitude = signal<number | null>(null);
   protected userLongitude = signal<number | null>(null);
+  protected addressStreet = signal('');
+  protected addressPostalCode = signal('');
+  protected addressCity = signal('');
+  protected addressCountry = signal('DE');
 
   private readonly router = inject(Router);
   private readonly stravaService = inject(StravaService);
@@ -192,6 +196,10 @@ export class Settings implements OnInit, OnDestroy {
         this.discoverableByOthersEnabled.set(user.discoverableByOthers ?? false);
         this.userLatitude.set(user.latitude ?? null);
         this.userLongitude.set(user.longitude ?? null);
+        this.addressStreet.set(user.addressStreet ?? '');
+        this.addressPostalCode.set(user.addressPostalCode ?? '');
+        this.addressCity.set(user.addressCity ?? '');
+        this.addressCountry.set(user.addressCountry ?? 'DE');
         this.theme.set((user.theme as ThemeChoice) ?? 'dark');
         this.themeService.initFromProfile(user.theme);
         const prefs = (user.preferredNewsLanguages ?? '').trim();
@@ -476,7 +484,11 @@ export class Settings implements OnInit, OnDestroy {
       communityRoutesEnabled: this.communityRoutesEnabled(),
       groupEventsEnabled: this.groupEventsEnabled(),
       discoverableByOthers: this.discoverableByOthersEnabled(),
-      theme: this.theme()
+      theme: this.theme(),
+      addressStreet: this.addressStreet().trim() || null,
+      addressPostalCode: this.addressPostalCode().trim() || null,
+      addressCity: this.addressCity().trim() || null,
+      addressCountry: (this.addressCountry() || '').trim().toUpperCase() || null
     }).subscribe({
       next: updated => {
         this.currentUser = updated;

@@ -32,6 +32,68 @@
     </div>
   </section>
 
+  <!-- ── Run Weather Forecast ── -->
+  <section class="run-weather-card"
+           *ngIf="runWeatherChecked()"
+           [ngClass]="'run-weather-card--' + runWeatherVerdictClass()">
+    <ng-container *ngIf="runWeather() as wf; else noWeatherTpl">
+      <div class="run-weather-head">
+        <div class="run-weather-title-row">
+          <span class="material-symbols-outlined run-weather-icon">cloud</span>
+          <div>
+            <h4 class="run-weather-title">{{ 'DASHBOARD.WEATHER_TITLE' | translate }}</h4>
+            <p class="run-weather-loc" *ngIf="wf.locationLabel">{{ wf.locationLabel }}</p>
+          </div>
+        </div>
+        <span class="run-weather-badge" [ngClass]="'run-weather-badge--' + runWeatherVerdictClass()">
+          {{ runWeatherVerdictLabel() | translate }}
+        </span>
+      </div>
+
+      <ul class="run-weather-reasons" *ngIf="wf.reasons && wf.reasons.length">
+        <li *ngFor="let r of wf.reasons">
+          <span class="run-weather-dot"></span>
+          {{ r | translate }}
+        </li>
+      </ul>
+
+      <div class="run-weather-stats">
+        <div class="run-weather-stat" *ngIf="wf.currentTemperatureC != null">
+          <span class="run-weather-stat-label">{{ 'DASHBOARD.WEATHER_TEMP_NOW' | translate }}</span>
+          <span class="run-weather-stat-value">{{ wf.currentTemperatureC | number:'1.0-1' }}°C</span>
+        </div>
+        <div class="run-weather-stat" *ngIf="wf.maxPrecipitationProbabilityPct != null">
+          <span class="run-weather-stat-label">{{ 'DASHBOARD.WEATHER_RAIN_CHANCE' | translate }}</span>
+          <span class="run-weather-stat-value">{{ wf.maxPrecipitationProbabilityPct }}%</span>
+        </div>
+        <div class="run-weather-stat" *ngIf="wf.totalPrecipitationMm != null">
+          <span class="run-weather-stat-label">{{ 'DASHBOARD.WEATHER_RAIN_TOTAL' | translate }}</span>
+          <span class="run-weather-stat-value">{{ wf.totalPrecipitationMm | number:'1.0-1' }} mm</span>
+        </div>
+        <div class="run-weather-stat" *ngIf="wf.maxWindKmh != null">
+          <span class="run-weather-stat-label">{{ 'DASHBOARD.WEATHER_WIND_MAX' | translate }}</span>
+          <span class="run-weather-stat-value">{{ wf.maxWindKmh | number:'1.0-0' }} km/h</span>
+        </div>
+      </div>
+
+      <p class="run-weather-hint" *ngIf="wf.firstRainAt">
+        {{ 'DASHBOARD.WEATHER_FIRST_RAIN' | translate }}
+        <strong>{{ formatHourLocal(wf.firstRainAt) }}</strong>
+      </p>
+    </ng-container>
+
+    <ng-template #noWeatherTpl>
+      <div class="run-weather-empty">
+        <span class="material-symbols-outlined run-weather-icon">location_off</span>
+        <div>
+          <h4 class="run-weather-title">{{ 'DASHBOARD.WEATHER_TITLE' | translate }}</h4>
+          <p class="run-weather-empty-msg">{{ 'DASHBOARD.WEATHER_NO_LOCATION' | translate }}</p>
+          <a routerLink="/settings" class="btn-settings">{{ 'DASHBOARD.WEATHER_SET_ADDRESS' | translate }}</a>
+        </div>
+      </div>
+    </ng-template>
+  </section>
+
   <!-- ── Main 3-column Grid ── -->
   <div class="main-grid">
 

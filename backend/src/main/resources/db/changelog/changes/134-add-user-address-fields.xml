@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="134-1" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="users" columnName="address_street"/></not>
+        </preConditions>
+        <comment>Street + house number for location-bound weather forecasts</comment>
+        <addColumn tableName="users">
+            <column name="address_street" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="134-2" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="users" columnName="address_postal_code"/></not>
+        </preConditions>
+        <comment>Postal code for the user's home address</comment>
+        <addColumn tableName="users">
+            <column name="address_postal_code" type="VARCHAR(20)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="134-3" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="users" columnName="address_city"/></not>
+        </preConditions>
+        <comment>City for the user's home address</comment>
+        <addColumn tableName="users">
+            <column name="address_city" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="134-4" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="users" columnName="address_country"/></not>
+        </preConditions>
+        <comment>Country (ISO 3166-1 alpha-2) for the user's home address; defaults to DE</comment>
+        <addColumn tableName="users">
+            <column name="address_country" type="VARCHAR(2)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

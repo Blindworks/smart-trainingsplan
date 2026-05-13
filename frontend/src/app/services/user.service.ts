@@ -29,6 +29,10 @@ export interface UserProfile {
   latitude?: number | null;
   longitude?: number | null;
   locationUpdatedAt?: string | null;
+  addressStreet?: string | null;
+  addressPostalCode?: string | null;
+  addressCity?: string | null;
+  addressCountry?: string | null;
   theme: string;
   role: string | null;
   subscriptionPlan: string | null;
@@ -72,6 +76,10 @@ export interface UpdateUserRequest {
   targetDistance?: string | null;
   weeklyVolumeKm?: string | null;
   theme?: string;
+  addressStreet?: string | null;
+  addressPostalCode?: string | null;
+  addressCity?: string | null;
+  addressCountry?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

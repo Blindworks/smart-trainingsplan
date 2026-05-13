@@ -99,6 +99,45 @@
       </div>
     </article>
 
+    <!-- Home Address -->
+    <article class="section">
+      <div class="section-head">
+        <span class="material-symbols-outlined">home</span>
+        <h2>{{ 'SETTINGS.ADDRESS_TITLE' | translate }}</h2>
+      </div>
+      <p class="section-desc">{{ 'SETTINGS.ADDRESS_DESC' | translate }}</p>
+      <div class="metrics-grid">
+        <div class="field" style="grid-column: 1 / -1">
+          <label>{{ 'SETTINGS.ADDRESS_STREET' | translate }}</label>
+          <input type="text" autocomplete="street-address"
+                 [ngModel]="addressStreet()"
+                 (ngModelChange)="addressStreet.set($event); onFieldChange()"
+                 placeholder="Musterstraße 12" />
+        </div>
+        <div class="field">
+          <label>{{ 'SETTINGS.ADDRESS_POSTAL_CODE' | translate }}</label>
+          <input type="text" autocomplete="postal-code"
+                 [ngModel]="addressPostalCode()"
+                 (ngModelChange)="addressPostalCode.set($event); onFieldChange()"
+                 placeholder="80331" />
+        </div>
+        <div class="field">
+          <label>{{ 'SETTINGS.ADDRESS_CITY' | translate }}</label>
+          <input type="text" autocomplete="address-level2"
+                 [ngModel]="addressCity()"
+                 (ngModelChange)="addressCity.set($event); onFieldChange()"
+                 placeholder="München" />
+        </div>
+        <div class="field">
+          <label>{{ 'SETTINGS.ADDRESS_COUNTRY' | translate }}</label>
+          <input type="text" autocomplete="country" maxlength="2"
+                 [ngModel]="addressCountry()"
+                 (ngModelChange)="addressCountry.set($event); onFieldChange()"
+                 placeholder="DE" />
+        </div>
+      </div>
+    </article>
+
     <!-- App Preferences -->
     <article class="section">
       <div class="section-head">
