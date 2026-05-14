@@ -141,6 +141,22 @@ public class User implements UserDetails {
     @Column(name = "location_updated_at")
     private LocalDateTime locationUpdatedAt;
 
+    /** Street + house number of the user's home address (for location-bound weather forecasts). */
+    @Column(name = "address_street", length = 255)
+    private String addressStreet;
+
+    /** Postal code of the user's home address. */
+    @Column(name = "address_postal_code", length = 20)
+    private String addressPostalCode;
+
+    /** City of the user's home address. */
+    @Column(name = "address_city", length = 255)
+    private String addressCity;
+
+    /** ISO 3166-1 alpha-2 country code of the user's home address (e.g. "DE"). */
+    @Column(name = "address_country", length = 2)
+    private String addressCountry;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "subscription_plan", nullable = false, length = 20)
     private SubscriptionPlan subscriptionPlan = SubscriptionPlan.FREE;
@@ -446,6 +462,18 @@ public class User implements UserDetails {
 
     public LocalDateTime getLocationUpdatedAt() { return locationUpdatedAt; }
     public void setLocationUpdatedAt(LocalDateTime locationUpdatedAt) { this.locationUpdatedAt = locationUpdatedAt; }
+
+    public String getAddressStreet() { return addressStreet; }
+    public void setAddressStreet(String addressStreet) { this.addressStreet = addressStreet; }
+
+    public String getAddressPostalCode() { return addressPostalCode; }
+    public void setAddressPostalCode(String addressPostalCode) { this.addressPostalCode = addressPostalCode; }
+
+    public String getAddressCity() { return addressCity; }
+    public void setAddressCity(String addressCity) { this.addressCity = addressCity; }
+
+    public String getAddressCountry() { return addressCountry; }
+    public void setAddressCountry(String addressCountry) { this.addressCountry = addressCountry; }
 
     public SubscriptionPlan getSubscriptionPlan() { return subscriptionPlan; }
     public void setSubscriptionPlan(SubscriptionPlan subscriptionPlan) {
