@@ -1,0 +1,29 @@
+<div class="notifications-page">
+  <header class="page-header">
+    <h1>{{ 'NOTIFICATIONS.TITLE' | translate }}</h1>
+    <button class="ghost-btn" (click)="markAll()">{{ 'NOTIFICATIONS.MARK_ALL_READ' | translate }}</button>
+  </header>
+
+  @if (loading()) {
+    <div class="loading">{{ 'COMMON.LOADING' | translate }}</div>
+  } @else if (list().length === 0) {
+    <div class="empty">
+      <span class="material-symbols-outlined">notifications_off</span>
+      <p>{{ 'NOTIFICATIONS.EMPTY' | translate }}</p>
+    </div>
+  } @else {
+    <ul class="notif-list">
+      @for (n of list(); track n.id) {
+        <li class="notif" [class.unread]="!n.read" (click)="open(n)">
+          <span class="material-symbols-outlined icon">{{ iconFor(n.type) }}</span>
+          <div class="content">
+            <div class="title">{{ n.title }}</div>
+            @if (n.message) { <div class="message">{{ n.message }}</div> }
+            <div class="created">{{ n.createdAt | date: 'short' }}</div>
+          </div>
+          @if (!n.read) { <span class="dot"></span> }
+        </li>
+      }
+    </ul>
+  }
+</div>

@@ -8,7 +8,9 @@ import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 import { SubscriptionService } from '../../services/subscription.service';
+import { NotificationService } from '../../services/notification.service';
 import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-sidebar',
@@ -42,7 +44,9 @@ export class Sidebar implements OnInit, OnDestroy {
   protected readonly userService = inject(UserService);
   protected readonly themeService = inject(ThemeService);
   protected readonly subscriptionService = inject(SubscriptionService);
+  protected readonly notificationService = inject(NotificationService);
 
+  private notifPollSub?: Subscription;
   private mobileQuery!: MediaQueryList;
   private tabletQuery!: MediaQueryList;
   private mobileListener = (e: MediaQueryListEvent) => this.onMobileChange(e.matches);
@@ -105,6 +109,9 @@ export class Sidebar implements OnInit, OnDestroy {
         this.setScrollLock(false);
       }
     });
+
+    // Notification polling
+    this.notifPollSub = this.notificationService.startPolling(60000).subscribe();
   }
 
   ngOnDestroy(): void {
@@ -113,6 +120,7 @@ export class Sidebar implements OnInit, OnDestroy {
 
     this.mobileQuery?.removeEventListener('change', this.mobileListener);
     this.tabletQuery?.removeEventListener('change', this.tabletListener);
+    this.notifPollSub?.unsubscribe();
     this.setScrollLock(false);
   }
 

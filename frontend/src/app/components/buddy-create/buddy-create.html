@@ -1,0 +1,102 @@
+<div class="buddy-create-page">
+  <header class="page-header">
+    <a routerLink="/buddy" class="back-btn"><span class="material-symbols-outlined">arrow_back</span></a>
+    <h1>{{ 'BUDDY.CREATE_TITLE' | translate }}</h1>
+  </header>
+
+  @if (inviteUserId) {
+    <div class="invite-banner">
+      <span class="material-symbols-outlined">person_add</span>
+      <span [innerHTML]="'BUDDY.PROPOSE_TO' | translate: { name: inviteName || ('User #' + inviteUserId) }"></span>
+    </div>
+  }
+
+  <form class="form" (ngSubmit)="submit()" #f="ngForm">
+    <div class="field">
+      <label>{{ 'BUDDY.FIELD_TITLE' | translate }}</label>
+      <input type="text" [(ngModel)]="title" name="title" required maxlength="255" />
+    </div>
+
+    <div class="field">
+      <label>{{ 'BUDDY.FIELD_DESCRIPTION' | translate }}</label>
+      <textarea [(ngModel)]="description" name="description" rows="2"></textarea>
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <label>{{ 'BUDDY.FIELD_DATE' | translate }}</label>
+        <input type="date" [(ngModel)]="scheduledDate" name="date" required />
+      </div>
+      <div class="field">
+        <label>{{ 'BUDDY.FIELD_TIME' | translate }}</label>
+        <input type="time" [(ngModel)]="scheduledTime" name="time" required />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>{{ 'BUDDY.FIELD_MEETING_POINT' | translate }}</label>
+      <div class="input-with-action">
+        <input type="text" [(ngModel)]="meetingPointName" name="meeting" required [placeholder]="'BUDDY.FIELD_MEETING_POINT_PLACEHOLDER' | translate" />
+        <button type="button" class="link-btn" (click)="openLocationPicker()" [title]="'BUDDY.PICK_ON_MAP' | translate">
+          <span class="material-symbols-outlined">map</span>
+        </button>
+        <button type="button" class="link-btn" (click)="useCurrentLocation()" [title]="'BUDDY.USE_CURRENT_LOCATION' | translate">
+          <span class="material-symbols-outlined">my_location</span>
+        </button>
+      </div>
+      @if (meetingLatitude && meetingLongitude) {
+        <small class="muted">{{ meetingLatitude | number: '1.4-4' }}, {{ meetingLongitude | number: '1.4-4' }}</small>
+      }
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <label>{{ 'BUDDY.FIELD_DISTANCE_KM' | translate }}</label>
+        <input type="number" [(ngModel)]="distanceKm" name="distance" min="0" step="0.1" />
+      </div>
+      <div class="field">
+        <label>{{ 'BUDDY.FIELD_DURATION_MIN' | translate }}</label>
+        <input type="number" [(ngModel)]="expectedDurationMinutes" name="duration" min="0" />
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <label>{{ 'BUDDY.FIELD_PACE_MIN' | translate }} (mm:ss)</label>
+        <input type="text" [(ngModel)]="targetPaceMin" name="paceMin" placeholder="5:00" />
+      </div>
+      <div class="field">
+        <label>{{ 'BUDDY.FIELD_PACE_MAX' | translate }} (mm:ss)</label>
+        <input type="text" [(ngModel)]="targetPaceMax" name="paceMax" placeholder="6:00" />
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <label>{{ 'BUDDY.FIELD_MAX_PARTICIPANTS' | translate }}</label>
+        <input type="number" [(ngModel)]="maxParticipants" name="maxP" min="2" />
+      </div>
+      <div class="field">
+        <label>{{ 'BUDDY.FIELD_VISIBILITY' | translate }}</label>
+        <select [(ngModel)]="visibility" name="visibility">
+          <option value="FRIENDS_ONLY">{{ 'BUDDY.VISIBILITY_FRIENDS_ONLY' | translate }}</option>
+          <option value="PUBLIC_NEARBY">{{ 'BUDDY.VISIBILITY_PUBLIC_NEARBY' | translate }}</option>
+          <option value="PRIVATE_INVITE">{{ 'BUDDY.VISIBILITY_PRIVATE_INVITE' | translate }}</option>
+        </select>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="error-banner">{{ error() }}</div>
+    }
+
+    <div class="actions">
+      <a routerLink="/buddy" class="ghost-btn">{{ 'COMMON.CANCEL' | translate }}</a>
+      <button type="submit" class="primary-btn" [disabled]="submitting() || f.invalid">
+        {{ 'BUDDY.CREATE' | translate }}
+      </button>
+    </div>
+  </form>
+
+  <app-location-picker-dialog #locationPicker (confirmed)="onLocationPicked($event)"></app-location-picker-dialog>
+</div>

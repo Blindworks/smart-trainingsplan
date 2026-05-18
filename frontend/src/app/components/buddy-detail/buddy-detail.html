@@ -1,0 +1,118 @@
+<div class="buddy-detail-page">
+  <header class="page-header">
+    <a routerLink="/buddy" class="back-btn"><span class="material-symbols-outlined">arrow_back</span></a>
+    <h1>{{ 'BUDDY.DETAIL_TITLE' | translate }}</h1>
+  </header>
+
+  @if (loading()) {
+    <div class="loading">{{ 'COMMON.LOADING' | translate }}</div>
+  } @else if (error() || !run()) {
+    <div class="error-card">{{ 'COMMON.ERROR' | translate }}</div>
+  } @else {
+    <div class="run-summary">
+      <div class="run-summary-header">
+        <h2>{{ run()!.title }}</h2>
+        <span class="status" [attr.data-status]="run()!.status">{{ ('BUDDY.STATUS_' + run()!.status) | translate }}</span>
+      </div>
+      @if (run()!.description) { <p class="description">{{ run()!.description }}</p> }
+
+      <div class="run-meta">
+        <div class="meta-item">
+          <span class="material-symbols-outlined">event</span>
+          <span>{{ formatDate(run()!.scheduledAt) }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="material-symbols-outlined">location_on</span>
+          <span>{{ run()!.meetingPointName }}</span>
+        </div>
+        @if (run()!.distanceKm) {
+          <div class="meta-item">
+            <span class="material-symbols-outlined">straighten</span>
+            <span>{{ run()!.distanceKm }} km</span>
+          </div>
+        }
+        @if (run()!.targetPaceMinSecPerKm && run()!.targetPaceMaxSecPerKm) {
+          <div class="meta-item">
+            <span class="material-symbols-outlined">speed</span>
+            <span>{{ formatPace(run()!.targetPaceMinSecPerKm) }} – {{ formatPace(run()!.targetPaceMaxSecPerKm) }}</span>
+          </div>
+        }
+        @if (run()!.maxParticipants) {
+          <div class="meta-item">
+            <span class="material-symbols-outlined">group</span>
+            <span>{{ run()!.joinedCount }} / {{ run()!.maxParticipants }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="actions">
+        @if (run()!.status === 'OPEN' || run()!.status === 'CONFIRMED') {
+          @if (myParticipation(); as p) {
+            @if (p.status === 'INVITED') {
+              <button class="primary-btn" [disabled]="busy()" (click)="respond(true)">{{ 'BUDDY.ACCEPT' | translate }}</button>
+              <button class="ghost-btn" [disabled]="busy()" (click)="respond(false)">{{ 'BUDDY.DECLINE' | translate }}</button>
+            } @else if (p.status === 'JOINED' && p.role !== 'CREATOR') {
+              <button class="ghost-btn" [disabled]="busy()" (click)="withdraw()">{{ 'BUDDY.WITHDRAW' | translate }}</button>
+            } @else if (p.role === 'CREATOR') {
+              <button class="danger-btn" [disabled]="busy()" (click)="cancel()">{{ 'BUDDY.CANCEL_RUN' | translate }}</button>
+            }
+          } @else {
+            <button class="primary-btn" [disabled]="busy()" (click)="join()">{{ 'BUDDY.JOIN' | translate }}</button>
+          }
+        }
+      </div>
+    </div>
+
+    <section class="participants">
+      <h3>{{ 'BUDDY.PARTICIPANTS' | translate }}</h3>
+      <ul class="participant-list">
+        @for (p of run()!.participants; track p.id) {
+          <li class="participant" [class.declined]="p.status === 'DECLINED' || p.status === 'WITHDRAWN'">
+            <div class="avatar">
+              @if (avatarUrl(p.userId); as url) {
+                <img [src]="url" alt="" />
+              } @else {
+                <span>{{ p.username[0] | uppercase }}</span>
+              }
+            </div>
+            <div class="info">
+              <span class="username">{{ '@' + p.username }}</span>
+              <span class="status-label">{{ ('BUDDY.PARTICIPANT_STATUS_' + p.status) | translate }}</span>
+            </div>
+            @if (p.role === 'CREATOR') { <span class="chip">{{ 'BUDDY.CREATOR' | translate }}</span> }
+          </li>
+        }
+      </ul>
+    </section>
+
+    @if (isCreator() && suggestions().length > 0) {
+      <section class="suggestions">
+        <h3>{{ 'BUDDY.SUGGESTIONS' | translate }}</h3>
+        <ul class="suggestion-list">
+          @for (s of suggestions(); track s.userId) {
+            <li class="suggestion">
+              <div class="avatar">
+                @if (s.profileImageFilename) {
+                  <img [src]="'/api/users/profile-image/' + s.profileImageFilename" alt="" />
+                } @else {
+                  <span>{{ s.username[0] | uppercase }}</span>
+                }
+              </div>
+              <div class="info">
+                <span class="username">{{ '@' + s.username }}</span>
+                <span class="meta">
+                  @if (s.distanceKm != null) { <span>{{ s.distanceKm | number: '1.1-1' }} km</span> }
+                  @if (s.userPaceSecPerKm) { <span>{{ formatPace(s.userPaceSecPerKm) }}</span> }
+                  @if (s.friendshipStatus === 'FRIENDS') { <span class="chip">{{ 'BUDDY.FRIEND' | translate }}</span> }
+                </span>
+              </div>
+              <button class="ghost-btn small" [disabled]="busy()" (click)="invite(s.userId)">
+                {{ 'BUDDY.INVITE' | translate }}
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</div>

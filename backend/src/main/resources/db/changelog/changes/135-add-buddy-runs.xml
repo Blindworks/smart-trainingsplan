@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="135-1" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="buddy_runs"/></not>
+        </preConditions>
+        <comment>Create buddy_runs table for peer-to-peer running dates</comment>
+        <createTable tableName="buddy_runs">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="creator_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="scheduled_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="meeting_point_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="meeting_latitude" type="DOUBLE">
+                <constraints nullable="true"/>
+            </column>
+            <column name="meeting_longitude" type="DOUBLE">
+                <constraints nullable="true"/>
+            </column>
+            <column name="community_route_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="distance_km" type="DOUBLE">
+                <constraints nullable="true"/>
+            </column>
+            <column name="expected_duration_minutes" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="target_pace_min_sec_per_km" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="target_pace_max_sec_per_km" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="max_participants" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="visibility" type="VARCHAR(32)" defaultValue="FRIENDS_ONLY">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="OPEN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+            baseTableName="buddy_runs" baseColumnNames="creator_id"
+            referencedTableName="users" referencedColumnNames="id"
+            constraintName="fk_buddy_runs_creator"/>
+        <addForeignKeyConstraint
+            baseTableName="buddy_runs" baseColumnNames="community_route_id"
+            referencedTableName="community_routes" referencedColumnNames="id"
+            constraintName="fk_buddy_runs_route"/>
+        <createIndex tableName="buddy_runs" indexName="idx_buddy_runs_creator">
+            <column name="creator_id"/>
+        </createIndex>
+        <createIndex tableName="buddy_runs" indexName="idx_buddy_runs_scheduled_status">
+            <column name="scheduled_at"/>
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="buddy_runs" indexName="idx_buddy_runs_lat_lon">
+            <column name="meeting_latitude"/>
+            <column name="meeting_longitude"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="135-2" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="buddy_run_participants"/></not>
+        </preConditions>
+        <comment>Create buddy_run_participants table</comment>
+        <createTable tableName="buddy_run_participants">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="buddy_run_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="JOINED">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(20)" defaultValue="PARTICIPANT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invited_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="responded_at" type="DATETIME">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+            baseTableName="buddy_run_participants" baseColumnNames="buddy_run_id"
+            referencedTableName="buddy_runs" referencedColumnNames="id"
+            constraintName="fk_buddy_run_part_run"
+            onDelete="CASCADE"/>
+        <addForeignKeyConstraint
+            baseTableName="buddy_run_participants" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="id"
+            constraintName="fk_buddy_run_part_user"/>
+        <addUniqueConstraint tableName="buddy_run_participants"
+            columnNames="buddy_run_id, user_id"
+            constraintName="uk_buddy_run_part_run_user"/>
+        <createIndex tableName="buddy_run_participants" indexName="idx_buddy_run_part_user_status">
+            <column name="user_id"/>
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="136-1" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="user_buddy_preferences"/></not>
+        </preConditions>
+        <comment>Create user_buddy_preferences table for Running Buddy opt-in and matching parameters</comment>
+        <createTable tableName="user_buddy_preferences">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="buddy_discoverable" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="search_radius_km" type="INT" defaultValueNumeric="10">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pace_tolerance_percent" type="INT" defaultValueNumeric="15">
+                <constraints nullable="false"/>
+            </column>
+            <column name="available_weekdays" type="VARCHAR(64)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="available_time_ranges" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="auto_match_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+            baseTableName="user_buddy_preferences" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="id"
+            constraintName="fk_buddy_prefs_user"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

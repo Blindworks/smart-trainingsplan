@@ -137,5 +137,9 @@
     <include file="db/changelog/changes/132-add-run-club-meeting-time.xml"/>
     <include file="db/changelog/changes/133-add-run-club-post-images.xml"/>
     <include file="db/changelog/changes/134-add-user-address-fields.xml"/>
+    <include file="db/changelog/changes/135-add-buddy-runs.xml"/>
+    <include file="db/changelog/changes/136-add-user-buddy-preferences.xml"/>
+    <include file="db/changelog/changes/137-add-user-notifications.xml"/>
+    <include file="db/changelog/changes/138-add-buddy-pref-target-pace.xml"/>
 
 </databaseChangeLog>

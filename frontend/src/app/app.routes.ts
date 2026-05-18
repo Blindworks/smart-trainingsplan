@@ -162,6 +162,31 @@ export const routes: Routes = [
     loadComponent: () => import('./components/friends/friends').then(m => m.Friends)
   },
   {
+    path: 'buddy',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/buddy/buddy').then(m => m.Buddy)
+  },
+  {
+    path: 'buddy/new',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/buddy-create/buddy-create').then(m => m.BuddyCreate)
+  },
+  {
+    path: 'buddy/preferences',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/buddy-preferences/buddy-preferences').then(m => m.BuddyPreferences)
+  },
+  {
+    path: 'buddy/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/buddy-detail/buddy-detail').then(m => m.BuddyDetail)
+  },
+  {
+    path: 'notifications',
+    canActivate: [authGuard],
+    loadComponent: () => import('./components/notifications/notifications').then(m => m.Notifications)
+  },
+  {
     path: 'trainer/events',
     canActivate: [authGuard, trainerGuard],
     loadComponent: () => import('./components/trainer-events/trainer-events').then(m => m.TrainerEvents)

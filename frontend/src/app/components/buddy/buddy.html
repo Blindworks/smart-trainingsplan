@@ -1,0 +1,239 @@
+<div class="buddy-page" [class.matches-mode]="activeTab() === 'matches'">
+
+  @if (activeTab() === 'matches') {
+    <header class="hub-header">
+      <div class="header-row">
+        <div class="header-left">
+          <h1>
+            {{ 'BUDDY.HERO_TITLE_PRIMARY' | translate }}
+            <span class="accent">{{ 'BUDDY.HERO_TITLE_ACCENT' | translate }}</span>
+          </h1>
+          <p class="subtitle">{{ 'BUDDY.HERO_KICKER' | translate }}</p>
+        </div>
+        <div class="header-actions">
+          <a routerLink="/buddy/preferences" class="ghost-btn" [title]="'BUDDY.PREFERENCES' | translate">
+            <span class="material-symbols-outlined">tune</span>
+          </a>
+          <a routerLink="/buddy/new" class="primary-btn">
+            <span class="material-symbols-outlined">add</span>
+            <span>{{ 'BUDDY.CREATE' | translate }}</span>
+          </a>
+        </div>
+      </div>
+      <p class="hero-description">{{ 'BUDDY.HERO_SUBTITLE' | translate }}</p>
+    </header>
+  } @else {
+    <header class="page-header">
+      <div>
+        <h1>{{ 'BUDDY.TITLE' | translate }}</h1>
+        <p class="muted">{{ 'BUDDY.SUBTITLE' | translate }}</p>
+      </div>
+      <div class="header-actions">
+        <a routerLink="/buddy/preferences" class="ghost-btn" [title]="'BUDDY.PREFERENCES' | translate">
+          <span class="material-symbols-outlined">tune</span>
+        </a>
+        <a routerLink="/buddy/new" class="primary-btn">
+          <span class="material-symbols-outlined">add</span>
+          <span>{{ 'BUDDY.CREATE' | translate }}</span>
+        </a>
+      </div>
+    </header>
+  }
+
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab() === 'matches'" (click)="selectTab('matches')">
+      <span class="material-symbols-outlined">handshake</span>
+      <span>{{ 'BUDDY.TAB_MATCHES' | translate }}</span>
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'open'" (click)="selectTab('open')">
+      <span class="material-symbols-outlined">explore</span>
+      <span>{{ 'BUDDY.TAB_OPEN' | translate }}</span>
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'upcoming'" (click)="selectTab('upcoming')">
+      <span class="material-symbols-outlined">event</span>
+      <span>{{ 'BUDDY.TAB_UPCOMING' | translate }}</span>
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'mine'" (click)="selectTab('mine')">
+      <span class="material-symbols-outlined">person</span>
+      <span>{{ 'BUDDY.TAB_MINE' | translate }}</span>
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">{{ 'COMMON.LOADING' | translate }}</div>
+  } @else if (error()) {
+    <div class="error-card">{{ 'COMMON.ERROR' | translate }}</div>
+  } @else if (activeTab() === 'matches') {
+
+    @if (optedIn() && matches().length > 0) {
+      <div class="filter-bar">
+        <div class="filter-field">
+          <label>{{ 'BUDDY.FILTER_DISTANCE' | translate }}</label>
+          <select [(ngModel)]="filterDistance" (change)="filterDistance.set(filterDistance())">
+            <option value="ANY">{{ 'BUDDY.FILTER_DISTANCE_ANY' | translate }}</option>
+            <option value="SHORT">{{ 'BUDDY.FILTER_DISTANCE_SHORT' | translate }}</option>
+            <option value="MID">{{ 'BUDDY.FILTER_DISTANCE_MID' | translate }}</option>
+            <option value="LONG">{{ 'BUDDY.FILTER_DISTANCE_LONG' | translate }}</option>
+            <option value="MARATHON">{{ 'BUDDY.FILTER_DISTANCE_MARATHON' | translate }}</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label>{{ 'BUDDY.FILTER_PACE' | translate }}</label>
+          <select [(ngModel)]="filterPace" (change)="filterPace.set(filterPace())">
+            <option value="ANY">{{ 'BUDDY.FILTER_PACE_ANY' | translate }}</option>
+            <option value="FAST">&lt; 4:30 min/km</option>
+            <option value="MID">4:30 - 5:30 min/km</option>
+            <option value="EASY">&gt; 5:30 min/km</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label>{{ 'BUDDY.FILTER_TIME' | translate }}</label>
+          <select [(ngModel)]="filterTime" (change)="filterTime.set(filterTime())">
+            <option value="ANY">{{ 'BUDDY.FILTER_TIME_ANY' | translate }}</option>
+            <option value="EARLY">{{ 'BUDDY.FILTER_TIME_EARLY' | translate }}</option>
+            <option value="MORNING">{{ 'BUDDY.FILTER_TIME_MORNING' | translate }}</option>
+            <option value="EVENING">{{ 'BUDDY.FILTER_TIME_EVENING' | translate }}</option>
+          </select>
+        </div>
+        <button class="filter-icon-btn" [title]="'BUDDY.MORE_FILTERS' | translate">
+          <span class="material-symbols-outlined">tune</span>
+        </button>
+      </div>
+    }
+
+    @if (!optedIn()) {
+      <div class="empty cta">
+        <span class="material-symbols-outlined">person_search</span>
+        <h2>{{ 'BUDDY.MATCHES_OPTIN_TITLE' | translate }}</h2>
+        <p>{{ 'BUDDY.MATCHES_OPTIN_TEXT' | translate }}</p>
+        <a routerLink="/buddy/preferences" class="primary-btn">
+          <span class="material-symbols-outlined">tune</span>
+          <span>{{ 'BUDDY.OPEN_PREFERENCES' | translate }}</span>
+        </a>
+      </div>
+    } @else if (matches().length === 0) {
+      <div class="empty">
+        <span class="material-symbols-outlined">person_off</span>
+        <p>{{ 'BUDDY.MATCHES_EMPTY' | translate }}</p>
+        <p class="muted-small">{{ 'BUDDY.MATCHES_EMPTY_HINT' | translate }}</p>
+      </div>
+    } @else if (filteredMatches().length === 0) {
+      <div class="empty">
+        <span class="material-symbols-outlined">filter_alt_off</span>
+        <p>{{ 'BUDDY.MATCHES_FILTERED_EMPTY' | translate }}</p>
+      </div>
+    } @else {
+      <div class="match-grid-stitch">
+        @for (m of filteredMatches(); track m.userId) {
+          <article class="hero-card">
+            <div class="hero-card-image">
+              @if (avatarUrl(m.userId); as url) {
+                <img [src]="url" [alt]="m.username" />
+              } @else {
+                <div class="hero-card-placeholder">
+                  <span class="material-symbols-outlined">directions_run</span>
+                </div>
+              }
+              <div class="hero-card-tier">
+                <span class="dot"></span>
+                <span>{{ tierForScore(m.paceMatchScore) }}</span>
+              </div>
+              <div class="hero-card-name-overlay">
+                <h3>{{ m.username | uppercase }}</h3>
+                @if (m.city) {
+                  <span class="loc">
+                    <span class="material-symbols-outlined">location_on</span>
+                    {{ m.city | uppercase }}
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="hero-card-stats">
+              <div class="stat">
+                <span class="stat-label">{{ 'BUDDY.STAT_PACE' | translate }}</span>
+                <span class="stat-value">{{ formatPace(m.userPaceSecPerKm) }}<small>m/k</small></span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">{{ 'BUDDY.STAT_AWAY' | translate }}</span>
+                <span class="stat-value">
+                  @if (m.distanceKm != null) {
+                    {{ m.distanceKm | number: '1.0-1' }}<small>km</small>
+                  } @else { – }
+                </span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">{{ 'BUDDY.STAT_STATUS' | translate }}</span>
+                <span class="stat-value small">
+                  {{ (m.friendshipStatus === 'FRIENDS' ? 'BUDDY.FRIEND' : 'BUDDY.NEW') | translate }}
+                </span>
+              </div>
+            </div>
+
+            <div class="hero-card-compat">
+              <div class="compat-header">
+                <span class="compat-label">{{ 'BUDDY.COMPATIBILITY' | translate }}</span>
+                <span class="compat-value">{{ ((m.paceMatchScore ?? 0) * 100) | number: '1.0-0' }}%</span>
+              </div>
+              <div class="compat-bar">
+                <div class="compat-fill" [style.width.%]="(m.paceMatchScore ?? 0) * 100"></div>
+              </div>
+            </div>
+
+            <a class="invite-btn" [routerLink]="['/buddy/new']" [queryParams]="{ inviteUserId: m.userId, inviteName: m.username }">
+              {{ 'BUDDY.SEND_RUN_INVITE' | translate }}
+            </a>
+            <a class="profile-link" [routerLink]="['/buddy/preferences']">{{ 'BUDDY.VIEW_PROFILE' | translate }}</a>
+          </article>
+        }
+      </div>
+    }
+
+  } @else if (runs().length === 0) {
+    <div class="empty">
+      <span class="material-symbols-outlined">directions_run</span>
+      <p>{{ 'BUDDY.EMPTY' | translate }}</p>
+    </div>
+  } @else {
+    <div class="card-grid">
+      @for (r of runs(); track r.id) {
+        <a [routerLink]="['/buddy', r.id]" class="run-card">
+          <div class="run-card-header">
+            <span class="material-symbols-outlined visibility-icon">{{ visibilityIcon(r.visibility) }}</span>
+            <h3>{{ r.title }}</h3>
+            <span class="status" [attr.data-status]="r.status">{{ ('BUDDY.STATUS_' + r.status) | translate }}</span>
+          </div>
+          <div class="run-meta">
+            <span class="meta-item">
+              <span class="material-symbols-outlined">event</span>
+              {{ formatDate(r.scheduledAt) }}
+            </span>
+            <span class="meta-item">
+              <span class="material-symbols-outlined">location_on</span>
+              {{ r.meetingPointName }}
+            </span>
+            @if (r.distanceKm) {
+              <span class="meta-item">
+                <span class="material-symbols-outlined">straighten</span>
+                {{ r.distanceKm }} km
+              </span>
+            }
+            @if (r.targetPaceMinSecPerKm && r.targetPaceMaxSecPerKm) {
+              <span class="meta-item">
+                <span class="material-symbols-outlined">speed</span>
+                {{ formatPace(r.targetPaceMinSecPerKm) }} – {{ formatPace(r.targetPaceMaxSecPerKm) }}
+              </span>
+            }
+          </div>
+          <div class="run-footer">
+            <span class="participants-count">
+              <span class="material-symbols-outlined">group</span>
+              {{ r.joinedCount }}@if (r.maxParticipants) {<span>/{{ r.maxParticipants }}</span>}
+            </span>
+            <span class="creator">{{ '@' + r.creatorUsername }}</span>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</div>

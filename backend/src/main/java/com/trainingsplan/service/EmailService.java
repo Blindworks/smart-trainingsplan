@@ -85,6 +85,30 @@ public class EmailService {
     }
 
     /**
+     * Sends a Buddy-Run reminder email.
+     */
+    public void sendBuddyReminder(String to, String runTitle, String meetingPoint, String whenFormatted, String horizonLabel, Long runId) {
+        String link = frontendUrl + "/buddy/" + runId;
+        String body = "Erinnerung an deinen Buddy-Run \"" + runTitle + "\".\n\n"
+                + "Wann: " + whenFormatted + " (" + horizonLabel + ")\n"
+                + "Treffpunkt: " + meetingPoint + "\n\n"
+                + "Details: " + link + "\n";
+        sendSimpleMessage(to, "[PACR] Buddy-Run Erinnerung: " + runTitle, body);
+    }
+
+    /**
+     * Sends a Buddy-Run invitation email.
+     */
+    public void sendBuddyInvite(String to, String inviterUsername, String runTitle, String whenFormatted, Long runId) {
+        String link = frontendUrl + "/buddy/" + runId;
+        String body = inviterUsername + " hat dich zu einem Buddy-Run eingeladen.\n\n"
+                + "Titel: " + runTitle + "\n"
+                + "Wann: " + whenFormatted + "\n\n"
+                + "Antworten: " + link + "\n";
+        sendSimpleMessage(to, "[PACR] Neue Buddy-Run Einladung", body);
+    }
+
+    /**
      * Notifies administrators about a newly registered user.
      */
     public void sendAdminNewUserNotification(User newUser, List<String> adminEmails) {

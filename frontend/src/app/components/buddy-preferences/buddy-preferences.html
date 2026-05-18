@@ -1,0 +1,101 @@
+<div class="buddy-prefs-page">
+  <header class="page-header">
+    <a routerLink="/buddy" class="back-btn"><span class="material-symbols-outlined">arrow_back</span></a>
+    <h1>{{ 'BUDDY.PREFERENCES' | translate }}</h1>
+  </header>
+
+  @if (loading()) {
+    <div class="loading">{{ 'COMMON.LOADING' | translate }}</div>
+  } @else if (prefs()) {
+    <div class="form">
+      <div class="toggle-row">
+        <div>
+          <h3>{{ 'BUDDY.PREFS_DISCOVERABLE' | translate }}</h3>
+          <p class="muted">{{ 'BUDDY.PREFS_DISCOVERABLE_HINT' | translate }}</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="prefs()!.buddyDiscoverable" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <h3>{{ 'BUDDY.PREFS_AUTO_MATCH' | translate }}</h3>
+          <p class="muted">{{ 'BUDDY.PREFS_AUTO_MATCH_HINT' | translate }}</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="prefs()!.autoMatchEnabled" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="field">
+        <label>{{ 'BUDDY.PREFS_RADIUS' | translate }}: {{ prefs()!.searchRadiusKm }} km</label>
+        <input type="range" min="1" max="50" [(ngModel)]="prefs()!.searchRadiusKm" />
+      </div>
+
+      <div class="field">
+        <label>{{ 'BUDDY.PREFS_TARGET_PACE' | translate }}</label>
+        <div class="pace-input-row">
+          <input type="text"
+                 [ngModel]="paceInput()"
+                 (ngModelChange)="paceInput.set($event)"
+                 placeholder="5:30"
+                 inputmode="numeric"
+                 maxlength="5" />
+          <span class="pace-unit">min/km</span>
+        </div>
+        <small class="muted">{{ 'BUDDY.PREFS_TARGET_PACE_HINT' | translate }}</small>
+        @if (paceError()) {
+          <small class="error-text">{{ 'BUDDY.PREFS_TARGET_PACE_INVALID' | translate }}</small>
+        }
+      </div>
+
+      <div class="field">
+        <label>{{ 'BUDDY.PREFS_PACE_TOLERANCE' | translate }}: {{ toleranceInput() }} %</label>
+        <input type="range" min="0" max="50"
+               [ngModel]="toleranceInput()"
+               (ngModelChange)="toleranceInput.set(+$event)" />
+        @if (paceRange(); as r) {
+          <div class="pace-range">
+            <div class="pace-range-side">
+              <span class="pace-range-label">{{ 'BUDDY.PREFS_PACE_MIN' | translate }}</span>
+              <span class="pace-range-value">{{ r.min }}<small>min/km</small></span>
+            </div>
+            <div class="pace-range-divider"></div>
+            <div class="pace-range-side">
+              <span class="pace-range-label">{{ 'BUDDY.PREFS_PACE_MAX' | translate }}</span>
+              <span class="pace-range-value">{{ r.max }}<small>min/km</small></span>
+            </div>
+          </div>
+        } @else {
+          <small class="muted">{{ 'BUDDY.PREFS_PACE_RANGE_HINT' | translate }}</small>
+        }
+      </div>
+
+      <div class="field">
+        <label>{{ 'BUDDY.PREFS_WEEKDAYS' | translate }}</label>
+        <div class="day-chips">
+          @for (d of weekdays; track d) {
+            <button type="button" class="chip" [class.active]="selectedDays[d]" (click)="toggleDay(d)">
+              {{ ('BUDDY.WEEKDAY_' + d) | translate }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label>{{ 'BUDDY.PREFS_TIME_RANGES' | translate }} <small class="muted">(z.B. 18:00-21:00,06:00-09:00)</small></label>
+        <input type="text" [(ngModel)]="prefs()!.availableTimeRanges" placeholder="18:00-21:00" />
+      </div>
+
+      <div class="actions">
+        <button class="primary-btn" [disabled]="saving()" (click)="save()">
+          {{ saving() ? ('COMMON.SAVING' | translate) : ('COMMON.SAVE' | translate) }}
+        </button>
+        @if (saved()) { <span class="saved-indicator">{{ 'COMMON.SAVED' | translate }}</span> }
+      </div>
+    </div>
+  }
+</div>

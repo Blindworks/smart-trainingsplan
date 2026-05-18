@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="138-1" author="claude">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="user_buddy_preferences" columnName="target_pace_sec_per_km"/></not>
+        </preConditions>
+        <comment>Add target_pace_sec_per_km to user_buddy_preferences so users can specify a buddy-run-specific pace</comment>
+        <addColumn tableName="user_buddy_preferences">
+            <column name="target_pace_sec_per_km" type="INT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

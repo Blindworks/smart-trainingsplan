@@ -96,6 +96,10 @@
                 <span>{{ 'NAV.FRIENDS' | translate }}</span>
               </a>
             }
+            <a routerLink="/buddy" routerLinkActive="active" class="nav-item nav-item--sub">
+              <span class="material-symbols-outlined">handshake</span>
+              <span>{{ 'NAV.BUDDY' | translate }}</span>
+            </a>
           </div>
         </div>
       } @else {
@@ -104,6 +108,15 @@
         </a>
       }
     }
+    <a routerLink="/notifications" routerLinkActive="active" class="nav-item" [attr.title]="collapsed() && !isMobile() ? ('NAV.NOTIFICATIONS' | translate) : null">
+      <span class="material-symbols-outlined">notifications</span>
+      @if (!collapsed() || isMobile()) {
+        <span>{{ 'NAV.NOTIFICATIONS' | translate }}</span>
+        @if (notificationService.unreadCount() > 0) {
+          <span class="notif-badge">{{ notificationService.unreadCount() }}</span>
+        }
+      }
+    </a>
     @if (!collapsed() || isMobile()) {
       <div class="nav-group">
         <button class="nav-item nav-item--group" (click)="toggleBodyData()" [ngClass]="{'open': bodyDataOpen}">
