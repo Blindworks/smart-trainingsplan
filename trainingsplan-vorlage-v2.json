@@ -1,0 +1,189 @@
+{
+  "format_version": "2.0",
+  "plan": {
+    "name": "10 km Sub-50 – 4-Wochen-Block",
+    "description": "Beispielvorlage im v2.0-Format. Woche 1 = Start, hoechste weekNumber = Wettkampfwoche. Ruhetage entweder weglassen oder trainingType=rest setzen.",
+    "targetTime": "00:50:00",
+    "prerequisites": "Laufgrundlage: 30 min am Stueck laufen koennen",
+    "competitionType": "RUN_10K",
+    "weeks": [
+      {
+        "weekNumber": 1,
+        "schedule": {
+          "monday": { "trainingType": "rest", "name": "Ruhetag" },
+          "tuesday": {
+            "name": "Intervalltraining",
+            "description": "5x 800 m im 10-km-Tempo mit Trabpausen",
+            "trainingType": "interval",
+            "intensityLevel": "high",
+            "intensityPercent": 90,
+            "estimatedDistanceMeters": 8000,
+            "durationMinutes": 55,
+            "benefit": "Verbessert VO2max und Laufoekonomie",
+            "steps": [
+              { "stepType": "warmup", "title": "Einlaufen", "subtitle": "locker", "distanceMeters": 2000, "durationMinutes": 12, "paceDisplay": "6:30 min/km", "muted": true },
+              { "stepType": "active", "title": "5x 800 m", "subtitle": "10k-Tempo, 400 m Trabpause", "distanceMeters": 800, "durationSeconds": 240, "paceDisplay": "5:00 min/km", "highlight": true },
+              { "stepType": "cooldown", "title": "Auslaufen", "distanceMeters": 2000, "durationMinutes": 12, "paceDisplay": "6:30 min/km", "muted": true }
+            ]
+          },
+          "wednesday": { "trainingType": "rest", "name": "Ruhetag" },
+          "thursday": {
+            "name": "Lockerer Dauerlauf",
+            "description": "Ruhiges Grundlagentempo",
+            "trainingType": "endurance",
+            "intensityLevel": "low",
+            "intensityPercent": 65,
+            "estimatedDistanceMeters": 7000,
+            "durationMinutes": 45
+          },
+          "friday": { "trainingType": "rest", "name": "Ruhetag" },
+          "saturday": {
+            "name": "Tempolauf",
+            "description": "20 min im Schwellentempo",
+            "trainingType": "speed",
+            "intensityLevel": "medium",
+            "intensityPercent": 80,
+            "estimatedDistanceMeters": 8000,
+            "durationMinutes": 45
+          },
+          "sunday": {
+            "name": "Long Run",
+            "description": "Ruhiger langer Lauf",
+            "trainingType": "endurance",
+            "intensityLevel": "low",
+            "intensityPercent": 65,
+            "estimatedDistanceMeters": 12000,
+            "durationMinutes": 75
+          }
+        }
+      },
+      {
+        "weekNumber": 2,
+        "schedule": {
+          "tuesday": {
+            "name": "Intervalltraining",
+            "description": "6x 800 m im 10-km-Tempo",
+            "trainingType": "interval",
+            "intensityLevel": "high",
+            "intensityPercent": 90,
+            "estimatedDistanceMeters": 9000,
+            "durationMinutes": 60,
+            "benefit": "Tempohaerte fuer die Wettkampfdistanz",
+            "steps": [
+              { "stepType": "warmup", "title": "Einlaufen", "distanceMeters": 2000, "durationMinutes": 12, "paceDisplay": "6:30 min/km", "muted": true },
+              { "stepType": "active", "title": "6x 800 m", "subtitle": "10k-Tempo, 400 m Trabpause", "distanceMeters": 800, "durationSeconds": 240, "paceDisplay": "5:00 min/km", "highlight": true },
+              { "stepType": "cooldown", "title": "Auslaufen", "distanceMeters": 2000, "durationMinutes": 12, "paceDisplay": "6:30 min/km", "muted": true }
+            ]
+          },
+          "thursday": {
+            "name": "Lockerer Dauerlauf",
+            "trainingType": "endurance",
+            "intensityLevel": "low",
+            "intensityPercent": 65,
+            "estimatedDistanceMeters": 8000,
+            "durationMinutes": 50
+          },
+          "saturday": {
+            "name": "Fahrtspiel",
+            "description": "Wechsel aus schnellen und lockeren Abschnitten",
+            "trainingType": "fartlek",
+            "intensityLevel": "medium",
+            "intensityPercent": 78,
+            "estimatedDistanceMeters": 8000,
+            "durationMinutes": 45
+          },
+          "sunday": {
+            "name": "Long Run",
+            "trainingType": "endurance",
+            "intensityLevel": "low",
+            "intensityPercent": 65,
+            "estimatedDistanceMeters": 14000,
+            "durationMinutes": 85
+          }
+        }
+      },
+      {
+        "weekNumber": 3,
+        "schedule": {
+          "tuesday": {
+            "name": "Intervalltraining",
+            "description": "4x 1000 m im 10-km-Tempo",
+            "trainingType": "interval",
+            "intensityLevel": "high",
+            "intensityPercent": 92,
+            "estimatedDistanceMeters": 9000,
+            "durationMinutes": 60,
+            "steps": [
+              { "stepType": "warmup", "title": "Einlaufen", "distanceMeters": 2000, "durationMinutes": 12, "paceDisplay": "6:30 min/km", "muted": true },
+              { "stepType": "active", "title": "4x 1000 m", "subtitle": "10k-Tempo, 400 m Trabpause", "distanceMeters": 1000, "durationSeconds": 300, "paceDisplay": "5:00 min/km", "highlight": true },
+              { "stepType": "cooldown", "title": "Auslaufen", "distanceMeters": 2000, "durationMinutes": 12, "paceDisplay": "6:30 min/km", "muted": true }
+            ]
+          },
+          "thursday": {
+            "name": "Lockerer Dauerlauf",
+            "trainingType": "endurance",
+            "intensityLevel": "low",
+            "intensityPercent": 65,
+            "estimatedDistanceMeters": 8000,
+            "durationMinutes": 50
+          },
+          "saturday": {
+            "name": "Tempolauf",
+            "description": "25 min im Schwellentempo",
+            "trainingType": "speed",
+            "intensityLevel": "medium",
+            "intensityPercent": 82,
+            "estimatedDistanceMeters": 9000,
+            "durationMinutes": 50
+          },
+          "sunday": {
+            "name": "Long Run",
+            "trainingType": "endurance",
+            "intensityLevel": "low",
+            "intensityPercent": 65,
+            "estimatedDistanceMeters": 15000,
+            "durationMinutes": 90
+          }
+        }
+      },
+      {
+        "weekNumber": 4,
+        "schedule": {
+          "tuesday": {
+            "name": "Lockere Intervalle",
+            "description": "Tapering: 4x 600 m zackig, aber kurz",
+            "trainingType": "interval",
+            "intensityLevel": "medium",
+            "intensityPercent": 85,
+            "estimatedDistanceMeters": 7000,
+            "durationMinutes": 45,
+            "steps": [
+              { "stepType": "warmup", "title": "Einlaufen", "distanceMeters": 2000, "durationMinutes": 12, "paceDisplay": "6:30 min/km", "muted": true },
+              { "stepType": "active", "title": "4x 600 m", "subtitle": "10k-Tempo, 400 m Trabpause", "distanceMeters": 600, "durationSeconds": 180, "paceDisplay": "5:00 min/km", "highlight": true },
+              { "stepType": "cooldown", "title": "Auslaufen", "distanceMeters": 2000, "durationMinutes": 12, "paceDisplay": "6:30 min/km", "muted": true }
+            ]
+          },
+          "thursday": {
+            "name": "Lockerer Dauerlauf",
+            "description": "Locker, Beine frei laufen",
+            "trainingType": "recovery",
+            "intensityLevel": "recovery",
+            "intensityPercent": 60,
+            "estimatedDistanceMeters": 5000,
+            "durationMinutes": 30
+          },
+          "saturday": {
+            "name": "Wettkampf 10 km",
+            "description": "Zielwettkampf",
+            "trainingType": "race",
+            "intensityLevel": "high",
+            "intensityPercent": 100,
+            "estimatedDistanceMeters": 10000,
+            "durationMinutes": 50,
+            "benefit": "Zielwettkampf des Plans"
+          }
+        }
+      }
+    ]
+  }
+}

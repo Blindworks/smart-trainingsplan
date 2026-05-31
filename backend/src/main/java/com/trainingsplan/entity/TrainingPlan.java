@@ -23,7 +23,7 @@ public class TrainingPlan {
     @Column(name = "upload_date")
     private LocalDateTime uploadDate;
 
-    @Column(name = "json_content", columnDefinition = "TEXT")
+    @Column(name = "json_content", columnDefinition = "LONGTEXT")
     private String jsonContent;
 
     @Column(name = "training_count")

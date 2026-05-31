@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="139-enlarge-training-plan-json-content" author="claude">
+        <comment>Enlarge training_plans.json_content from TEXT (64KB) to LONGTEXT so large v2.0 plans fit.</comment>
+        <modifyDataType tableName="training_plans" columnName="json_content" newDataType="LONGTEXT"/>
+    </changeSet>
+
+</databaseChangeLog>

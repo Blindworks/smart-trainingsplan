@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pacr.app/schemas/trainingsplan-v2.json",
+  "title": "PACR Trainingsplan Import (v2.0)",
+  "description": "Schema fuer den Trainingsplan-Import im v2.0-Format. Trainings sind reine Templates (weekNumber + Wochentag), keine absoluten Datumswerte. Ruhetage werden uebersprungen.",
+  "type": "object",
+  "required": ["format_version", "plan"],
+  "additionalProperties": false,
+  "properties": {
+    "format_version": {
+      "const": "2.0",
+      "description": "Muss exakt der String \"2.0\" sein, sonst wird das alte Format angenommen."
+    },
+    "plan": {
+      "type": "object",
+      "required": ["name", "weeks"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "targetTime": {
+          "type": "string",
+          "description": "Freitext-Zielzeit, z. B. \"00:50:00\"."
+        },
+        "prerequisites": { "type": "string" },
+        "competitionType": {
+          "type": "string",
+          "description": "Muss einem Wert des CompetitionType-Enums entsprechen, sonst wird er ignoriert."
+        },
+        "weeks": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/week" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "week": {
+      "type": "object",
+      "required": ["weekNumber", "schedule"],
+      "additionalProperties": false,
+      "properties": {
+        "weekNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Woche 1 = erste Woche, hoechste Nummer = Wettkampfwoche."
+        },
+        "schedule": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Wochentage in Kleinschreibung. Fehlende Tage gelten als Ruhetage.",
+          "properties": {
+            "monday": { "$ref": "#/$defs/day" },
+            "tuesday": { "$ref": "#/$defs/day" },
+            "wednesday": { "$ref": "#/$defs/day" },
+            "thursday": { "$ref": "#/$defs/day" },
+            "friday": { "$ref": "#/$defs/day" },
+            "saturday": { "$ref": "#/$defs/day" },
+            "sunday": { "$ref": "#/$defs/day" }
+          }
+        }
+      }
+    },
+    "day": {
+      "type": "object",
+      "description": "Ein Training an einem Tag. Ohne 'name' wird der Tag ignoriert. trainingType=rest wird uebersprungen.",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "trainingType": {
+          "type": "string",
+          "description": "rest wird als Ruhetag uebersprungen. Default beim Parsen: general.",
+          "enum": ["rest", "endurance", "interval", "speed", "strength", "race", "fartlek", "recovery", "swimming", "cycling", "general"]
+        },
+        "intensityLevel": {
+          "type": "string",
+          "description": "Default beim Parsen: medium.",
+          "enum": ["high", "medium", "low", "recovery", "rest"]
+        },
+        "intensityPercent": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "estimatedDistanceMeters": { "type": "integer", "minimum": 0 },
+        "durationMinutes": { "type": "integer", "minimum": 0 },
+        "benefit": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/step" }
+        }
+      }
+    },
+    "step": {
+      "type": "object",
+      "description": "Ein Abschnitt innerhalb eines Trainings (z. B. Warmup, Intervall, Cooldown).",
+      "additionalProperties": false,
+      "properties": {
+        "stepType": {
+          "type": "string",
+          "description": "Default beim Parsen: active. Ueblich: warmup, active, cooldown, rest.",
+          "examples": ["warmup", "active", "cooldown", "rest"]
+        },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "distanceMeters": { "type": "integer", "minimum": 0 },
+        "durationMinutes": { "type": "integer", "minimum": 0 },
+        "durationSeconds": { "type": "integer", "minimum": 0 },
+        "paceDisplay": {
+          "type": "string",
+          "description": "Anzeigetext, z. B. \"5:00 min/km\"."
+        },
+        "highlight": { "type": "boolean" },
+        "muted": { "type": "boolean" }
+      }
+    }
+  }
+}
