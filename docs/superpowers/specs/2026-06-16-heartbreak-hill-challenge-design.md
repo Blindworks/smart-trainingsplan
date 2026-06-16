@@ -66,7 +66,7 @@ Jeder Eintrag in der Bestenliste.
 
 **Index:** `(challengeId, activityType, status, elapsedSeconds)` für die Bestenlisten-Sortierung.
 
-**Migration:** Liquibase `116-create-segment-challenge.xml` (+ ggf. `117-…` für Efforts), `preConditions` **vor** `comment`, Include in `db.changelog-master.xml`.
+**Migration:** Liquibase `140-create-segment-challenge.xml` (zwei changeSets: `140-1` Challenges, `140-2` Efforts inkl. FK + Leaderboard-Index), `preConditions` **vor** `comment`, Include in `db.changelog-master.xml`. (Letzte vorhandene Migration ist 139.)
 
 ## 5 · Backend
 
