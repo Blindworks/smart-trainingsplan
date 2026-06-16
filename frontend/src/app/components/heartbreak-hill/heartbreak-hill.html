@@ -1,0 +1,153 @@
+<div class="hh">
+  @if (loading()) {
+    <div class="hh-loading"><div class="spin"></div></div>
+  } @else if (loadError()) {
+    <div class="hh-error">{{ 'HEARTBREAK_HILL.ERROR_LOAD' | translate }}</div>
+  } @else if (challenge(); as c) {
+
+    <!-- HERO -->
+    <header class="hero">
+      <div class="hero-bg">
+        <svg [attr.viewBox]="'0 0 ' + profileWidth + ' ' + profileHeight" preserveAspectRatio="xMidYMax slice">
+          @if (profile(); as p) {
+            <path [attr.d]="p.area" class="hero-area"></path>
+            <path [attr.d]="p.line" class="hero-line"></path>
+          } @else {
+            <!-- graceful fallback when no polyline is seeded yet -->
+            <path class="hero-area" d="M0,360 C300,330 600,250 900,160 C1050,120 1150,100 1200,92 L1200,360 Z"></path>
+            <path class="hero-line" d="M0,330 C300,300 600,220 900,130 C1050,90 1150,72 1200,64"></path>
+          }
+        </svg>
+        <div class="hero-veil"></div>
+      </div>
+
+      <div class="hero-content">
+        <span class="kicker"><span class="dot"></span>{{ 'HEARTBREAK_HILL.KICKER' | translate }}</span>
+        <h1>{{ 'HEARTBREAK_HILL.TITLE' | translate }}<br>{{ 'HEARTBREAK_HILL.TITLE_2' | translate }}</h1>
+        <p class="hero-sub">{{ 'HEARTBREAK_HILL.SUBTITLE' | translate }}</p>
+
+        <div class="stats">
+          <div class="chip">
+            <b>{{ c.distanceM ? (c.distanceM / 1000 | number:'1.1-1') : '—' }}</b>
+            <span>{{ 'HEARTBREAK_HILL.STAT_LENGTH' | translate }} ({{ 'HEARTBREAK_HILL.UNIT_KM' | translate }})</span>
+          </div>
+          <div class="chip">
+            <b>{{ c.elevationGainM ?? '—' }}</b>
+            <span>{{ 'HEARTBREAK_HILL.STAT_ELEVATION' | translate }} ({{ 'HEARTBREAK_HILL.UNIT_M' | translate }})</span>
+          </div>
+          <div class="chip">
+            <b>{{ c.avgGradePct ? (c.avgGradePct | number:'1.1-1') + ' %' : '—' }}</b>
+            <span>{{ 'HEARTBREAK_HILL.STAT_AVG_GRADE' | translate }}</span>
+          </div>
+          <div class="chip">
+            <b>{{ c.maxGradePct ? (c.maxGradePct | number:'1.0-0') + ' %' : '—' }}</b>
+            <span>{{ 'HEARTBREAK_HILL.STAT_MAX_GRADE' | translate }}</span>
+          </div>
+        </div>
+
+        <div class="hero-ctas">
+          <a class="btn" href="#upload">{{ 'HEARTBREAK_HILL.CTA_UPLOAD' | translate }}</a>
+          <a class="btn ghost" href="#leaderboard">{{ 'HEARTBREAK_HILL.CTA_LEADERBOARD' | translate }}</a>
+        </div>
+        <div class="scroll-cue">↓ {{ 'HEARTBREAK_HILL.SCROLL_CUE' | translate }}</div>
+      </div>
+    </header>
+
+    <!-- LEADERBOARD -->
+    <section id="leaderboard" class="section">
+      <span class="label">{{ 'HEARTBREAK_HILL.LEADERBOARD_LABEL' | translate }}</span>
+      <h2>{{ 'HEARTBREAK_HILL.LEADERBOARD_TITLE' | translate }}</h2>
+
+      <div class="lb">
+        <div class="lb-tabs">
+          <button [class.on]="activeTab() === 'RIDE'" (click)="selectTab('RIDE')">
+            🚴 {{ 'HEARTBREAK_HILL.TAB_RIDE' | translate }}</button>
+          <button [class.on]="activeTab() === 'RUN'" (click)="selectTab('RUN')">
+            🏃 {{ 'HEARTBREAK_HILL.TAB_RUN' | translate }}</button>
+        </div>
+
+        @if (leaderboardLoading()) {
+          <div class="lb-loading"><div class="spin"></div></div>
+        } @else if (leaderboard().length === 0) {
+          <div class="lb-empty">
+            <h3>{{ 'HEARTBREAK_HILL.EMPTY_TITLE' | translate }}</h3>
+            <p>{{ 'HEARTBREAK_HILL.EMPTY_BODY' | translate }}</p>
+          </div>
+        } @else {
+          @for (entry of leaderboard(); track entry.effortId) {
+            <div class="row" [class.ref]="entry.reference" [class.you]="isMyEffort(entry)">
+              <div class="rk">{{ entry.rank }}</div>
+              <div class="nm">
+                {{ entry.displayName }}
+                @if (entry.reference) {
+                  <span class="badge pro">{{ 'HEARTBREAK_HILL.BADGE_PRO' | translate }}</span>
+                }
+              </div>
+              <div class="tm">{{ entry.elapsedFormatted }}</div>
+              <div class="gap">{{ formatGap(entry.gapToLeaderSeconds) }}</div>
+            </div>
+          }
+        }
+      </div>
+    </section>
+
+    <!-- UPLOAD + RESULT -->
+    <section id="upload" class="section">
+      <span class="label">{{ 'HEARTBREAK_HILL.UPLOAD_LABEL' | translate }}</span>
+      <h2>{{ 'HEARTBREAK_HILL.UPLOAD_TITLE' | translate }}</h2>
+      <p class="lead">{{ 'HEARTBREAK_HILL.UPLOAD_BODY' | translate }}</p>
+
+      <div class="two-col">
+        <div class="panel">
+          <label class="drop" (dragover)="$event.preventDefault()" (drop)="onFileDropped($event)">
+            <input type="file" accept=".gpx" hidden (change)="onFileSelected($event)">
+            <div class="drop-icon">⬆</div>
+            <p>{{ selectedFile()?.name || ('HEARTBREAK_HILL.DROP_HINT' | translate) }}</p>
+          </label>
+
+          <input class="field" [ngModel]="displayName()" (ngModelChange)="displayName.set($event)"
+                 [placeholder]="'HEARTBREAK_HILL.NAME_PLACEHOLDER' | translate">
+
+          <div class="seg">
+            <span [class.on]="activeTab() === 'RIDE'" (click)="selectTab('RIDE')">🚴 {{ 'HEARTBREAK_HILL.TAB_RIDE' | translate }}</span>
+            <span [class.on]="activeTab() === 'RUN'" (click)="selectTab('RUN')">🏃 {{ 'HEARTBREAK_HILL.TAB_RUN' | translate }}</span>
+          </div>
+
+          @if (uploadError(); as err) {
+            <div class="upload-error">{{ ('HEARTBREAK_HILL.' + err) | translate }}</div>
+          }
+
+          <button class="btn block" [disabled]="!canSubmit()" (click)="submit()">
+            @if (submitting()) { <span class="spin sm"></span> } @else { {{ 'HEARTBREAK_HILL.EVALUATE' | translate }} }
+          </button>
+        </div>
+
+        @if (result(); as r) {
+          <div class="panel result">
+            <span class="label">{{ 'HEARTBREAK_HILL.RESULT_LABEL' | translate }}</span>
+            <div class="pl">#{{ r.rank }}</div>
+            <div class="of">{{ 'HEARTBREAK_HILL.RESULT_OF' | translate:{ count: r.totalCount, type: activeTab() === 'RIDE' ? ('HEARTBREAK_HILL.TYPE_RIDERS' | translate) : ('HEARTBREAK_HILL.TYPE_RUNNERS' | translate) } }}</div>
+            <div class="meta">
+              <div><small>{{ 'HEARTBREAK_HILL.RESULT_TIME' | translate }}</small><b>{{ r.elapsedFormatted }}</b></div>
+              <div><small>{{ 'HEARTBREAK_HILL.RESULT_PERCENTILE' | translate }}</small><b>{{ r.percentileBeaten | number:'1.0-0' }} %</b></div>
+            </div>
+            <div class="funnel">
+              <b>🔒 {{ 'HEARTBREAK_HILL.FUNNEL_TITLE' | translate }}</b>
+              <p>{{ 'HEARTBREAK_HILL.FUNNEL_BODY' | translate }}</p>
+              <button class="btn block" (click)="goToSignup()">{{ 'HEARTBREAK_HILL.FUNNEL_CTA' | translate }}</button>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- PITCH -->
+    <section class="section pitch">
+      <span class="label">{{ 'HEARTBREAK_HILL.PITCH_LABEL' | translate }}</span>
+      <h2>{{ 'HEARTBREAK_HILL.PITCH_TITLE' | translate }}</h2>
+      <p class="lead center">{{ 'HEARTBREAK_HILL.PITCH_BODY' | translate }}</p>
+      <button class="btn" (click)="goToSignup()">{{ 'HEARTBREAK_HILL.PITCH_CTA' | translate }}</button>
+    </section>
+
+  }
+</div>
