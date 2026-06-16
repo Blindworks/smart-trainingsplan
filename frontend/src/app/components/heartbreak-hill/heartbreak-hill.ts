@@ -134,6 +134,13 @@ export class HeartbreakHill implements OnInit {
     return this.result()?.effortId === entry.effortId;
   }
 
+  /** i18n key for a reference entry's badge, honest about the category. */
+  referenceBadgeKey(entry: LeaderboardEntry): string {
+    return (entry.category === 'PRO_MEN' || entry.category === 'PRO_WOMEN')
+      ? 'HEARTBREAK_HILL.BADGE_PRO'
+      : 'HEARTBREAK_HILL.BADGE_REFERENCE';
+  }
+
   goToSignup(): void {
     this.router.navigate(['/signup']);
   }

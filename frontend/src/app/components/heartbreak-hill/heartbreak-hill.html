@@ -80,7 +80,7 @@
               <div class="nm">
                 {{ entry.displayName }}
                 @if (entry.reference) {
-                  <span class="badge pro">{{ 'HEARTBREAK_HILL.BADGE_PRO' | translate }}</span>
+                  <span class="badge pro">{{ referenceBadgeKey(entry) | translate }}</span>
                 }
               </div>
               <div class="tm">{{ entry.elapsedFormatted }}</div>
@@ -129,6 +129,7 @@
             <div class="of">{{ 'HEARTBREAK_HILL.RESULT_OF' | translate:{ count: r.totalCount, type: activeTab() === 'RIDE' ? ('HEARTBREAK_HILL.TYPE_RIDERS' | translate) : ('HEARTBREAK_HILL.TYPE_RUNNERS' | translate) } }}</div>
             <div class="meta">
               <div><small>{{ 'HEARTBREAK_HILL.RESULT_TIME' | translate }}</small><b>{{ r.elapsedFormatted }}</b></div>
+              <div><small>{{ 'HEARTBREAK_HILL.RESULT_GAP' | translate }}</small><b>{{ formatGap(r.gapToLeaderSeconds) }}</b></div>
               <div><small>{{ 'HEARTBREAK_HILL.RESULT_PERCENTILE' | translate }}</small><b>{{ r.percentileBeaten | number:'1.0-0' }} %</b></div>
             </div>
             <div class="funnel">
