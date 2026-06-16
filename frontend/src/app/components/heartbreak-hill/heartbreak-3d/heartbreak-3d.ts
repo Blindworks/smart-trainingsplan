@@ -35,14 +35,14 @@ export class Heartbreak3d implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (!isWebglAvailable()) {
-      this.fallback.emit();
+      Promise.resolve().then(() => this.fallback.emit());
       return;
     }
     try {
       this.zone.runOutsideAngular(() => this.init());
     } catch {
       this.dispose();
-      this.fallback.emit();
+      Promise.resolve().then(() => this.fallback.emit());
     }
   }
 
@@ -126,12 +126,17 @@ export class Heartbreak3d implements AfterViewInit, OnDestroy {
 
     const animate = () => {
       this.frameId = requestAnimationFrame(animate);
-      if (this.marker && this.curve) {
-        const t = (this.clock.getElapsedTime() * 0.11) % 1;
-        this.marker.position.copy(this.curve.getPointAt(t));
+      try {
+        if (this.marker && this.curve) {
+          const t = (this.clock.getElapsedTime() * 0.11) % 1;
+          this.marker.position.copy(this.curve.getPointAt(t));
+        }
+        this.controls?.update();
+        this.renderer!.render(this.scene!, this.camera!);
+      } catch {
+        this.dispose();
+        this.zone.run(() => this.fallback.emit());
       }
-      this.controls?.update();
-      this.renderer!.render(this.scene!, this.camera!);
     };
     animate();
   }
