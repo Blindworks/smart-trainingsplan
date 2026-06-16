@@ -6,7 +6,7 @@
 
 **Architecture:** One standalone Angular component (`HeartbreakHill`) on a public route (no `authGuard`, `data: { fullPage: true }`), backed by a dedicated `HeartbreakHillService` that calls the `/api/public/challenges/heartbreak-hill-2026/**` endpoints from Plan 1. Pure presentation/formatting logic lives in a testable `heartbreak-hill.util.ts`. The page degrades gracefully when the challenge has no polyline yet and when the leaderboard is empty.
 
-**Tech Stack:** Angular 21 (standalone, signals, `@if`/`@for`), TypeScript, RxJS, ngx-translate, SCSS with the existing dark design tokens, Leaflet via the existing `RouteMiniMapComponent`. Tests: Karma/Jasmine with `HttpClientTestingModule`.
+**Tech Stack:** Angular 21 (standalone, signals, `@if`/`@for`), TypeScript, RxJS, ngx-translate, SCSS with the existing dark design tokens, Leaflet via the existing `RouteMiniMapComponent`. Tests: **Vitest** (the project's actual runner — `tsconfig.spec.json` uses `vitest/globals`; NOT Karma/Jasmine) with Angular `TestBed` + `provideHttpClient()`/`provideHttpClientTesting()`. Use Vitest matchers (`toBe(true)`, not Jasmine's `toBeTrue()`); mirror an existing `*.service.spec.ts` in the repo for the canonical HTTP-testing setup.
 
 **Key conventions (from the existing codebase):**
 - File naming: `components/heartbreak-hill/heartbreak-hill.ts` exporting `class HeartbreakHill` (no `.component` suffix). Template `heartbreak-hill.html`, styles `heartbreak-hill.scss`.
@@ -17,7 +17,7 @@
 - i18n: nested keys, PascalCase namespace + SCREAMING_SNAKE leaves; `{{ 'HEARTBREAK_HILL.X' | translate }}`; add to BOTH `en.json` and `de.json`.
 - Tokens (dark): `--pp` `#8ffc2e`, `--pp-glow`, `--pp-container`, `--bg` `#0d1117`, `--bg-card`, `--surface-high`, `--text`, `--text-muted`, `--border`, `--overlay`, `--font-family`.
 
-**All frontend commands run from `frontend/`:** `npm run build` (prod build = the main compile gate), `npm test` (Karma; runs headless once with `--watch=false --browsers=ChromeHeadless`).
+**All frontend commands run from `frontend/`:** `npm run build` (prod build = the main compile gate), `npm test` (Vitest; one-shot via `npx vitest run <filter>` or `npm test -- --run`, runs in node/jsdom — no browser/Chrome needed). The Karma-style flags `--browsers=ChromeHeadless` / `--include` do NOT apply.
 
 ---
 
@@ -964,10 +964,10 @@ git commit -m "Add Heartbreak Hill component styles"
 
 ## Task 9: Frontend test suite, visual smoke, changelog
 
-- [ ] **Step 1: Run the frontend unit tests**
+- [ ] **Step 1: Run the frontend unit tests (Vitest)**
 
-Run: `cd frontend && npm test -- --watch=false --browsers=ChromeHeadless`
-Expected: all specs pass (incl. the new service + util specs). If ChromeHeadless is unavailable in this environment, report it and rely on `npm run build` + the build-time template type checking as the gate.
+Run: `cd frontend && npx vitest run` (or the project's `npm test -- --run`)
+Expected: all specs pass (incl. the new service + util specs). Vitest runs in node/jsdom — no browser needed. Do NOT use Karma flags. If the runner can't start for an environment reason, report it and rely on `npm run build` + the build-time template type checking as the gate.
 
 - [ ] **Step 2: Visual smoke test (best-effort)**
 
