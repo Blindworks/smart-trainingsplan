@@ -9,11 +9,13 @@ import {
   ActivityType, SegmentChallenge, LeaderboardEntry, EffortResult
 } from '../../models/heartbreak-hill.model';
 import { buildElevationProfile, ElevationProfile, formatGap } from './heartbreak-hill.util';
+import { Heartbreak3d } from './heartbreak-3d/heartbreak-3d';
+import { isWebglAvailable } from './heartbreak-3d/heartbreak-3d.util';
 
 @Component({
   selector: 'app-heartbreak-hill',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, TranslateModule, Heartbreak3d],
   templateUrl: './heartbreak-hill.html',
   styleUrl: './heartbreak-hill.scss'
 })
@@ -52,6 +54,22 @@ export class HeartbreakHill implements OnInit {
     try {
       const pts = JSON.parse(c.polylineJson) as [number, number, number][];
       return buildElevationProfile(pts, this.profileWidth, this.profileHeight);
+    } catch {
+      return null;
+    }
+  });
+
+  /** Whether to attempt the WebGL hero (falls back to 2D on failure). */
+  use3d = signal(isWebglAvailable());
+
+  /** Parsed route polyline points, shared by the 2D profile and the 3D terrain. */
+  polylinePoints = computed<[number, number, number][] | null>(() => {
+    const c = this.challenge();
+    if (!c?.polylineJson) {
+      return null;
+    }
+    try {
+      return JSON.parse(c.polylineJson) as [number, number, number][];
     } catch {
       return null;
     }

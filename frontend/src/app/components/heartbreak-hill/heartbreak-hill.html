@@ -8,16 +8,19 @@
     <!-- HERO -->
     <header class="hero">
       <div class="hero-bg">
-        <svg [attr.viewBox]="'0 0 ' + profileWidth + ' ' + profileHeight" preserveAspectRatio="xMidYMax slice">
-          @if (profile(); as p) {
-            <path [attr.d]="p.area" class="hero-area"></path>
-            <path [attr.d]="p.line" class="hero-line"></path>
-          } @else {
-            <!-- graceful fallback when no polyline is seeded yet -->
-            <path class="hero-area" d="M0,360 C300,330 600,250 900,160 C1050,120 1150,100 1200,92 L1200,360 Z"></path>
-            <path class="hero-line" d="M0,330 C300,300 600,220 900,130 C1050,90 1150,72 1200,64"></path>
-          }
-        </svg>
+        @if (use3d()) {
+          <app-heartbreak-3d [polyline]="polylinePoints()" (fallback)="use3d.set(false)"></app-heartbreak-3d>
+        } @else {
+          <svg [attr.viewBox]="'0 0 ' + profileWidth + ' ' + profileHeight" preserveAspectRatio="xMidYMax slice">
+            @if (profile(); as p) {
+              <path [attr.d]="p.area" class="hero-area"></path>
+              <path [attr.d]="p.line" class="hero-line"></path>
+            } @else {
+              <path class="hero-area" d="M0,360 C300,330 600,250 900,160 C1050,120 1150,100 1200,92 L1200,360 Z"></path>
+              <path class="hero-line" d="M0,330 C300,300 600,220 900,130 C1050,90 1150,72 1200,64"></path>
+            }
+          </svg>
+        }
         <div class="hero-veil"></div>
       </div>
 
