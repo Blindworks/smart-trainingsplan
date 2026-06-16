@@ -35,6 +35,12 @@ export const routes: Routes = [
     data: { fullPage: true }
   },
   {
+    path: 'heartbreak-hill',
+    loadComponent: () =>
+      import('./components/heartbreak-hill/heartbreak-hill').then(m => m.HeartbreakHill),
+    data: { fullPage: true }
+  },
+  {
     path: 'onboarding',
     canActivate: [authGuard],
     loadComponent: () => import('./components/onboarding/onboarding').then(m => m.Onboarding),
