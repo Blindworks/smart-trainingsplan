@@ -47,7 +47,7 @@ public class SegmentChallengeService {
 
     @Transactional(readOnly = true)
     public SegmentChallengeDto getChallenge(String slug) {
-        SegmentChallenge c = requireChallenge(slug);
+        SegmentChallenge c = requireActiveChallenge(slug);
         long rideCount = effortRepository.countByChallengeIdAndActivityTypeAndStatus(
                 c.getId(), ActivityType.RIDE, EffortStatus.VALID);
         long runCount = effortRepository.countByChallengeIdAndActivityTypeAndStatus(
@@ -59,7 +59,7 @@ public class SegmentChallengeService {
 
     @Transactional(readOnly = true)
     public List<SegmentLeaderboardEntryDto> getLeaderboard(String slug, ActivityType type) {
-        SegmentChallenge c = requireChallenge(slug);
+        SegmentChallenge c = requireActiveChallenge(slug);
         List<SegmentEffort> efforts = effortRepository
                 .findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
                         c.getId(), type, EffortStatus.VALID);
@@ -69,6 +69,7 @@ public class SegmentChallengeService {
     @Transactional(readOnly = true)
     public SegmentTrackDto getEffortTrack(Long effortId) {
         SegmentEffort e = effortRepository.findById(effortId)
+                .filter(x -> x.getStatus() == EffortStatus.VALID)
                 .orElseThrow(() -> new IllegalArgumentException("effort_not_found"));
         return new SegmentTrackDto(e.getId(), e.getActivityType().name(), e.getTrackJson());
     }
@@ -76,7 +77,7 @@ public class SegmentChallengeService {
     @Transactional
     public SegmentEffortResultDto submitPublicEffort(String slug, ActivityType type, String displayName,
                                                      byte[] fileBytes, String originalFilename, String clientIp) {
-        SegmentChallenge c = requireChallenge(slug);
+        SegmentChallenge c = requireActiveChallenge(slug);
 
         if (displayName == null || displayName.isBlank()) {
             throw new IllegalArgumentException("display_name_required");
@@ -178,6 +179,14 @@ public class SegmentChallengeService {
                 .orElseThrow(() -> new IllegalArgumentException("challenge_not_found"));
     }
 
+    private SegmentChallenge requireActiveChallenge(String slug) {
+        SegmentChallenge c = requireChallenge(slug);
+        if (!c.isActive()) {
+            throw new IllegalArgumentException("challenge_not_found");
+        }
+        return c;
+    }
+
     private SegmentMatchResult matchTrack(SegmentChallenge c, byte[] fileBytes) {
         try {
             ParsedActivityData data = gpxParsingService.parse(fileBytes);
@@ -229,9 +238,15 @@ public class SegmentChallengeService {
 
         List<SegmentLeaderboardEntryDto> out = new ArrayList<>(sorted.size());
         Integer leaderTime = sorted.isEmpty() ? null : sorted.get(0).getElapsedSeconds();
+        int position = 0;
         int rank = 0;
+        Integer prevElapsed = null;
         for (SegmentEffort e : sorted) {
-            rank++;
+            position++;
+            if (prevElapsed == null || e.getElapsedSeconds() != prevElapsed) {
+                rank = position;
+                prevElapsed = e.getElapsedSeconds();
+            }
             int gap = leaderTime == null ? 0 : e.getElapsedSeconds() - leaderTime;
             out.add(new SegmentLeaderboardEntryDto(
                     e.getId(),
