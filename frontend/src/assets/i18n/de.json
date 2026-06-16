@@ -2515,6 +2515,7 @@
     "PITCH_CTA": "Kostenlos starten",
     "ERROR_LOAD": "Die Challenge konnte nicht geladen werden. Bitte später erneut versuchen.",
     "ERROR_UPLOAD": "Wir konnten deine Datei dem Segment nicht zuordnen. Stelle sicher, dass dein GPX den Heartbreak-Hill-Anstieg enthält.",
+    "ERROR_RATE_LIMIT": "Du hast in kurzer Zeit viel hochgeladen — bitte versuch es in ein paar Minuten erneut.",
     "UNIT_KM": "km",
     "UNIT_M": "m",
     "TYPE_RIDERS": "Radfahrern",

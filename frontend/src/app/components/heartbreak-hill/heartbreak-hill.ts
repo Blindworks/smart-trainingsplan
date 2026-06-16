@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { HeartbreakHillService } from '../../services/heartbreak-hill.service';
@@ -75,6 +76,8 @@ export class HeartbreakHill implements OnInit {
       return;
     }
     this.activeTab.set(type);
+    this.result.set(null);
+    this.uploadError.set(null);
     this.loadLeaderboard();
   }
 
@@ -122,8 +125,8 @@ export class HeartbreakHill implements OnInit {
         this.submitting.set(false);
         this.loadLeaderboard();          // refresh so the new entry shows
       },
-      error: () => {
-        this.uploadError.set('ERROR_UPLOAD');
+      error: (err: HttpErrorResponse) => {
+        this.uploadError.set(err.status === 429 ? 'ERROR_RATE_LIMIT' : 'ERROR_UPLOAD');
         this.submitting.set(false);
       }
     });
