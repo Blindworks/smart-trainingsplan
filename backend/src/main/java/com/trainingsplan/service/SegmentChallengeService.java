@@ -124,6 +124,9 @@ public class SegmentChallengeService {
                                    EffortCategory category, byte[] fileBytes, String originalFilename,
                                    Integer knownTimeSecondsOverride) {
         SegmentChallenge c = requireChallenge(slug);
+        if (displayName == null || displayName.isBlank()) {
+            throw new IllegalArgumentException("display_name_required");
+        }
         if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".gpx")) {
             throw new IllegalArgumentException("only_gpx_supported");
         }
@@ -189,7 +192,6 @@ public class SegmentChallengeService {
         List<SegmentEffort> efforts = effortRepository
                 .findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
                         c.getId(), type, EffortStatus.VALID);
-        efforts.sort(Comparator.comparingInt(SegmentEffort::getElapsedSeconds));
         long total = efforts.size();
         int rank = 1;
         int slower = 0;
