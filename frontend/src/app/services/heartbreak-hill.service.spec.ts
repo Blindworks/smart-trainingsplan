@@ -40,6 +40,15 @@ describe('HeartbreakHillService', () => {
     expect(body.get('displayName')).toBe('Lukas');
     expect(body.get('type')).toBe('RIDE');
     expect(body.get('file')).toBeTruthy();
+    expect(req.request.headers.has('Content-Type')).toBe(false);
     req.flush({ effortId: 1, rank: 1 });
+  });
+
+  it('getTrack GETs the effort track by id', () => {
+    service.getTrack(42).subscribe();
+    const req = httpMock.expectOne(r =>
+      r.method === 'GET' && r.url.endsWith('/efforts/42/track'));
+    expect(req.request.method).toBe('GET');
+    req.flush({ effortId: 42, activityType: 'RIDE', trackJson: '[]' });
   });
 });
