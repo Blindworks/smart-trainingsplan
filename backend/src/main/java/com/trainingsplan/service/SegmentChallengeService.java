@@ -1,11 +1,13 @@
 package com.trainingsplan.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.trainingsplan.dto.DefineSegmentResultDto;
 import com.trainingsplan.dto.SegmentChallengeDto;
 import com.trainingsplan.dto.SegmentEffortResultDto;
 import com.trainingsplan.dto.SegmentLeaderboardEntryDto;
 import com.trainingsplan.dto.SegmentTrackDto;
 import com.trainingsplan.entity.*;
+import com.trainingsplan.util.SegmentGeometryUtil;
 import com.trainingsplan.repository.SegmentChallengeRepository;
 import com.trainingsplan.repository.SegmentEffortRepository;
 import org.springframework.stereotype.Service;
@@ -172,6 +174,53 @@ public class SegmentChallengeService {
         effortRepository.save(e);
     }
 
+    @Transactional
+    public DefineSegmentResultDto defineFromGpx(String slug, byte[] fileBytes, String originalFilename) {
+        SegmentChallenge c = requireChallenge(slug);
+        if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".gpx")) {
+            throw new IllegalArgumentException("only_gpx_supported");
+        }
+        ParsedActivityData data;
+        try { data = gpxParsingService.parse(fileBytes); }
+        catch (Exception ex) { throw new IllegalArgumentException("unparseable_file"); }
+
+        List<double[]> latlng = data.latLngPoints;
+        if (latlng == null || latlng.size() < 2) throw new IllegalArgumentException("track_too_short");
+
+        // Build [lat,lng,ele] (ele null -> 0.0)
+        List<double[]> full = new ArrayList<>(latlng.size());
+        for (int i = 0; i < latlng.size(); i++) {
+            double ele = (data.elevations != null && i < data.elevations.size() && data.elevations.get(i) != null)
+                    ? data.elevations.get(i) : 0.0;
+            full.add(new double[]{ latlng.get(i)[0], latlng.get(i)[1], ele });
+        }
+
+        double[] first = full.get(0);
+        double[] last = full.get(full.size() - 1);
+        double distanceM = data.training != null && data.training.getDistanceKm() != null
+                ? data.training.getDistanceKm() * 1000.0 : 0.0;
+        Integer gain = data.training != null ? data.training.getElevationGainM() : null;
+        double netRise = last[2] - first[2];
+        double avgGrade = Math.round(SegmentGeometryUtil.avgGradePct(distanceM, netRise) * 10) / 10.0;
+        double maxGrade = Math.round(SegmentGeometryUtil.maxGradePct(full) * 10) / 10.0;
+
+        List<double[]> poly = SegmentGeometryUtil.downsample(full, 300);
+
+        c.setStartLat(first[0]); c.setStartLng(first[1]);
+        c.setEndLat(last[0]);    c.setEndLng(last[1]);
+        c.setDistanceM(distanceM);
+        c.setElevationGainM(gain);
+        c.setAvgGradePct(avgGrade);
+        c.setMaxGradePct(maxGrade);
+        c.setPolylineJson(serializeTrack(poly));
+        c.setBoundingBoxJson(boundingBox(full));
+        c.setUpdatedAt(java.time.LocalDateTime.now());
+        challengeRepository.save(c);
+
+        return new DefineSegmentResultDto(first[0], first[1], last[0], last[1],
+                distanceM, gain, avgGrade, maxGrade, full.size(), poly.size());
+    }
+
     // ---- internal helpers -------------------------------------------------
 
     private SegmentChallenge requireChallenge(String slug) {
@@ -223,6 +272,17 @@ public class SegmentChallengeService {
         } catch (Exception ex) {
             return "[]";
         }
+    }
+
+    private String boundingBox(List<double[]> pts) {
+        double minLat = Double.MAX_VALUE, minLng = Double.MAX_VALUE;
+        double maxLat = -Double.MAX_VALUE, maxLng = -Double.MAX_VALUE;
+        for (double[] p : pts) {
+            minLat = Math.min(minLat, p[0]); maxLat = Math.max(maxLat, p[0]);
+            minLng = Math.min(minLng, p[1]); maxLng = Math.max(maxLng, p[1]);
+        }
+        try { return objectMapper.writeValueAsString(new double[]{minLat, minLng, maxLat, maxLng}); }
+        catch (Exception e) { return null; }
     }
 
     private String hashIp(String ip) {

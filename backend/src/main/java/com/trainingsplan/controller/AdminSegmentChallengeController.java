@@ -78,6 +78,21 @@ public class AdminSegmentChallengeController {
         }
     }
 
+    /** Define the segment's geometry (gates, polyline, distance/grade stats) from a reference GPX. */
+    @PostMapping("/{slug}/define-from-gpx")
+    public ResponseEntity<?> defineFromGpx(@PathVariable String slug, @RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("reason", "empty_file"));
+        }
+        try {
+            return ResponseEntity.ok(service.defineFromGpx(slug, file.getBytes(), file.getOriginalFilename()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.unprocessableEntity().body(Map.of("reason", e.getMessage()));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("reason", "io_error"));
+        }
+    }
+
     /** Hide/reject (moderate) an effort. */
     @PutMapping("/efforts/{id}/status")
     public ResponseEntity<?> setStatus(@PathVariable Long id, @RequestParam EffortStatus status) {
