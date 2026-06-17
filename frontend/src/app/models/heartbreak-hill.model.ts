@@ -39,6 +39,8 @@ export interface EffortResult {
   elapsedFormatted: string;
   gapToLeaderSeconds: number | null;
   percentileBeaten: number;
+  avgSpeedKmh: number | null;
+  avgPaceSecondsPerKm: number | null;
   status: string;
 }
 
