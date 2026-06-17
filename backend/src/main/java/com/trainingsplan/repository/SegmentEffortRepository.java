@@ -1,6 +1,7 @@
 package com.trainingsplan.repository;
 
 import com.trainingsplan.entity.ActivityType;
+import com.trainingsplan.entity.EffortKind;
 import com.trainingsplan.entity.EffortStatus;
 import com.trainingsplan.entity.SegmentEffort;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +21,6 @@ public interface SegmentEffortRepository extends JpaRepository<SegmentEffort, Lo
     long countByChallengeIdAndIpHashAndCreatedAtAfter(
             Long challengeId, String ipHash, LocalDateTime after);
 
-    Optional<SegmentEffort> findFirstByChallengeIdAndStatusAndDedupeKey(
-            Long challengeId, EffortStatus status, String dedupeKey);
+    Optional<SegmentEffort> findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
+            Long challengeId, EffortKind kind, EffortStatus status, String dedupeKey);
 }

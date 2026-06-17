@@ -109,7 +109,7 @@ public class SegmentChallengeService {
         String dedupeKey = SegmentEffortDedup.key(c.getId(), type.name(), match.getElapsedSeconds(),
                 firstPoint[0], firstPoint[1]);
         Optional<SegmentEffort> existing = effortRepository
-                .findFirstByChallengeIdAndStatusAndDedupeKey(c.getId(), EffortStatus.VALID, dedupeKey);
+                .findFirstByChallengeIdAndKindAndStatusAndDedupeKey(c.getId(), EffortKind.PUBLIC, EffortStatus.VALID, dedupeKey);
         if (existing.isPresent()) {
             return buildResult(c, type, existing.get());
         }
@@ -151,10 +151,7 @@ public class SegmentChallengeService {
             throw new IllegalArgumentException(match.getRejectionReason());
         }
 
-        double[] refFirst = match.getCroppedTrack().get(0);
         int refElapsed = knownTimeSecondsOverride != null ? knownTimeSecondsOverride : match.getElapsedSeconds();
-        String refDedupeKey = SegmentEffortDedup.key(c.getId(), type.name(), refElapsed,
-                refFirst[0], refFirst[1]);
 
         SegmentEffort e = new SegmentEffort();
         e.setChallenge(c);
@@ -168,7 +165,6 @@ public class SegmentChallengeService {
         e.setTrackJson(serializeTrack(match.getCroppedTrack()));
         e.setSourceFormat("GPX");
         e.setStatus(EffortStatus.VALID);
-        e.setDedupeKey(refDedupeKey);
         e.setCreatedAt(LocalDateTime.now());
         effortRepository.save(e);
         return e.getId();

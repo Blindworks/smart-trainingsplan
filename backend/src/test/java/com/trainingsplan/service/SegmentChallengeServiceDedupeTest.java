@@ -12,8 +12,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,12 +29,17 @@ class SegmentChallengeServiceDedupeTest {
 
     private SegmentChallengeService service;
 
-    /** Minimal polyline JSON: one point — enough for matchTrack's objectMapper.readValue. */
     private static final String POLYLINE_JSON = "[[50.178,8.7354,112.0],[50.168,8.73,166.0]]";
 
-    private static final List<double[]> CROPPED_TRACK = List.of(
-            new double[]{50.178, 8.7354, 112.0, 0.0},
-            new double[]{50.168, 8.7300, 166.0, 298.0}
+    // Two distinct cropped tracks — different start coords AND different elapsed seconds,
+    // so they always produce different dedupe keys.
+    private static final List<double[]> TRACK_ALICE = List.of(
+            new double[]{50.17800, 8.73546, 112.0, 0.0},
+            new double[]{50.16885, 8.73000, 166.0, 298.0}
+    );
+    private static final List<double[]> TRACK_BOB = List.of(
+            new double[]{50.17800, 8.73546, 112.0, 0.0},
+            new double[]{50.16885, 8.73000, 166.0, 310.0}
     );
 
     private SegmentChallenge activeChallenge() {
@@ -49,39 +52,34 @@ class SegmentChallengeServiceDedupeTest {
         return c;
     }
 
-    private SegmentMatchResult successfulMatch() {
-        return SegmentMatchResult.matched(298, 1.09, 13.1, 275, CROPPED_TRACK);
-    }
-
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         service = new SegmentChallengeService(challengeRepository, effortRepository,
                 gpxParsingService, matchingService, new ObjectMapper());
 
-        // Default: no rate-limit hits
         when(effortRepository.countByChallengeIdAndIpHashAndCreatedAtAfter(anyLong(), anyString(), any()))
                 .thenReturn(0L);
-    }
-
-    // ---- helpers ----
-
-    private void stubChallengeAndMatch() throws Exception {
         when(challengeRepository.findBySlug("heartbreak-hill-2026"))
                 .thenReturn(Optional.of(activeChallenge()));
+    }
+
+    private ParsedActivityData minimalParsedData() {
         ParsedActivityData data = new ParsedActivityData();
         data.latLngPoints = List.of(new double[]{50.178, 8.7354}, new double[]{50.168, 8.73});
         data.timeSeconds = List.of(0, 298);
         data.elevations = List.of(112.0, 166.0);
-        when(gpxParsingService.parse(any())).thenReturn(data);
-        when(matchingService.match(any(), any(), any(), any())).thenReturn(successfulMatch());
+        return data;
     }
 
     // ---- tests ----
 
     @Test
     void submitPublicEffort_firstUpload_savesEffortWithDedupeKey() throws Exception {
-        stubChallengeAndMatch();
-        when(effortRepository.findFirstByChallengeIdAndStatusAndDedupeKey(anyLong(), any(), anyString()))
+        when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
+        when(matchingService.match(any(), any(), any(), any()))
+                .thenReturn(SegmentMatchResult.matched(298, 1.09, 13.1, 275, TRACK_ALICE));
+        when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
+                anyLong(), any(), any(), anyString()))
                 .thenReturn(Optional.empty());
 
         SegmentEffort saved = new SegmentEffort();
@@ -94,23 +92,22 @@ class SegmentChallengeServiceDedupeTest {
         when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
                 anyLong(), any(), any())).thenReturn(List.of(saved));
 
-        SegmentEffortResultDto result = service.submitPublicEffort(
-                "heartbreak-hill-2026", ActivityType.RUN, "Alice",
+        service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "Alice",
                 "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
 
-        // save must have been called once
         ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
         verify(effortRepository, times(1)).save(captor.capture());
 
         SegmentEffort persisted = captor.getValue();
         assertNotNull(persisted.getDedupeKey(), "dedupeKey must be set before save");
         assertEquals(32, persisted.getDedupeKey().length(), "MD5 hex = 32 chars");
-        assertNotNull(result);
     }
 
     @Test
     void submitPublicEffort_duplicate_returnsExistingWithoutSaving() throws Exception {
-        stubChallengeAndMatch();
+        when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
+        when(matchingService.match(any(), any(), any(), any()))
+                .thenReturn(SegmentMatchResult.matched(298, 1.09, 13.1, 275, TRACK_ALICE));
 
         SegmentEffort existing = new SegmentEffort();
         existing.setId(7L);
@@ -120,7 +117,8 @@ class SegmentChallengeServiceDedupeTest {
         existing.setEditToken("old-tok");
         existing.setDedupeKey("somehash");
 
-        when(effortRepository.findFirstByChallengeIdAndStatusAndDedupeKey(anyLong(), any(), anyString()))
+        when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
+                anyLong(), eq(EffortKind.PUBLIC), eq(EffortStatus.VALID), anyString()))
                 .thenReturn(Optional.of(existing));
         when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
                 anyLong(), any(), any())).thenReturn(List.of(existing));
@@ -129,36 +127,46 @@ class SegmentChallengeServiceDedupeTest {
                 "heartbreak-hill-2026", ActivityType.RUN, "Alice",
                 "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
 
-        // save must NOT be called for a duplicate
         verify(effortRepository, never()).save(any());
         assertNotNull(result);
         assertEquals(7L, result.effortId());
     }
 
     @Test
-    void submitPublicEffort_twoDifferentRunners_bothSaved() throws Exception {
-        stubChallengeAndMatch();
+    void submitPublicEffort_twoDifferentRunners_produceDifferentKeysAndBothSaved() throws Exception {
+        // Alice: elapsed=298, Bob: elapsed=310 → genuinely different dedupe keys
+        when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
+        when(matchingService.match(any(), any(), any(), any()))
+                .thenReturn(SegmentMatchResult.matched(298, 1.09, 13.1, 275, TRACK_ALICE))
+                .thenReturn(SegmentMatchResult.matched(310, 1.09, 12.7, 285, TRACK_BOB));
 
-        // First call — no duplicate
-        when(effortRepository.findFirstByChallengeIdAndStatusAndDedupeKey(anyLong(), any(), anyString()))
+        when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
+                anyLong(), any(), any(), anyString()))
                 .thenReturn(Optional.empty());
 
-        SegmentEffort saved1 = new SegmentEffort();
-        saved1.setId(10L);
-        saved1.setElapsedSeconds(298);
-        saved1.setStatus(EffortStatus.VALID);
-        saved1.setActivityType(ActivityType.RUN);
-        when(effortRepository.save(any())).thenReturn(saved1);
+        SegmentEffort stub = new SegmentEffort();
+        stub.setId(10L);
+        stub.setElapsedSeconds(298);
+        stub.setStatus(EffortStatus.VALID);
+        stub.setActivityType(ActivityType.RUN);
+        when(effortRepository.save(any())).thenReturn(stub);
         when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
-                anyLong(), any(), any())).thenReturn(List.of(saved1));
+                anyLong(), any(), any())).thenReturn(List.of(stub));
 
         service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "Alice",
                 "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
         service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "Bob",
                 "<gpx/>".getBytes(), "run.gpx", "5.6.7.8");
 
-        // save called twice — once per upload (both resolve as "new" in this test because the
-        // mock always returns empty)
-        verify(effortRepository, times(2)).save(any());
+        ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
+        verify(effortRepository, times(2)).save(captor.capture());
+
+        List<SegmentEffort> captured = captor.getAllValues();
+        String keyAlice = captured.get(0).getDedupeKey();
+        String keyBob   = captured.get(1).getDedupeKey();
+
+        assertNotNull(keyAlice, "Alice's dedupeKey must be set");
+        assertNotNull(keyBob,   "Bob's dedupeKey must be set");
+        assertNotEquals(keyAlice, keyBob, "different runs must produce different dedupe keys");
     }
 }
