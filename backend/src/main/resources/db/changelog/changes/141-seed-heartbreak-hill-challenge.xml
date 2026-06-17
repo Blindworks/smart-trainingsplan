@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="141-1" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM segment_challenges WHERE slug = 'heartbreak-hill-2026'
+            </sqlCheck>
+        </preConditions>
+        <comment>Seed the Heartbreak Hill 2026 challenge (placeholder gates/stats; replace with real Strava-segment data before launch)</comment>
+        <insert tableName="segment_challenges">
+            <column name="slug" value="heartbreak-hill-2026"/>
+            <column name="name" value="Heartbreak Hill"/>
+            <column name="subtitle" value="Ironman Frankfurt 2026"/>
+            <column name="event_date" valueDate="2026-06-28"/>
+            <column name="start_lat" valueNumeric="50.1748"/>
+            <column name="start_lng" valueNumeric="8.7360"/>
+            <column name="end_lat" valueNumeric="50.1792"/>
+            <column name="end_lng" valueNumeric="8.7405"/>
+            <column name="distance_m" valueNumeric="1200"/>
+            <column name="elevation_gain_m" valueNumeric="78"/>
+            <column name="avg_grade_pct" valueNumeric="6.4"/>
+            <column name="max_grade_pct" valueNumeric="12"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="created_at" valueDate="2026-06-16T12:00:00"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
