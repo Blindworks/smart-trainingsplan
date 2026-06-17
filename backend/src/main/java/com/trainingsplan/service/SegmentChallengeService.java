@@ -199,6 +199,9 @@ public class SegmentChallengeService {
         double[] last = full.get(full.size() - 1);
         double distanceM = data.training != null && data.training.getDistanceKm() != null
                 ? data.training.getDistanceKm() * 1000.0 : 0.0;
+        if (distanceM <= 0) {
+            throw new IllegalArgumentException("track_too_short");
+        }
         Integer gain = data.training != null ? data.training.getElevationGainM() : null;
         double netRise = last[2] - first[2];
         double avgGrade = Math.round(SegmentGeometryUtil.avgGradePct(distanceM, netRise) * 10) / 10.0;
