@@ -108,4 +108,32 @@ class SegmentGeometryUtilTest {
         assertEquals(71.5,  result[0], 5.0,  "Perpendicular distance should be ~71 m, got " + result[0]);
         assertEquals(556.0, result[1], 10.0, "Progress should still be ~556 m (projection is orthogonal)");
     }
+
+    @Test
+    void projectOntoPolyline_multiSegment_cumulativeProgressCorrect() {
+        // 3-point polyline along a meridian: two segments each ~556 m long (0.005° lat ≈ 553 m)
+        // [50.00,8.0] → [50.005,8.0] → [50.010,8.0]
+        double seg1Len = SegmentGeometryUtil.polylineLengthM(
+                List.of(new double[]{50.0, 8.0}, new double[]{50.005, 8.0}));
+
+        List<double[]> poly = List.of(
+                new double[]{50.0,   8.0},
+                new double[]{50.005, 8.0},
+                new double[]{50.010, 8.0}
+        );
+
+        // Project a point near the middle of the SECOND segment, slightly east.
+        // Its progress must be > seg1Len (i.e. cum accumulation crossed the first segment).
+        double[] result = SegmentGeometryUtil.projectOntoPolyline(50.0075, 8.0005, poly);
+
+        // Lateral offset ≈ 0.0005° × cos(50°) × 111320 ≈ 35.8 m
+        double expectedOffset = 0.0005 * Math.cos(Math.toRadians(50.0)) * 111320.0;
+        assertEquals(expectedOffset, result[0], 5.0,
+                "Perpendicular distance should match lateral offset, got " + result[0]);
+
+        // Progress must lie in the second segment, i.e. > seg1Len
+        assertTrue(result[1] > seg1Len,
+                "Progress into second segment must exceed first-segment length ("
+                + seg1Len + " m), got " + result[1]);
+    }
 }

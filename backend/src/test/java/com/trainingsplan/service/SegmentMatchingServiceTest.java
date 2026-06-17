@@ -153,6 +153,9 @@ class SegmentMatchingServiceTest {
         // Elapsed must equal the clean climb duration (9 s), NOT the distance from first touch
         assertEquals(climbDuration, r.getElapsedSeconds(),
                 "Should extract only the clean climb, not include the early incidental touch");
+        // Cropped track size must equal climbCount (foot inclusive → bestEntry..bestExit inclusive)
+        assertEquals(climbCount, r.getCroppedTrack().size(),
+                "Cropped track size must match the number of climb points constructed");
         assertTrue(r.getDistanceKm() > 0.1, "distance should be positive");
         assertTrue(r.getAvgSpeedKmh() > 0);
         assertEquals(0.0, r.getCroppedTrack().get(0)[3], 1e-9,
@@ -169,20 +172,9 @@ class SegmentMatchingServiceTest {
         List<double[]> poly = northPolyline(baseLat, lng, 10, stepDeg);
 
         // Track goes from top (index 9) to foot (index 0)
-        List<double[]> track = trackAlongPoly(poly, 9, 9, 0, 1);
+        List<double[]> track = new ArrayList<>();
         List<Integer>  times = new ArrayList<>();
         List<Double>   eles  = new ArrayList<>();
-        // Walk backwards
-        for (int i = 9; i >= 0; i--) {
-            track = new ArrayList<>(track);
-            if (i < 9) {
-                track.add(new double[]{poly.get(i)[0], poly.get(i)[1]});
-            }
-        }
-        // Build properly
-        track = new ArrayList<>();
-        times = new ArrayList<>();
-        eles  = new ArrayList<>();
         for (int i = 9; i >= 0; i--) {
             track.add(new double[]{poly.get(i)[0], poly.get(i)[1]});
             times.add(9 - i);

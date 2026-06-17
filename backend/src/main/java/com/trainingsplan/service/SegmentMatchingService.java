@@ -12,9 +12,10 @@ import java.util.List;
  *
  * <p>Algorithm: for each contiguous on-corridor run of track points (within 30 m of any
  * polyline edge), find the sub-run that starts near the foot of the climb (progress ≤ 12 % of
- * segment length) and reaches near the top (progress ≥ 85 %), covering at least 75 % of the
- * segment length. The fastest such sub-run wins. This correctly handles activities that wander
- * near the start gate early but only climb the segment later.</p>
+ * segment length) and reaches near the top (progress ≥ 85 %). The fastest such sub-run wins.
+ * The startBand + endBand constraints already guarantee a genuine foot→top traversal covering
+ * ≥73 % of the segment. This correctly handles activities that wander near the start gate
+ * early but only climb the segment later.</p>
  */
 @Service
 public class SegmentMatchingService {
@@ -27,8 +28,6 @@ public class SegmentMatchingService {
     private static final double START_BAND_FRACTION = 0.12;
     /** Minimum progress fraction that counts as "near the top". */
     private static final double END_BAND_FRACTION = 0.85;
-    /** Minimum coverage fraction of total length for a valid traversal. */
-    private static final double MIN_COVERAGE_FRACTION = 0.75;
 
     public SegmentMatchResult match(List<double[]> latLngPoints,
                                     List<Integer> timeSeconds,
@@ -57,9 +56,8 @@ public class SegmentMatchingService {
             prog[i] = pr[1];
         }
 
-        double startBand   = START_BAND_FRACTION * L;
-        double endBand     = END_BAND_FRACTION   * L;
-        double minCoverage = MIN_COVERAGE_FRACTION * L;
+        double startBand = START_BAND_FRACTION * L;
+        double endBand   = END_BAND_FRACTION   * L;
 
         int bestEntry = -1, bestExit = -1, bestElapsed = Integer.MAX_VALUE;
 
@@ -88,7 +86,7 @@ public class SegmentMatchingService {
                     if (dist[b] <= CORRIDOR && prog[b] > maxP) { maxP = prog[b]; exit = b; }
                 }
 
-                if (exit > entry && maxP >= endBand && (maxP - prog[entry]) >= minCoverage) {
+                if (exit > entry && maxP >= endBand) {
                     int elapsed = timeSeconds.get(exit) - timeSeconds.get(entry);
                     if (elapsed > 0 && elapsed < bestElapsed) {
                         bestElapsed = elapsed;
