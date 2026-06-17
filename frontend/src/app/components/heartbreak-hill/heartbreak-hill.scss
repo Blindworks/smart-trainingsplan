@@ -91,19 +91,23 @@
 .funnel b .material-symbols-outlined { font-size: 18px; }
 .drop-icon.material-symbols-outlined { font-size: 44px; }
 
-/* SHARE IMAGE */
-.share { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
-.share-hint { color: var(--text-muted); font-size: 13px; margin: 6px 0 12px; line-height: 1.5; }
-.tpl-seg { display: flex; gap: 8px; padding: 6px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; }
+/* SHARE IMAGE — bold call-to-action */
+.share { margin-top: 20px; padding: 18px; background: var(--bg-card); border: 2px solid var(--pp); border-radius: 16px; box-shadow: 0 0 0 1px rgba(143,252,46,.12), 0 0 26px rgba(143,252,46,.14); }
+.share-head { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.share-ic { flex: 0 0 44px; height: 44px; border-radius: 12px; background: var(--pp); color: #07120a; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; }
+.share-h { font-size: 19px; font-weight: 800; margin: 0; color: var(--text); }
+.share-sub { font-size: 13px; color: var(--text-muted); margin: 3px 0 0; line-height: 1.45; }
+.tpl-seg { display: flex; gap: 8px; padding: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; }
 .tpl-seg span { flex: 1; text-align: center; padding: 8px; border-radius: 8px; cursor: pointer; color: var(--text-muted); font-weight: 700; font-size: 13px; }
 .tpl-seg span.on { background: var(--pp); color: #07120a; }
-.share-preview { margin: 14px auto 0; width: 220px; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; border: 1px solid var(--border);
-  background-color: #2a2f37;
+.share-body { display: flex; gap: 14px; margin-top: 14px; align-items: stretch; }
+.share-preview { flex: 0 0 120px; aspect-ratio: 9 / 16; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+  background-color: #15181d;
   background-image:
-    linear-gradient(45deg, #3a3f47 25%, transparent 25%, transparent 75%, #3a3f47 75%),
-    linear-gradient(45deg, #3a3f47 25%, transparent 25%, transparent 75%, #3a3f47 75%);
-  background-size: 22px 22px; background-position: 0 0, 11px 11px; }
+    linear-gradient(45deg, #22262d 25%, transparent 25%, transparent 75%, #22262d 75%),
+    linear-gradient(45deg, #22262d 25%, transparent 25%, transparent 75%, #22262d 75%);
+  background-size: 18px 18px; background-position: 0 0, 9px 9px; }
 .share-preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.share-actions { display: flex; gap: 10px; margin-top: 14px; }
+.share-actions { flex: 1; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
 .share-actions .btn.block { margin-top: 0; }
-@media (max-width: 520px) { .share-actions { flex-direction: column; } }
+@media (max-width: 560px) { .share-body { flex-direction: column; align-items: center; } .share-preview { flex-basis: auto; width: 150px; } }

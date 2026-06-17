@@ -102,26 +102,47 @@ function textWidth(ctx: CanvasRenderingContext2D, text: string, font: string): n
   return ctx.measureText(text).width;
 }
 
-function drawLogoTag(ctx: CanvasRenderingContext2D, logo: HTMLImageElement | null, anchorX: number, baseY: number): void {
+/** Centered PACR logo lockup on a dark, green-bordered chip — prominent branding. */
+function drawLogoLockup(ctx: CanvasRenderingContext2D, logo: HTMLImageElement | null, centerX: number, bottomY: number, logoH: number): void {
   const fam = fontFamily();
-  const h = 64, padX = 24, logoH = 32;
-  const logoW = logo ? (logo.width / logo.height) * logoH : 0;
-  const contentW = logo ? logoW : textWidth(ctx, 'PACR', `500 32px ${fam}`);
-  const pillW = contentW + padX * 2;
-  const px = anchorX - pillW;            // right-anchored
-  const py = baseY - h;
-  ctx.fillStyle = 'rgba(8,13,9,0.45)';
-  roundRect(ctx, px, py, pillW, h, 16);
+  const padX = 28, padY = 15;
+  const logoW = logo ? (logo.width / logo.height) * logoH : textWidth(ctx, 'PACR', `800 ${logoH}px ${fam}`);
+  const pillW = logoW + padX * 2;
+  const pillH = logoH + padY * 2;
+  const px = centerX - pillW / 2;
+  const py = bottomY - pillH;
+  ctx.fillStyle = 'rgba(8,12,9,0.62)';
+  roundRect(ctx, px, py, pillW, pillH, 18);
   ctx.fill();
+  ctx.strokeStyle = 'rgba(143,252,46,0.30)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
   if (logo) {
-    ctx.drawImage(logo, px + padX, py + (h - logoH) / 2, logoW, logoH);
+    ctx.drawImage(logo, px + padX, py + padY, logoW, logoH);
   } else {
     ctx.fillStyle = GREEN;
-    ctx.font = `500 32px ${fam}`;
-    ctx.textAlign = 'left';
+    ctx.font = `800 ${logoH}px ${fam}`;
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('PACR', px + padX, py + h / 2 + 1);
+    ctx.fillText('PACR', centerX, py + pillH / 2 + 1);
     ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+  }
+}
+
+/** Small right-anchored PACR logo for an already-dark surface (no chip). */
+function drawLogoInline(ctx: CanvasRenderingContext2D, logo: HTMLImageElement | null, rightX: number, baseline: number, logoH: number): void {
+  const fam = fontFamily();
+  if (logo) {
+    const logoW = (logo.width / logo.height) * logoH;
+    ctx.drawImage(logo, rightX - logoW, baseline - logoH + Math.round(logoH * 0.16), logoW, logoH);
+  } else {
+    ctx.fillStyle = GREEN;
+    ctx.font = `800 ${Math.round(logoH * 0.8)}px ${fam}`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('PACR', rightX, baseline);
+    ctx.textAlign = 'left';
   }
 }
 
@@ -206,7 +227,7 @@ function drawTemplateA(ctx: CanvasRenderingContext2D, data: ShareImageData, labe
     }
   });
 
-  drawLogoTag(ctx, logo, SHARE_W - 60, SHARE_H - 64);
+  drawLogoLockup(ctx, logo, SHARE_W / 2, SHARE_H - 44, 64);
 }
 
 function drawTemplateB(ctx: CanvasRenderingContext2D, data: ShareImageData, labels: ShareLabels, logo: HTMLImageElement | null, ele: [number, number, number][]): void {
@@ -224,7 +245,7 @@ function drawTemplateB(ctx: CanvasRenderingContext2D, data: ShareImageData, labe
   ctx.fillStyle = '#cfe9c2';
   ctx.font = `500 28px ${fam}`;
   ctx.fillText(data.segmentName.toUpperCase(), cardX + padX, cardY + 74);
-  drawLogoTag(ctx, logo, cardX + cardW - padX, cardY + 86);
+  drawLogoInline(ctx, logo, cardX + cardW - padX, cardY + 78, 40);
 
   const rh = 150;
   const pts = buildElevationPoints(ele, cardW - padX * 2, rh);
@@ -278,7 +299,7 @@ function drawTemplateC(ctx: CanvasRenderingContext2D, data: ShareImageData, labe
     { value: data.time, label: labels.time, green: false },
     { value: `#${data.rank}`, label: `${labels.of} ${data.totalCount}`, green: true }
   ];
-  let y = SHARE_H - 250;
+  let y = SHARE_H - 330;
   rows.forEach(r => {
     const valueFont = `800 76px ${fam}`;
     ctx.font = valueFont;
@@ -290,5 +311,5 @@ function drawTemplateC(ctx: CanvasRenderingContext2D, data: ShareImageData, labe
     y += 88;
   });
 
-  drawLogoTag(ctx, logo, SHARE_W - 60, SHARE_H - 64);
+  drawLogoLockup(ctx, logo, SHARE_W / 2, SHARE_H - 44, 64);
 }

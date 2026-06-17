@@ -136,8 +136,13 @@
               <div><small>{{ 'HEARTBREAK_HILL.RESULT_PERCENTILE' | translate }}</small><b>{{ r.percentileBeaten | number:'1.0-0' }} %</b></div>
             </div>
             <div class="share">
-              <span class="label">{{ 'HEARTBREAK_HILL.SHARE_TITLE' | translate }}</span>
-              <p class="share-hint">{{ 'HEARTBREAK_HILL.SHARE_HINT' | translate }}</p>
+              <div class="share-head">
+                <span class="share-ic material-symbols-outlined">share</span>
+                <div>
+                  <h3 class="share-h">{{ 'HEARTBREAK_HILL.SHARE_TITLE' | translate }}</h3>
+                  <p class="share-sub">{{ 'HEARTBREAK_HILL.SHARE_HINT' | translate }}</p>
+                </div>
+              </div>
 
               <div class="tpl-seg">
                 <span [class.on]="shareTemplate() === 'A'" (click)="selectTemplate('A')">{{ 'HEARTBREAK_HILL.SHARE_TPL_A' | translate }}</span>
@@ -145,19 +150,20 @@
                 <span [class.on]="shareTemplate() === 'C'" (click)="selectTemplate('C')">{{ 'HEARTBREAK_HILL.SHARE_TPL_C' | translate }}</span>
               </div>
 
-              @if (sharePreviewUrl(); as url) {
-                <div class="share-preview"><img [src]="url" alt=""></div>
-              }
-
-              <div class="share-actions">
-                <button class="btn block" (click)="downloadShare()">
-                  <span class="material-symbols-outlined">download</span>{{ 'HEARTBREAK_HILL.SHARE_DOWNLOAD' | translate }}
-                </button>
-                @if (canNativeShare()) {
-                  <button class="btn ghost block" (click)="shareImage()">
-                    <span class="material-symbols-outlined">ios_share</span>{{ 'HEARTBREAK_HILL.SHARE_SHARE' | translate }}
-                  </button>
+              <div class="share-body">
+                @if (sharePreviewUrl(); as url) {
+                  <div class="share-preview"><img [src]="url" alt=""></div>
                 }
+                <div class="share-actions">
+                  @if (canNativeShare()) {
+                    <button class="btn block" (click)="shareImage()">
+                      <span class="material-symbols-outlined">ios_share</span>{{ 'HEARTBREAK_HILL.SHARE_SHARE' | translate }}
+                    </button>
+                  }
+                  <button class="btn block" [class.ghost]="canNativeShare()" (click)="downloadShare()">
+                    <span class="material-symbols-outlined">download</span>{{ 'HEARTBREAK_HILL.SHARE_DOWNLOAD' | translate }}
+                  </button>
+                </div>
               </div>
             </div>
             <div class="funnel">

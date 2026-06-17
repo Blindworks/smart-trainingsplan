@@ -203,7 +203,7 @@ export class HeartbreakHill implements OnInit {
     }
     await document.fonts.ready;
     if (!this.logoPromise) {
-      this.logoPromise = loadImage('assets/logo/PACR_logo_light_text_transparent.png')
+      this.logoPromise = loadImage('assets/logo/PACR_logo_dark_text_transparent_cut.png')
         .catch(() => null);
     }
     const logo = await this.logoPromise;
