@@ -135,6 +135,31 @@
               <div><small>{{ 'HEARTBREAK_HILL.RESULT_GAP' | translate }}</small><b>{{ formatGap(r.gapToLeaderSeconds) }}</b></div>
               <div><small>{{ 'HEARTBREAK_HILL.RESULT_PERCENTILE' | translate }}</small><b>{{ r.percentileBeaten | number:'1.0-0' }} %</b></div>
             </div>
+            <div class="share">
+              <span class="label">{{ 'HEARTBREAK_HILL.SHARE_TITLE' | translate }}</span>
+              <p class="share-hint">{{ 'HEARTBREAK_HILL.SHARE_HINT' | translate }}</p>
+
+              <div class="tpl-seg">
+                <span [class.on]="shareTemplate() === 'A'" (click)="selectTemplate('A')">{{ 'HEARTBREAK_HILL.SHARE_TPL_A' | translate }}</span>
+                <span [class.on]="shareTemplate() === 'B'" (click)="selectTemplate('B')">{{ 'HEARTBREAK_HILL.SHARE_TPL_B' | translate }}</span>
+                <span [class.on]="shareTemplate() === 'C'" (click)="selectTemplate('C')">{{ 'HEARTBREAK_HILL.SHARE_TPL_C' | translate }}</span>
+              </div>
+
+              @if (sharePreviewUrl(); as url) {
+                <div class="share-preview"><img [src]="url" alt=""></div>
+              }
+
+              <div class="share-actions">
+                <button class="btn block" (click)="downloadShare()">
+                  <span class="material-symbols-outlined">download</span>{{ 'HEARTBREAK_HILL.SHARE_DOWNLOAD' | translate }}
+                </button>
+                @if (canNativeShare()) {
+                  <button class="btn ghost block" (click)="shareImage()">
+                    <span class="material-symbols-outlined">ios_share</span>{{ 'HEARTBREAK_HILL.SHARE_SHARE' | translate }}
+                  </button>
+                }
+              </div>
+            </div>
             <div class="funnel">
               <b><span class="material-symbols-outlined">lock</span>{{ 'HEARTBREAK_HILL.FUNNEL_TITLE' | translate }}</b>
               <p>{{ 'HEARTBREAK_HILL.FUNNEL_BODY' | translate }}</p>

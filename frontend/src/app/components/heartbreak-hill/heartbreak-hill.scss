@@ -90,3 +90,20 @@
 .funnel b { display: inline-flex; align-items: center; gap: 6px; }
 .funnel b .material-symbols-outlined { font-size: 18px; }
 .drop-icon.material-symbols-outlined { font-size: 44px; }
+
+/* SHARE IMAGE */
+.share { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+.share-hint { color: var(--text-muted); font-size: 13px; margin: 6px 0 12px; line-height: 1.5; }
+.tpl-seg { display: flex; gap: 8px; padding: 6px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; }
+.tpl-seg span { flex: 1; text-align: center; padding: 8px; border-radius: 8px; cursor: pointer; color: var(--text-muted); font-weight: 700; font-size: 13px; }
+.tpl-seg span.on { background: var(--pp); color: #07120a; }
+.share-preview { margin: 14px auto 0; width: 220px; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; border: 1px solid var(--border);
+  background-color: #2a2f37;
+  background-image:
+    linear-gradient(45deg, #3a3f47 25%, transparent 25%, transparent 75%, #3a3f47 75%),
+    linear-gradient(45deg, #3a3f47 25%, transparent 25%, transparent 75%, #3a3f47 75%);
+  background-size: 22px 22px; background-position: 0 0, 11px 11px; }
+.share-preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.share-actions { display: flex; gap: 10px; margin-top: 14px; }
+.share-actions .btn.block { margin-top: 0; }
+@media (max-width: 520px) { .share-actions { flex-direction: column; } }
