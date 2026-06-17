@@ -68,4 +68,44 @@ class SegmentGeometryUtilTest {
         assertEquals(0.0, SegmentGeometryUtil.maxGradePct(null));
         assertEquals(0.0, SegmentGeometryUtil.maxGradePct(List.of(new double[]{1,2,3})));
     }
+
+    // -----------------------------------------------------------------------
+    // polylineLengthM tests
+    // -----------------------------------------------------------------------
+
+    @Test
+    void polylineLengthM_nullOrSinglePoint_returnsZero() {
+        assertEquals(0.0, SegmentGeometryUtil.polylineLengthM(null));
+        assertEquals(0.0, SegmentGeometryUtil.polylineLengthM(List.of(new double[]{50.0, 8.0})));
+    }
+
+    @Test
+    void polylineLengthM_meridianSegment_approx1113m() {
+        // [50.00, 8.0] → [50.01, 8.0]: 0.01° latitude ≈ 1113 m (110_540 m/deg × 0.01)
+        List<double[]> poly = List.of(new double[]{50.0, 8.0}, new double[]{50.01, 8.0});
+        double length = SegmentGeometryUtil.polylineLengthM(poly);
+        assertEquals(1113.0, length, 5.0, "Expected ~1113 m for 0.01° lat at 50°N, got " + length);
+    }
+
+    // -----------------------------------------------------------------------
+    // projectOntoPolyline tests
+    // -----------------------------------------------------------------------
+
+    @Test
+    void projectOntoPolyline_pointOnLine_zeroDistance() {
+        List<double[]> poly = List.of(new double[]{50.0, 8.0}, new double[]{50.01, 8.0});
+        // Midpoint of the segment
+        double[] result = SegmentGeometryUtil.projectOntoPolyline(50.005, 8.0, poly);
+        assertEquals(0.0,   result[0], 1.0,  "Perpendicular distance should be ~0 m");
+        assertEquals(556.0, result[1], 10.0, "Progress should be ~556 m (half of ~1113 m)");
+    }
+
+    @Test
+    void projectOntoPolyline_pointOffLine_correctDistance() {
+        List<double[]> poly = List.of(new double[]{50.0, 8.0}, new double[]{50.01, 8.0});
+        // 0.001° east at 50°N: dist = 0.001 * cos(50°) * 111320 ≈ 71.5 m
+        double[] result = SegmentGeometryUtil.projectOntoPolyline(50.005, 8.0010, poly);
+        assertEquals(71.5,  result[0], 5.0,  "Perpendicular distance should be ~71 m, got " + result[0]);
+        assertEquals(556.0, result[1], 10.0, "Progress should still be ~556 m (projection is orthogonal)");
+    }
 }

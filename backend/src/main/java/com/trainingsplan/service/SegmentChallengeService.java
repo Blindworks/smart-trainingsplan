@@ -17,6 +17,7 @@ import org.springframework.util.DigestUtils;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -240,10 +241,20 @@ public class SegmentChallengeService {
     }
 
     private SegmentMatchResult matchTrack(SegmentChallenge c, byte[] fileBytes) {
+        String polylineJson = c.getPolylineJson();
+        if (polylineJson == null || polylineJson.isBlank()) {
+            return SegmentMatchResult.rejected("segment_not_configured");
+        }
+        List<double[]> polyline;
+        try {
+            double[][] raw = objectMapper.readValue(polylineJson, double[][].class);
+            polyline = Arrays.asList(raw);
+        } catch (Exception ex) {
+            return SegmentMatchResult.rejected("segment_not_configured");
+        }
         try {
             ParsedActivityData data = gpxParsingService.parse(fileBytes);
-            return matchingService.match(data.latLngPoints, data.timeSeconds, data.elevations,
-                    c.getStartLat(), c.getStartLng(), c.getEndLat(), c.getEndLng());
+            return matchingService.match(data.latLngPoints, data.timeSeconds, data.elevations, polyline);
         } catch (Exception ex) {
             return SegmentMatchResult.rejected("unparseable_file");
         }

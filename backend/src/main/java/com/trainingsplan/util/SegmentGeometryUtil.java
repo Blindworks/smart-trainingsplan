@@ -9,6 +9,51 @@ public final class SegmentGeometryUtil {
 
     private SegmentGeometryUtil() {}
 
+    /**
+     * Total polyline length in metres. Points are at minimum [lat, lng, ...].
+     * Returns 0 for null or single-point polylines.
+     */
+    public static double polylineLengthM(List<double[]> polyline) {
+        if (polyline == null || polyline.size() < 2) return 0.0;
+        double L = 0;
+        for (int i = 1; i < polyline.size(); i++) {
+            L += GeoUtils.haversineMeters(polyline.get(i - 1)[0], polyline.get(i - 1)[1],
+                                          polyline.get(i)[0],     polyline.get(i)[1]);
+        }
+        return L;
+    }
+
+    /**
+     * Projects {@code (lat, lng)} onto the nearest point on the polyline using a local
+     * equirectangular approximation per segment (accurate within a few metres for segments
+     * up to a few km in mid-latitudes).
+     *
+     * @return {@code [perpendicularDistanceMeters, progressMeters]} where progress is the
+     *         cumulative along-polyline distance at the nearest projection point.
+     */
+    public static double[] projectOntoPolyline(double lat, double lng, List<double[]> polyline) {
+        double bestD = Double.MAX_VALUE, bestProg = 0, cum = 0;
+        for (int i = 0; i < polyline.size() - 1; i++) {
+            double[] a = polyline.get(i), b = polyline.get(i + 1);
+            double mPerLon = Math.cos(Math.toRadians(a[0])) * 111320.0;
+            double mPerLat = 110540.0;
+            double ox = (lng - a[1]) * mPerLon, oy = (lat - a[0]) * mPerLat;
+            double bx = (b[1] - a[1]) * mPerLon, by = (b[0] - a[0]) * mPerLat;
+            double segLen2 = bx * bx + by * by;
+            double t = segLen2 > 0 ? (ox * bx + oy * by) / segLen2 : 0;
+            t = Math.max(0, Math.min(1, t));
+            double px = ox - t * bx, py = oy - t * by;
+            double d = Math.hypot(px, py);
+            double segLen = Math.sqrt(segLen2);
+            if (d < bestD) {
+                bestD = d;
+                bestProg = cum + t * segLen;
+            }
+            cum += segLen;
+        }
+        return new double[]{bestD, bestProg};
+    }
+
     /** Evenly thins points to at most maxPoints, always keeping first and last. Returns input if already small. */
     public static List<double[]> downsample(List<double[]> points, int maxPoints) {
         if (points == null || points.size() <= maxPoints || maxPoints < 2) {
