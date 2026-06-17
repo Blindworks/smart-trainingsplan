@@ -1,4 +1,4 @@
-import { buildElevationProfile, formatGap, formatGrade } from './heartbreak-hill.util';
+import { buildElevationProfile, buildElevationPoints, formatGap, formatGrade } from './heartbreak-hill.util';
 
 describe('heartbreak-hill.util', () => {
   describe('formatGap', () => {
@@ -44,6 +44,23 @@ describe('heartbreak-hill.util', () => {
       expect(firstY).toBeGreaterThan(lastY);
       // area path closes back to the baseline
       expect(profile!.area.endsWith('Z')).toBe(true);
+    });
+  });
+
+  describe('buildElevationPoints', () => {
+    it('returns an empty array for fewer than 2 points', () => {
+      expect(buildElevationPoints([], 400, 200)).toEqual([]);
+      expect(buildElevationPoints([[50, 8, 100]], 400, 200)).toEqual([]);
+    });
+
+    it('spreads x evenly and inverts elevation (highest → smallest y)', () => {
+      const pts: [number, number, number][] = [[50, 8, 100], [50.001, 8, 110], [50.002, 8, 120]];
+      const out = buildElevationPoints(pts, 400, 200);
+      expect(out.length).toBe(3);
+      expect(out[0].x).toBe(0);
+      expect(out[2].x).toBe(400);
+      // lowest elevation (first) sits lower on screen → larger y than the highest (last)
+      expect(out[0].y).toBeGreaterThan(out[2].y);
     });
   });
 });

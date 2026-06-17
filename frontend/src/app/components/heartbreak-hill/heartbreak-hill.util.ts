@@ -21,18 +21,18 @@ export interface ElevationProfile {
   area: string;   // SVG path for the filled area under the ridge
 }
 
+export interface ElevationPoint { x: number; y: number; }
+
 /**
- * Builds SVG path strings for a 2D elevation profile from [lat, lng, ele] points,
- * scaled into a [0..width] x [0..height] viewBox. Returns null for < 2 points.
- * x is distributed evenly by index; y is the elevation normalised and inverted
- * (highest elevation near the top, y=0). A small top/bottom padding keeps the
- * line off the edges.
+ * Normalises [lat, lng, ele] points into a [0..width] x [0..height] box.
+ * x is spread evenly by index; y inverts elevation (highest → smallest y) with
+ * a small top/bottom padding. Returns [] for fewer than 2 points.
  */
-export function buildElevationProfile(
+export function buildElevationPoints(
   points: [number, number, number][], width: number, height: number
-): ElevationProfile | null {
+): ElevationPoint[] {
   if (!points || points.length < 2) {
-    return null;
+    return [];
   }
   const eles = points.map(p => p[2] ?? 0);
   const minE = Math.min(...eles);
@@ -41,14 +41,26 @@ export function buildElevationProfile(
   const pad = height * 0.12;
   const usable = height - pad * 2;
 
-  const coords = points.map((p, i) => {
+  return points.map((p, i) => {
     const x = (i / (points.length - 1)) * width;
     const norm = ((p[2] ?? 0) - minE) / span;       // 0 at lowest, 1 at highest
     const y = pad + (1 - norm) * usable;             // invert: highest → smallest y
-    return [Math.round(x * 100) / 100, Math.round(y * 100) / 100] as const;
+    return { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 };
   });
+}
 
-  const line = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c[0]},${c[1]}`).join(' ');
+/**
+ * Builds SVG path strings for a 2D elevation profile, scaled into a
+ * [0..width] x [0..height] viewBox. Returns null for < 2 points.
+ */
+export function buildElevationProfile(
+  points: [number, number, number][], width: number, height: number
+): ElevationProfile | null {
+  const pts = buildElevationPoints(points, width, height);
+  if (pts.length < 2) {
+    return null;
+  }
+  const line = pts.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x},${c.y}`).join(' ');
   const area = `${line} L${width},${height} L0,${height} Z`;
   return { line, area };
 }
