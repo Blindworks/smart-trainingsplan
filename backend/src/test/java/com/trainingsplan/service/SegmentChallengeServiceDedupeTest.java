@@ -134,6 +134,7 @@ class SegmentChallengeServiceDedupeTest {
         verify(effortRepository, never()).save(any());
         assertNotNull(result);
         assertEquals(7L, result.effortId(), "must return the existing best effort");
+        assertEquals(300, result.elapsedSeconds(), "returned elapsed must be the stored best, not the slower upload");
     }
 
     // ---- scenario 3: faster re-upload (same name) → update same row in place ----
