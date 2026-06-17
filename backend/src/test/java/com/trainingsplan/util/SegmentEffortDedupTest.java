@@ -6,45 +6,71 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SegmentEffortDedupTest {
 
+    // ---- normalisation: casing + surrounding/internal whitespace ----
+
     @Test
-    void sameInputs_produceSameKey() {
-        String k1 = SegmentEffortDedup.key(1L, "RUN", 298, 50.17800, 8.73546);
-        String k2 = SegmentEffortDedup.key(1L, "RUN", 298, 50.17800, 8.73546);
+    void sameNameExact_produceSameKey() {
+        String k1 = SegmentEffortDedup.identityKey(1L, "RUN", "Lukas");
+        String k2 = SegmentEffortDedup.identityKey(1L, "RUN", "Lukas");
         assertEquals(k1, k2);
     }
 
     @Test
-    void differentElapsedSeconds_produceDifferentKey() {
-        String k1 = SegmentEffortDedup.key(1L, "RUN", 298, 50.17800, 8.73546);
-        String k2 = SegmentEffortDedup.key(1L, "RUN", 299, 50.17800, 8.73546);
+    void differentCasing_produceSameKey() {
+        String k1 = SegmentEffortDedup.identityKey(1L, "RUN", "Lukas");
+        String k2 = SegmentEffortDedup.identityKey(1L, "RUN", "lukas");
+        assertEquals(k1, k2);
+    }
+
+    @Test
+    void surroundingWhitespace_produceSameKey() {
+        String k1 = SegmentEffortDedup.identityKey(1L, "RUN", "Lukas");
+        String k2 = SegmentEffortDedup.identityKey(1L, "RUN", "  Lukas  ");
+        assertEquals(k1, k2);
+    }
+
+    @Test
+    void internalWhitespaceCollapsed_produceSameKey() {
+        String k1 = SegmentEffortDedup.identityKey(1L, "RUN", "Lukas R");
+        String k2 = SegmentEffortDedup.identityKey(1L, "RUN", "Lukas   R");
+        assertEquals(k1, k2);
+    }
+
+    @Test
+    void combinedCasingAndWhitespace_produceSameKey() {
+        String k1 = SegmentEffortDedup.identityKey(1L, "RUN", "  Lukas  ");
+        String k2 = SegmentEffortDedup.identityKey(1L, "RUN", "lukas");
+        assertEquals(k1, k2);
+    }
+
+    // ---- different inputs must differ ----
+
+    @Test
+    void differentName_produceDifferentKey() {
+        String k1 = SegmentEffortDedup.identityKey(1L, "RUN", "Lukas");
+        String k2 = SegmentEffortDedup.identityKey(1L, "RUN", "Anna");
         assertNotEquals(k1, k2);
     }
 
     @Test
-    void coordsDifferingOnlyIn7thDecimal_produceSameKey() {
-        // 50.1780001 vs 50.1780009 differ only at the 7th decimal (~1 cm), must round to same 5 dp
-        String k1 = SegmentEffortDedup.key(1L, "RUN", 298, 50.1780001, 8.7354600);
-        String k2 = SegmentEffortDedup.key(1L, "RUN", 298, 50.1780009, 8.7354609);
-        assertEquals(k1, k2);
-    }
-
-    @Test
     void differentActivityType_produceDifferentKey() {
-        String k1 = SegmentEffortDedup.key(1L, "RUN", 298, 50.17800, 8.73546);
-        String k2 = SegmentEffortDedup.key(1L, "RIDE", 298, 50.17800, 8.73546);
+        String k1 = SegmentEffortDedup.identityKey(1L, "RUN", "Lukas");
+        String k2 = SegmentEffortDedup.identityKey(1L, "RIDE", "Lukas");
         assertNotEquals(k1, k2);
     }
 
     @Test
     void differentChallengeId_produceDifferentKey() {
-        String k1 = SegmentEffortDedup.key(1L, "RUN", 298, 50.17800, 8.73546);
-        String k2 = SegmentEffortDedup.key(2L, "RUN", 298, 50.17800, 8.73546);
+        String k1 = SegmentEffortDedup.identityKey(1L, "RUN", "Lukas");
+        String k2 = SegmentEffortDedup.identityKey(2L, "RUN", "Lukas");
         assertNotEquals(k1, k2);
     }
 
+    // ---- output format ----
+
     @Test
     void keyIsNonNull32CharHexString() {
-        String k = SegmentEffortDedup.key(1L, "RUN", 298, 50.17800, 8.73546);
+        String k = SegmentEffortDedup.identityKey(1L, "RUN", "Lukas");
         assertNotNull(k);
         assertEquals(32, k.length());
         assertTrue(k.matches("[0-9a-f]{32}"));

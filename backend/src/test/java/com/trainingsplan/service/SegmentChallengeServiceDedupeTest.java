@@ -19,6 +19,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests keep-best-by-name semantics: one leaderboard row per (challenge, activityType, displayName),
+ * holding the smallest elapsedSeconds seen for that identity.
+ */
 @ExtendWith(MockitoExtension.class)
 class SegmentChallengeServiceDedupeTest {
 
@@ -31,15 +35,9 @@ class SegmentChallengeServiceDedupeTest {
 
     private static final String POLYLINE_JSON = "[[50.178,8.7354,112.0],[50.168,8.73,166.0]]";
 
-    // Two distinct cropped tracks — different start coords AND different elapsed seconds,
-    // so they always produce different dedupe keys.
-    private static final List<double[]> TRACK_ALICE = List.of(
+    private static final List<double[]> CROPPED_TRACK = List.of(
             new double[]{50.17800, 8.73546, 112.0, 0.0},
             new double[]{50.16885, 8.73000, 166.0, 298.0}
-    );
-    private static final List<double[]> TRACK_BOB = List.of(
-            new double[]{50.17800, 8.73546, 112.0, 0.0},
-            new double[]{50.16885, 8.73000, 166.0, 310.0}
     );
 
     private SegmentChallenge activeChallenge() {
@@ -71,20 +69,20 @@ class SegmentChallengeServiceDedupeTest {
         return data;
     }
 
-    // ---- tests ----
+    // ---- scenario 1: first upload for this name → save new row ----
 
     @Test
-    void submitPublicEffort_firstUpload_savesEffortWithDedupeKey() throws Exception {
+    void firstUpload_nameUnseen_savesNewEffortWithDedupeKey() throws Exception {
         when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
         when(matchingService.match(any(), any(), any(), any()))
-                .thenReturn(SegmentMatchResult.matched(298, 1.09, 13.1, 275, TRACK_ALICE));
+                .thenReturn(SegmentMatchResult.matched(300, 1.09, 13.1, 275, CROPPED_TRACK));
         when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
                 anyLong(), any(), any(), anyString()))
                 .thenReturn(Optional.empty());
 
         SegmentEffort saved = new SegmentEffort();
-        saved.setId(42L);
-        saved.setElapsedSeconds(298);
+        saved.setId(1L);
+        saved.setElapsedSeconds(300);
         saved.setStatus(EffortStatus.VALID);
         saved.setActivityType(ActivityType.RUN);
         saved.setEditToken("tok");
@@ -92,26 +90,31 @@ class SegmentChallengeServiceDedupeTest {
         when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
                 anyLong(), any(), any())).thenReturn(List.of(saved));
 
-        service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "Alice",
+        SegmentEffortResultDto result = service.submitPublicEffort(
+                "heartbreak-hill-2026", ActivityType.RUN, "Alice",
                 "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
 
         ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
         verify(effortRepository, times(1)).save(captor.capture());
 
         SegmentEffort persisted = captor.getValue();
-        assertNotNull(persisted.getDedupeKey(), "dedupeKey must be set before save");
-        assertEquals(32, persisted.getDedupeKey().length(), "MD5 hex = 32 chars");
+        assertNotNull(persisted.getDedupeKey(), "dedupeKey must be set on new effort");
+        assertEquals(32, persisted.getDedupeKey().length(), "MD5 hex is 32 chars");
+        assertNotNull(result);
     }
 
+    // ---- scenario 2: slower re-upload (same name) → no save, keep existing ----
+
     @Test
-    void submitPublicEffort_duplicate_returnsExistingWithoutSaving() throws Exception {
+    void slowerReupload_sameNameVariant_doesNotSave_returnsExistingBest() throws Exception {
+        // existing best: 300 s; new upload: 360 s (slower) → no save
         when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
         when(matchingService.match(any(), any(), any(), any()))
-                .thenReturn(SegmentMatchResult.matched(298, 1.09, 13.1, 275, TRACK_ALICE));
+                .thenReturn(SegmentMatchResult.matched(360, 1.09, 13.1, 275, CROPPED_TRACK));
 
         SegmentEffort existing = new SegmentEffort();
         existing.setId(7L);
-        existing.setElapsedSeconds(298);
+        existing.setElapsedSeconds(300);
         existing.setStatus(EffortStatus.VALID);
         existing.setActivityType(ActivityType.RUN);
         existing.setEditToken("old-tok");
@@ -123,30 +126,70 @@ class SegmentChallengeServiceDedupeTest {
         when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
                 anyLong(), any(), any())).thenReturn(List.of(existing));
 
+        // name variants: "alice", "  Alice  ", "ALICE" all normalise to the same identity
         SegmentEffortResultDto result = service.submitPublicEffort(
-                "heartbreak-hill-2026", ActivityType.RUN, "Alice",
+                "heartbreak-hill-2026", ActivityType.RUN, "  Alice  ",
                 "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
 
         verify(effortRepository, never()).save(any());
         assertNotNull(result);
-        assertEquals(7L, result.effortId());
+        assertEquals(7L, result.effortId(), "must return the existing best effort");
     }
 
+    // ---- scenario 3: faster re-upload (same name) → update same row in place ----
+
     @Test
-    void submitPublicEffort_twoDifferentRunners_produceDifferentKeysAndBothSaved() throws Exception {
-        // Alice: elapsed=298, Bob: elapsed=310 → genuinely different dedupe keys
+    void fasterReupload_sameNameCaseVariant_updatesSameRowWithNewBestTime() throws Exception {
+        // existing best: 300 s; new upload: 250 s (faster) → update same entity
         when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
         when(matchingService.match(any(), any(), any(), any()))
-                .thenReturn(SegmentMatchResult.matched(298, 1.09, 13.1, 275, TRACK_ALICE))
-                .thenReturn(SegmentMatchResult.matched(310, 1.09, 12.7, 285, TRACK_BOB));
+                .thenReturn(SegmentMatchResult.matched(250, 1.09, 13.1, 275, CROPPED_TRACK));
 
+        SegmentEffort existing = new SegmentEffort();
+        existing.setId(7L);
+        existing.setElapsedSeconds(300);
+        existing.setStatus(EffortStatus.VALID);
+        existing.setActivityType(ActivityType.RUN);
+        existing.setEditToken("old-tok");
+        existing.setDedupeKey("somehash");
+
+        when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
+                anyLong(), eq(EffortKind.PUBLIC), eq(EffortStatus.VALID), anyString()))
+                .thenReturn(Optional.of(existing));
+        when(effortRepository.save(any())).thenReturn(existing);
+        when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
+                anyLong(), any(), any())).thenReturn(List.of(existing));
+
+        // "ALICE" normalises to the same identity as "Alice"
+        service.submitPublicEffort(
+                "heartbreak-hill-2026", ActivityType.RUN, "ALICE",
+                "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
+
+        ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
+        verify(effortRepository, times(1)).save(captor.capture());
+
+        SegmentEffort updated = captor.getValue();
+        assertEquals(7L, updated.getId(), "must update the same entity (same id)");
+        assertEquals(250, updated.getElapsedSeconds(), "elapsedSeconds must be updated to new best");
+    }
+
+    // ---- scenario 4: different display name → separate new row ----
+
+    @Test
+    void differentDisplayName_savesNewRow() throws Exception {
+        when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
+        when(matchingService.match(any(), any(), any(), any()))
+                .thenReturn(SegmentMatchResult.matched(290, 1.09, 13.1, 275, CROPPED_TRACK))
+                .thenReturn(SegmentMatchResult.matched(305, 1.09, 12.7, 285, CROPPED_TRACK));
+
+        // finder always returns empty (Bob is unknown)
         when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
                 anyLong(), any(), any(), anyString()))
                 .thenReturn(Optional.empty());
 
         SegmentEffort stub = new SegmentEffort();
         stub.setId(10L);
-        stub.setElapsedSeconds(298);
+        stub.setElapsedSeconds(290);
         stub.setStatus(EffortStatus.VALID);
         stub.setActivityType(ActivityType.RUN);
         when(effortRepository.save(any())).thenReturn(stub);
@@ -167,6 +210,6 @@ class SegmentChallengeServiceDedupeTest {
 
         assertNotNull(keyAlice, "Alice's dedupeKey must be set");
         assertNotNull(keyBob,   "Bob's dedupeKey must be set");
-        assertNotEquals(keyAlice, keyBob, "different runs must produce different dedupe keys");
+        assertNotEquals(keyAlice, keyBob, "different display names must produce different identity keys");
     }
 }

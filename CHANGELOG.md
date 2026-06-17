@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- Heartbreak Hill: the same run can no longer appear multiple times on the leaderboard (uploads are de-duplicated by effort fingerprint).
+- Heartbreak Hill leaderboard now shows one entry per participant (best time, identified by display name); re-uploading a faster run updates your time in place, slower runs are ignored.
 - **Segment matcher now correctly extracts the climb window from a full activity instead of cropping between the first gate touch and the last.** The old gate-radius approach returned ~3567 s on a 12.6 km run that incidentally passed the Heartbreak Hill foot early (index 198 of 4000) and the top near the end — making every real upload look like a 59-minute effort. The matcher has been rewritten to project each track point onto the segment polyline (equirectangular per-segment approximation, accurate to <2 m), find contiguous on-corridor runs (≤30 m perpendicular), identify the sub-run that starts within 12 % of the segment foot, reaches at least 85 % of the top and covers 75 % of the total length, and pick the fastest such sub-run. The real Heartbreak Hill run is now matched at ~365 s / 1.13 km. Two new static helpers added to `SegmentGeometryUtil`: `polylineLengthM` and `projectOntoPolyline`. `SegmentChallengeService.matchTrack` now parses `polylineJson` from the `SegmentChallenge` entity and passes it to the matcher instead of start/end gate coordinates.
 
 ### Added

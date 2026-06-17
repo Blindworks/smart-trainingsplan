@@ -105,13 +105,24 @@ public class SegmentChallengeService {
             throw new IllegalArgumentException("implausible_speed");
         }
 
-        double[] firstPoint = match.getCroppedTrack().get(0);
-        String dedupeKey = SegmentEffortDedup.key(c.getId(), type.name(), match.getElapsedSeconds(),
-                firstPoint[0], firstPoint[1]);
-        Optional<SegmentEffort> existing = effortRepository
-                .findFirstByChallengeIdAndKindAndStatusAndDedupeKey(c.getId(), EffortKind.PUBLIC, EffortStatus.VALID, dedupeKey);
-        if (existing.isPresent()) {
-            return buildResult(c, type, existing.get());
+        String identity = SegmentEffortDedup.identityKey(c.getId(), type.name(), displayName);
+        Optional<SegmentEffort> existingOpt = effortRepository
+                .findFirstByChallengeIdAndKindAndStatusAndDedupeKey(c.getId(), EffortKind.PUBLIC, EffortStatus.VALID, identity);
+        if (existingOpt.isPresent()) {
+            SegmentEffort ex = existingOpt.get();
+            if (match.getElapsedSeconds() < ex.getElapsedSeconds()) {
+                // new personal best — update the same row in place (keep id/editToken/claimedByUserId/dedupeKey)
+                ex.setElapsedSeconds(match.getElapsedSeconds());
+                ex.setAvgSpeedKmh(match.getAvgSpeedKmh());
+                ex.setAvgPaceSecondsPerKm(match.getAvgPaceSecondsPerKm());
+                ex.setTrackJson(serializeTrack(match.getCroppedTrack()));
+                ex.setSourceFormat("GPX");
+                ex.setDisplayName(displayName.trim());
+                ex.setIpHash(ipHash);
+                ex.setCreatedAt(LocalDateTime.now());
+                effortRepository.save(ex);
+            }
+            return buildResult(c, type, ex);
         }
 
         SegmentEffort e = new SegmentEffort();
@@ -128,7 +139,7 @@ public class SegmentChallengeService {
         e.setStatus(EffortStatus.VALID);
         e.setEditToken(UUID.randomUUID().toString());
         e.setIpHash(ipHash);
-        e.setDedupeKey(dedupeKey);
+        e.setDedupeKey(identity);
         e.setCreatedAt(LocalDateTime.now());
         effortRepository.save(e);
 

@@ -3,21 +3,20 @@ package com.trainingsplan.util;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 public final class SegmentEffortDedup {
 
     private SegmentEffortDedup() {}
 
     /**
-     * Stable fingerprint of an effort: same physical climb (same segment, sport, duration and
-     * start location to ~1 m) yields the same key, so re-uploading the same run dedupes even if
-     * the file bytes differ (re-export). startLat/startLng are the effort's first (foot) point.
+     * Identity key for a public leaderboard entry: one row per (challenge, activityType, displayName).
+     * Display name is normalised — trimmed, internal whitespace collapsed to a single space,
+     * lowercased — so "Lukas R", "  lukas  r  " and "LUKAS R" all map to the same key.
      */
-    public static String key(Long challengeId, String activityType, int elapsedSeconds,
-                             double startLat, double startLng) {
-        String raw = challengeId + "|" + activityType + "|" + elapsedSeconds + "|"
-                + String.format(java.util.Locale.ROOT, "%.5f", startLat) + "|"
-                + String.format(java.util.Locale.ROOT, "%.5f", startLng);
+    public static String identityKey(Long challengeId, String activityType, String displayName) {
+        String norm = displayName == null ? "" : displayName.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+        String raw = challengeId + "|" + activityType + "|" + norm;
         return DigestUtils.md5DigestAsHex(raw.getBytes(StandardCharsets.UTF_8));
     }
 }
