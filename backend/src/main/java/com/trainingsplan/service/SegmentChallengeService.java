@@ -7,6 +7,7 @@ import com.trainingsplan.dto.SegmentEffortResultDto;
 import com.trainingsplan.dto.SegmentLeaderboardEntryDto;
 import com.trainingsplan.dto.SegmentTrackDto;
 import com.trainingsplan.entity.*;
+import com.trainingsplan.util.SegmentEffortDedup;
 import com.trainingsplan.util.SegmentGeometryUtil;
 import com.trainingsplan.repository.SegmentChallengeRepository;
 import com.trainingsplan.repository.SegmentEffortRepository;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -103,6 +105,15 @@ public class SegmentChallengeService {
             throw new IllegalArgumentException("implausible_speed");
         }
 
+        double[] firstPoint = match.getCroppedTrack().get(0);
+        String dedupeKey = SegmentEffortDedup.key(c.getId(), type.name(), match.getElapsedSeconds(),
+                firstPoint[0], firstPoint[1]);
+        Optional<SegmentEffort> existing = effortRepository
+                .findFirstByChallengeIdAndStatusAndDedupeKey(c.getId(), EffortStatus.VALID, dedupeKey);
+        if (existing.isPresent()) {
+            return buildResult(c, type, existing.get());
+        }
+
         SegmentEffort e = new SegmentEffort();
         e.setChallenge(c);
         e.setActivityType(type);
@@ -117,6 +128,7 @@ public class SegmentChallengeService {
         e.setStatus(EffortStatus.VALID);
         e.setEditToken(UUID.randomUUID().toString());
         e.setIpHash(ipHash);
+        e.setDedupeKey(dedupeKey);
         e.setCreatedAt(LocalDateTime.now());
         effortRepository.save(e);
 
@@ -139,18 +151,24 @@ public class SegmentChallengeService {
             throw new IllegalArgumentException(match.getRejectionReason());
         }
 
+        double[] refFirst = match.getCroppedTrack().get(0);
+        int refElapsed = knownTimeSecondsOverride != null ? knownTimeSecondsOverride : match.getElapsedSeconds();
+        String refDedupeKey = SegmentEffortDedup.key(c.getId(), type.name(), refElapsed,
+                refFirst[0], refFirst[1]);
+
         SegmentEffort e = new SegmentEffort();
         e.setChallenge(c);
         e.setActivityType(type);
         e.setKind(EffortKind.REFERENCE);
         e.setCategory(category);
         e.setDisplayName(displayName.trim());
-        e.setElapsedSeconds(knownTimeSecondsOverride != null ? knownTimeSecondsOverride : match.getElapsedSeconds());
+        e.setElapsedSeconds(refElapsed);
         e.setAvgSpeedKmh(match.getAvgSpeedKmh());
         e.setAvgPaceSecondsPerKm(match.getAvgPaceSecondsPerKm());
         e.setTrackJson(serializeTrack(match.getCroppedTrack()));
         e.setSourceFormat("GPX");
         e.setStatus(EffortStatus.VALID);
+        e.setDedupeKey(refDedupeKey);
         e.setCreatedAt(LocalDateTime.now());
         effortRepository.save(e);
         return e.getId();

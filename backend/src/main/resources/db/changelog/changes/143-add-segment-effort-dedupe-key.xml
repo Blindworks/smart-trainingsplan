@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="143-1" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="segment_efforts" columnName="dedupe_key"/>
+            </not>
+        </preConditions>
+        <comment>Add dedupe_key to segment_efforts to prevent the same run appearing multiple times on the leaderboard</comment>
+        <addColumn tableName="segment_efforts">
+            <column name="dedupe_key" type="VARCHAR(64)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="143-2" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="segment_efforts" indexName="idx_segment_efforts_challenge_dedupe"/>
+            </not>
+        </preConditions>
+        <comment>Index on (challenge_id, dedupe_key) for fast duplicate lookup</comment>
+        <createIndex tableName="segment_efforts" indexName="idx_segment_efforts_challenge_dedupe">
+            <column name="challenge_id"/>
+            <column name="dedupe_key"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

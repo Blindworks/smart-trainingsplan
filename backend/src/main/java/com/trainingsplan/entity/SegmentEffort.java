@@ -70,6 +70,10 @@ public class SegmentEffort {
     @JsonIgnore
     private String ipHash;
 
+    @Column(name = "dedupe_key", length = 64)
+    @JsonIgnore
+    private String dedupeKey;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -109,6 +113,8 @@ public class SegmentEffort {
     public void setStatus(EffortStatus status) { this.status = status; }
     public String getIpHash() { return ipHash; }
     public void setIpHash(String ipHash) { this.ipHash = ipHash; }
+    public String getDedupeKey() { return dedupeKey; }
+    public void setDedupeKey(String dedupeKey) { this.dedupeKey = dedupeKey; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
