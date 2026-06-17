@@ -52,7 +52,7 @@
           <a class="btn" href="#upload">{{ 'HEARTBREAK_HILL.CTA_UPLOAD' | translate }}</a>
           <a class="btn ghost" href="#leaderboard">{{ 'HEARTBREAK_HILL.CTA_LEADERBOARD' | translate }}</a>
         </div>
-        <div class="scroll-cue">↓ {{ 'HEARTBREAK_HILL.SCROLL_CUE' | translate }}</div>
+        <div class="scroll-cue"><span class="material-symbols-outlined">arrow_downward</span>{{ 'HEARTBREAK_HILL.SCROLL_CUE' | translate }}</div>
       </div>
     </header>
 
@@ -64,9 +64,9 @@
       <div class="lb">
         <div class="lb-tabs">
           <button [class.on]="activeTab() === 'RIDE'" (click)="selectTab('RIDE')">
-            🚴 {{ 'HEARTBREAK_HILL.TAB_RIDE' | translate }}</button>
+            <span class="material-symbols-outlined">directions_bike</span>{{ 'HEARTBREAK_HILL.TAB_RIDE' | translate }}</button>
           <button [class.on]="activeTab() === 'RUN'" (click)="selectTab('RUN')">
-            🏃 {{ 'HEARTBREAK_HILL.TAB_RUN' | translate }}</button>
+            <span class="material-symbols-outlined">directions_run</span>{{ 'HEARTBREAK_HILL.TAB_RUN' | translate }}</button>
         </div>
 
         @if (leaderboardLoading()) {
@@ -104,7 +104,7 @@
         <div class="panel">
           <label class="drop" (dragover)="$event.preventDefault()" (drop)="onFileDropped($event)">
             <input type="file" accept=".gpx" hidden (change)="onFileSelected($event)">
-            <div class="drop-icon">⬆</div>
+            <span class="material-symbols-outlined drop-icon">upload</span>
             <p>{{ selectedFile()?.name || ('HEARTBREAK_HILL.DROP_HINT' | translate) }}</p>
           </label>
 
@@ -112,8 +112,8 @@
                  [placeholder]="'HEARTBREAK_HILL.NAME_PLACEHOLDER' | translate">
 
           <div class="seg">
-            <span [class.on]="activeTab() === 'RIDE'" (click)="selectTab('RIDE')">🚴 {{ 'HEARTBREAK_HILL.TAB_RIDE' | translate }}</span>
-            <span [class.on]="activeTab() === 'RUN'" (click)="selectTab('RUN')">🏃 {{ 'HEARTBREAK_HILL.TAB_RUN' | translate }}</span>
+            <span [class.on]="activeTab() === 'RIDE'" (click)="selectTab('RIDE')"><span class="material-symbols-outlined">directions_bike</span>{{ 'HEARTBREAK_HILL.TAB_RIDE' | translate }}</span>
+            <span [class.on]="activeTab() === 'RUN'" (click)="selectTab('RUN')"><span class="material-symbols-outlined">directions_run</span>{{ 'HEARTBREAK_HILL.TAB_RUN' | translate }}</span>
           </div>
 
           @if (uploadError(); as err) {
@@ -136,7 +136,7 @@
               <div><small>{{ 'HEARTBREAK_HILL.RESULT_PERCENTILE' | translate }}</small><b>{{ r.percentileBeaten | number:'1.0-0' }} %</b></div>
             </div>
             <div class="funnel">
-              <b>🔒 {{ 'HEARTBREAK_HILL.FUNNEL_TITLE' | translate }}</b>
+              <b><span class="material-symbols-outlined">lock</span>{{ 'HEARTBREAK_HILL.FUNNEL_TITLE' | translate }}</b>
               <p>{{ 'HEARTBREAK_HILL.FUNNEL_BODY' | translate }}</p>
               <button class="btn block" (click)="goToSignup()">{{ 'HEARTBREAK_HILL.FUNNEL_CTA' | translate }}</button>
             </div>
