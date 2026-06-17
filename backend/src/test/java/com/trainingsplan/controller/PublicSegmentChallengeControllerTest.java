@@ -48,7 +48,7 @@ class PublicSegmentChallengeControllerTest {
     void submitEffort_returnsResultJson() throws Exception {
         when(service.submitPublicEffort(eq("heartbreak-hill-2026"), eq(ActivityType.RIDE),
                 eq("Lukas"), any(), eq("ride.gpx"), any()))
-                .thenReturn(new SegmentEffortResultDto(7L, "tok", 47, 312, 298, "4:58", 46, 85.0, "VALID"));
+                .thenReturn(new SegmentEffortResultDto(7L, "tok", 47, 312, 298, "4:58", 46, 85.0, null, null, "VALID"));
 
         MockMultipartFile file = new MockMultipartFile("file", "ride.gpx",
                 "application/gpx+xml", "<gpx/>".getBytes());

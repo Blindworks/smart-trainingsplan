@@ -302,7 +302,9 @@ public class SegmentChallengeService {
 
         return new SegmentEffortResultDto(saved.getId(), saved.getEditToken(), rank, total,
                 saved.getElapsedSeconds(), formatElapsed(saved.getElapsedSeconds()), gap,
-                Math.round(percentileBeaten * 10) / 10.0, saved.getStatus().name());
+                Math.round(percentileBeaten * 10) / 10.0,
+                saved.getAvgSpeedKmh(), saved.getAvgPaceSecondsPerKm(),
+                saved.getStatus().name());
     }
 
     private String serializeTrack(List<double[]> track) {

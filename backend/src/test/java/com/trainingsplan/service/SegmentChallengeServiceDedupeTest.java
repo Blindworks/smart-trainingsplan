@@ -213,4 +213,35 @@ class SegmentChallengeServiceDedupeTest {
         assertNotNull(keyBob,   "Bob's dedupeKey must be set");
         assertNotEquals(keyAlice, keyBob, "different display names must produce different identity keys");
     }
+
+    // ---- scenario 5: result carries speed/pace from the winning effort ----
+
+    @Test
+    void result_carriesSpeedAndPaceFromSavedEffort() throws Exception {
+        when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
+        when(matchingService.match(any(), any(), any(), any()))
+                .thenReturn(SegmentMatchResult.matched(300, 1.09, 13.1, 275, CROPPED_TRACK));
+        when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
+                anyLong(), any(), any(), anyString()))
+                .thenReturn(Optional.empty());
+
+        SegmentEffort saved = new SegmentEffort();
+        saved.setId(1L);
+        saved.setElapsedSeconds(300);
+        saved.setStatus(EffortStatus.VALID);
+        saved.setActivityType(ActivityType.RUN);
+        saved.setEditToken("tok");
+        saved.setAvgSpeedKmh(13.1);
+        saved.setAvgPaceSecondsPerKm(275);
+        when(effortRepository.save(any())).thenReturn(saved);
+        when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
+                anyLong(), any(), any())).thenReturn(List.of(saved));
+
+        SegmentEffortResultDto result = service.submitPublicEffort(
+                "heartbreak-hill-2026", ActivityType.RUN, "Alice",
+                "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
+
+        assertEquals(13.1, result.avgSpeedKmh(), "ride/run speed must flow through to the DTO");
+        assertEquals(275, result.avgPaceSecondsPerKm(), "pace must flow through to the DTO");
+    }
 }

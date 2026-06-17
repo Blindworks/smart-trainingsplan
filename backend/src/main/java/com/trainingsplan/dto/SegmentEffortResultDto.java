@@ -9,5 +9,7 @@ public record SegmentEffortResultDto(
         String elapsedFormatted,
         Integer gapToLeaderSeconds,
         double percentileBeaten,
+        Double avgSpeedKmh,
+        Integer avgPaceSecondsPerKm,
         String status
 ) {}
