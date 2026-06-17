@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="142-1" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM segment_challenges WHERE slug = 'heartbreak-hill-2026'
+            </sqlCheck>
+        </preConditions>
+        <comment>Set real Heartbreak Hill geometry (gates, polyline with elevation, stats) from the Strava route GPX, replacing the migration-140/141 placeholders</comment>
+        <update tableName="segment_challenges">
+            <column name="start_lat" valueNumeric="50.178000000000004"/>
+            <column name="start_lng" valueNumeric="8.735460000000002"/>
+            <column name="end_lat" valueNumeric="50.168850000000006"/>
+            <column name="end_lng" valueNumeric="8.73"/>
+            <column name="distance_m" valueNumeric="1091.9"/>
+            <column name="elevation_gain_m" valueNumeric="54"/>
+            <column name="avg_grade_pct" valueNumeric="5.0"/>
+            <column name="max_grade_pct" valueNumeric="7.5"/>
+            <column name="polyline_json" value="[[50.178000000000004,8.735460000000002,112.41000000000001],[50.17794000000001,8.735460000000002,112.41000000000001],[50.177800000000005,8.7354,112.96000000000001],[50.17719666776842,8.73504665776016,113.67],[50.17659333446508,8.73469332444453,115.27000000000001],[50.175990000000006,8.734340000000001,118.22],[50.17527600290662,8.733927975368319,120.85000000000001],[50.17456200435589,8.73351596305086,126.31],[50.17384800434792,8.733103963046968,130.67000000000002],[50.1731340028828,8.73269197535599,136.98000000000002],[50.17242,8.732280000000001,142.6],[50.1719,8.731940000000002,147.23],[50.171780000000005,8.73179,147.23],[50.17110500111683,8.731279992796285,153.38000000000002],[50.17043,8.730770000000001,158.10999999999999],[50.16996,8.73053,160.77],[50.1696,8.73032,162.85000000000002],[50.168940000000006,8.730070000000001,166.64000000000001],[50.168850000000006,8.73,166.64000000000001]]"/>
+            <column name="bounding_box_json" value="[50.168850000000006,8.73,50.178000000000004,8.735460000000002]"/>
+            <column name="updated_at" valueDate="2026-06-16T12:00:00"/>
+            <where>slug = 'heartbreak-hill-2026'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>
