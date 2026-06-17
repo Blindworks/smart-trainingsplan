@@ -3,12 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HeartbreakHillService } from '../../services/heartbreak-hill.service';
 import {
   ActivityType, SegmentChallenge, LeaderboardEntry, EffortResult
 } from '../../models/heartbreak-hill.model';
 import { buildElevationProfile, ElevationProfile, formatGap } from './heartbreak-hill.util';
+import {
+  SHARE_W, SHARE_H, ShareTemplate, ShareImageData, ShareLabels,
+  formatTempo, shareFileName, drawShareImage, loadImage
+} from './share-image.util';
 import { Heartbreak3d } from './heartbreak-3d/heartbreak-3d';
 import { isWebglAvailable } from './heartbreak-3d/heartbreak-3d.util';
 
@@ -22,6 +26,7 @@ import { isWebglAvailable } from './heartbreak-3d/heartbreak-3d.util';
 export class HeartbreakHill implements OnInit {
   private readonly service = inject(HeartbreakHillService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   // viewBox dims for the hero elevation profile
   readonly profileWidth = 1200;
@@ -95,6 +100,7 @@ export class HeartbreakHill implements OnInit {
     }
     this.activeTab.set(type);
     this.result.set(null);
+    this.sharePreviewUrl.set(null);
     this.uploadError.set(null);
     this.loadLeaderboard();
   }
@@ -140,6 +146,8 @@ export class HeartbreakHill implements OnInit {
     this.service.submitEffort(this.activeTab(), this.displayName().trim(), file).subscribe({
       next: res => {
         this.result.set(res);
+        this.shareTemplate.set('A');
+        void this.renderShare();
         this.submitting.set(false);
         this.loadLeaderboard();          // refresh so the new entry shows
       },
@@ -164,5 +172,110 @@ export class HeartbreakHill implements OnInit {
 
   goToSignup(): void {
     this.router.navigate(['/signup']);
+  }
+
+  // --- share image ---
+  readonly shareTemplate = signal<ShareTemplate>('A');
+  readonly sharePreviewUrl = signal<string | null>(null);
+  readonly canNativeShare = signal<boolean>(
+    typeof navigator !== 'undefined' && 'canShare' in navigator);
+
+  private shareCanvas: HTMLCanvasElement | null = null;
+  private logoPromise: Promise<HTMLImageElement | null> | null = null;
+
+  private locale(): string {
+    return this.translate.currentLang === 'en' ? 'en-GB' : 'de-DE';
+  }
+
+  selectTemplate(t: ShareTemplate): void {
+    if (this.shareTemplate() === t) {
+      return;
+    }
+    this.shareTemplate.set(t);
+    void this.renderShare();
+  }
+
+  /** Builds the off-screen 1080×1920 canvas and publishes a preview data URL. */
+  private async renderShare(): Promise<void> {
+    const r = this.result();
+    if (!r) {
+      return;
+    }
+    await document.fonts.ready;
+    if (!this.logoPromise) {
+      this.logoPromise = loadImage('assets/logo/PACR_logo_light_text_transparent.png')
+        .catch(() => null);
+    }
+    const logo = await this.logoPromise;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = SHARE_W;
+    canvas.height = SHARE_H;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return;
+    }
+
+    const type = this.activeTab();
+    const data: ShareImageData = {
+      segmentName: this.challenge()?.name ?? 'Heartbreak Hill',
+      activityType: type,
+      elevation: this.polylinePoints(),
+      tempo: formatTempo(type, r.avgSpeedKmh, r.avgPaceSecondsPerKm, this.locale()),
+      time: r.elapsedFormatted,
+      rank: r.rank,
+      totalCount: r.totalCount
+    };
+    const labels: ShareLabels = {
+      tempo: this.translate.instant(
+        type === 'RIDE' ? 'HEARTBREAK_HILL.SHARE_LBL_TEMPO' : 'HEARTBREAK_HILL.SHARE_LBL_PACE'),
+      time: this.translate.instant('HEARTBREAK_HILL.SHARE_LBL_TIME'),
+      rank: this.translate.instant('HEARTBREAK_HILL.SHARE_LBL_RANK'),
+      of: this.translate.instant('HEARTBREAK_HILL.SHARE_LBL_OF')
+    };
+
+    drawShareImage(ctx, data, this.shareTemplate(), labels, logo);
+    this.shareCanvas = canvas;
+    this.sharePreviewUrl.set(canvas.toDataURL('image/png'));
+  }
+
+  downloadShare(): void {
+    const canvas = this.shareCanvas;
+    const r = this.result();
+    if (!canvas || !r) {
+      return;
+    }
+    canvas.toBlob(blob => {
+      if (!blob) {
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = shareFileName(r.rank, this.activeTab());
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  }
+
+  shareImage(): void {
+    const canvas = this.shareCanvas;
+    const r = this.result();
+    if (!canvas || !r) {
+      return;
+    }
+    canvas.toBlob(blob => {
+      if (!blob) {
+        return;
+      }
+      const file = new File([blob], shareFileName(r.rank, this.activeTab()), { type: 'image/png' });
+      const nav = navigator as Navigator & {
+        canShare?: (d: { files: File[] }) => boolean;
+        share?: (d: { files: File[] }) => Promise<void>;
+      };
+      if (nav.canShare?.({ files: [file] }) && nav.share) {
+        nav.share({ files: [file] }).catch(() => { /* user cancelled */ });
+      }
+    }, 'image/png');
   }
 }
