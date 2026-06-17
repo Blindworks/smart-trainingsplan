@@ -1,4 +1,5 @@
 import { ActivityType } from '../../models/heartbreak-hill.model';
+import { buildElevationPoints } from './heartbreak-hill.util';
 
 export type ShareTemplate = 'A' | 'B' | 'C';
 
@@ -49,4 +50,245 @@ export function formatTempo(
 /** e.g. "heartbreak-hill-rang6-rad.png". */
 export function shareFileName(rank: number, type: ActivityType): string {
   return `heartbreak-hill-rang${rank}-${type === 'RIDE' ? 'rad' : 'lauf'}.png`;
+}
+
+const GREEN = '#8ffc2e';
+const SYNTHETIC_ELE = [
+  100, 103, 109, 112, 110, 118, 126, 130, 128, 138,
+  150, 158, 166, 170, 176, 184, 190, 198, 206, 214
+];
+
+/** Loads an <img> from a same-origin asset URL (no canvas tainting). */
+export function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function fontFamily(): string {
+  const v = getComputedStyle(document.documentElement)
+    .getPropertyValue('--font-family').trim();
+  return v || 'system-ui, sans-serif';
+}
+
+function syntheticPoints(): [number, number, number][] {
+  return SYNTHETIC_ELE.map((e, i) => [0, i, e]);
+}
+
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function shadowText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number): void {
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.55)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 2;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function textWidth(ctx: CanvasRenderingContext2D, text: string, font: string): number {
+  ctx.font = font;
+  return ctx.measureText(text).width;
+}
+
+function drawLogoTag(ctx: CanvasRenderingContext2D, logo: HTMLImageElement | null, anchorX: number, baseY: number): void {
+  const fam = fontFamily();
+  const h = 64, padX = 24, logoH = 32;
+  const logoW = logo ? (logo.width / logo.height) * logoH : 0;
+  const contentW = logo ? logoW : textWidth(ctx, 'PACR', `500 32px ${fam}`);
+  const pillW = contentW + padX * 2;
+  const px = anchorX - pillW;            // right-anchored
+  const py = baseY - h;
+  ctx.fillStyle = 'rgba(8,13,9,0.45)';
+  roundRect(ctx, px, py, pillW, h, 16);
+  ctx.fill();
+  if (logo) {
+    ctx.drawImage(logo, px + padX, py + (h - logoH) / 2, logoW, logoH);
+  } else {
+    ctx.fillStyle = GREEN;
+    ctx.font = `500 32px ${fam}`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('PACR', px + padX, py + h / 2 + 1);
+    ctx.textBaseline = 'alphabetic';
+  }
+}
+
+interface Col { label: string; value: string; sub?: string; green: boolean; }
+
+function columns(data: ShareImageData, labels: ShareLabels): Col[] {
+  return [
+    { label: labels.tempo, value: data.tempo, green: false },
+    { label: labels.time, value: data.time, green: false },
+    { label: labels.rank, value: `#${data.rank}`, sub: `${labels.of} ${data.totalCount}`, green: true }
+  ];
+}
+
+function strokeRidge(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[], offsetX: number, offsetY: number): void {
+  ctx.beginPath();
+  pts.forEach((p, i) => (i ? ctx.lineTo(offsetX + p.x, offsetY + p.y) : ctx.moveTo(offsetX + p.x, offsetY + p.y)));
+  ctx.stroke();
+}
+
+/** Renders the chosen template onto a transparent 1080×1920 context. */
+export function drawShareImage(
+  ctx: CanvasRenderingContext2D,
+  data: ShareImageData,
+  template: ShareTemplate,
+  labels: ShareLabels,
+  logo: HTMLImageElement | null
+): void {
+  ctx.clearRect(0, 0, SHARE_W, SHARE_H);
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  const ele = data.elevation && data.elevation.length >= 2 ? data.elevation : syntheticPoints();
+  if (template === 'A') {
+    drawTemplateA(ctx, data, labels, logo, ele);
+  } else if (template === 'B') {
+    drawTemplateB(ctx, data, labels, logo, ele);
+  } else {
+    drawTemplateC(ctx, data, labels, logo, ele);
+  }
+}
+
+function drawTemplateA(ctx: CanvasRenderingContext2D, data: ShareImageData, labels: ShareLabels, logo: HTMLImageElement | null, ele: [number, number, number][]): void {
+  const fam = fontFamily();
+  const rh = Math.round(SHARE_H * 0.40);
+  const ry = SHARE_H - rh;
+  const pts = buildElevationPoints(ele, SHARE_W, rh);
+
+  ctx.beginPath();
+  ctx.moveTo(0, ry + pts[0].y);
+  pts.forEach(p => ctx.lineTo(p.x, ry + p.y));
+  ctx.lineTo(SHARE_W, SHARE_H);
+  ctx.lineTo(0, SHARE_H);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(143,252,46,0.82)';
+  ctx.fill();
+
+  ctx.strokeStyle = '#d7ff9e';
+  ctx.lineWidth = 7;
+  strokeRidge(ctx, pts, 0, ry);
+
+  ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.font = `500 32px ${fam}`;
+  shadowText(ctx, data.segmentName.toUpperCase(), 60, 132);
+
+  const cols = columns(data, labels);
+  const colW = SHARE_W / 3;
+  const baseY = ry - 80;
+  ctx.textAlign = 'center';
+  cols.forEach((c, i) => {
+    const cx = colW * i + colW / 2;
+    ctx.font = `500 28px ${fam}`;
+    ctx.fillStyle = '#bdefae';
+    ctx.fillText(c.label.toUpperCase(), cx, baseY);
+    ctx.font = `800 66px ${fam}`;
+    ctx.fillStyle = c.green ? GREEN : '#ffffff';
+    shadowText(ctx, c.value, cx, baseY + 72);
+    if (c.sub) {
+      ctx.font = `500 30px ${fam}`;
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.fillText(c.sub, cx, baseY + 116);
+    }
+  });
+
+  drawLogoTag(ctx, logo, SHARE_W - 60, SHARE_H - 64);
+}
+
+function drawTemplateB(ctx: CanvasRenderingContext2D, data: ShareImageData, labels: ShareLabels, logo: HTMLImageElement | null, ele: [number, number, number][]): void {
+  const fam = fontFamily();
+  const cardX = 48, cardW = SHARE_W - 96, cardH = 440;
+  const cardY = SHARE_H - 60 - cardH;
+  const padX = 44;
+
+  ctx.fillStyle = 'rgba(11,15,20,0.58)';
+  roundRect(ctx, cardX, cardY, cardW, cardH, 28);
+  ctx.fill();
+
+  ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#cfe9c2';
+  ctx.font = `500 28px ${fam}`;
+  ctx.fillText(data.segmentName.toUpperCase(), cardX + padX, cardY + 74);
+  drawLogoTag(ctx, logo, cardX + cardW - padX, cardY + 86);
+
+  const rh = 150;
+  const pts = buildElevationPoints(ele, cardW - padX * 2, rh);
+  ctx.strokeStyle = GREEN;
+  ctx.lineWidth = 6;
+  strokeRidge(ctx, pts, cardX + padX, cardY + 110);
+
+  const cols = columns(data, labels);
+  const colW = cardW / 3;
+  const rowY = cardY + cardH - 120;
+  ctx.textAlign = 'center';
+  cols.forEach((c, i) => {
+    const cx = cardX + colW * i + colW / 2;
+    ctx.font = `500 26px ${fam}`;
+    ctx.fillStyle = '#bdefae';
+    ctx.fillText(c.label.toUpperCase(), cx, rowY);
+    ctx.font = `800 60px ${fam}`;
+    ctx.fillStyle = c.green ? GREEN : '#ffffff';
+    ctx.fillText(c.value, cx, rowY + 66);
+    if (c.sub) {
+      ctx.font = `500 28px ${fam}`;
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.fillText(c.sub, cx, rowY + 106);
+    }
+  });
+}
+
+function drawTemplateC(ctx: CanvasRenderingContext2D, data: ShareImageData, labels: ShareLabels, logo: HTMLImageElement | null, ele: [number, number, number][]): void {
+  const fam = fontFamily();
+  const rh = Math.round(SHARE_H * 0.34);
+  const ry = Math.round(SHARE_H * 0.46);
+  const pts = buildElevationPoints(ele, SHARE_W, rh);
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 2;
+  ctx.strokeStyle = GREEN;
+  ctx.lineWidth = 6;
+  strokeRidge(ctx, pts, 0, ry);
+  ctx.restore();
+
+  ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.font = `500 32px ${fam}`;
+  shadowText(ctx, data.segmentName.toUpperCase(), 60, 132);
+
+  const rows = [
+    { value: data.tempo, label: labels.tempo, green: false },
+    { value: data.time, label: labels.time, green: false },
+    { value: `#${data.rank}`, label: `${labels.of} ${data.totalCount}`, green: true }
+  ];
+  let y = SHARE_H - 250;
+  rows.forEach(r => {
+    const valueFont = `800 76px ${fam}`;
+    ctx.font = valueFont;
+    ctx.fillStyle = r.green ? GREEN : '#ffffff';
+    shadowText(ctx, r.value, 60, y);
+    ctx.font = `500 28px ${fam}`;
+    ctx.fillStyle = '#bdefae';
+    shadowText(ctx, r.label.toUpperCase(), 60 + textWidth(ctx, r.value, valueFont) + 20, y);
+    y += 88;
+  });
+
+  drawLogoTag(ctx, logo, SHARE_W - 60, SHARE_H - 64);
 }
