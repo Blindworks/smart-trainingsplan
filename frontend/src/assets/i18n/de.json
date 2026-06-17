@@ -2519,6 +2519,18 @@
     "UNIT_KM": "km",
     "UNIT_M": "m",
     "TYPE_RIDERS": "Radfahrern",
-    "TYPE_RUNNERS": "Läufern"
+    "TYPE_RUNNERS": "Läufern",
+    "SHARE_TITLE": "Story-Bild",
+    "SHARE_HINT": "Lade dir ein transparentes Bild für deine Instagram-Story – leg einfach dein Foto dahinter.",
+    "SHARE_DOWNLOAD": "Bild herunterladen",
+    "SHARE_SHARE": "Teilen",
+    "SHARE_TPL_A": "Kurve",
+    "SHARE_TPL_B": "Karte",
+    "SHARE_TPL_C": "Minimal",
+    "SHARE_LBL_TEMPO": "Tempo",
+    "SHARE_LBL_PACE": "Pace",
+    "SHARE_LBL_TIME": "Zeit",
+    "SHARE_LBL_RANK": "Rang",
+    "SHARE_LBL_OF": "von"
   }
 }

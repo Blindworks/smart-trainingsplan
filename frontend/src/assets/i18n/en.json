@@ -2519,6 +2519,18 @@
     "UNIT_KM": "km",
     "UNIT_M": "m",
     "TYPE_RIDERS": "riders",
-    "TYPE_RUNNERS": "runners"
+    "TYPE_RUNNERS": "runners",
+    "SHARE_TITLE": "Story image",
+    "SHARE_HINT": "Download a transparent image for your Instagram story – just place your photo behind it.",
+    "SHARE_DOWNLOAD": "Download image",
+    "SHARE_SHARE": "Share",
+    "SHARE_TPL_A": "Curve",
+    "SHARE_TPL_B": "Card",
+    "SHARE_TPL_C": "Minimal",
+    "SHARE_LBL_TEMPO": "Speed",
+    "SHARE_LBL_PACE": "Pace",
+    "SHARE_LBL_TIME": "Time",
+    "SHARE_LBL_RANK": "Rank",
+    "SHARE_LBL_OF": "of"
   }
 }
