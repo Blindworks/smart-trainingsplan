@@ -15,6 +15,7 @@ import {
 } from './share-image.util';
 import { Heartbreak3d } from './heartbreak-3d/heartbreak-3d';
 import { isWebglAvailable } from './heartbreak-3d/heartbreak-3d.util';
+import { loadStoredEffort, saveStoredEffort, clearStoredEffort } from './heartbreak-storage.util';
 
 @Component({
   selector: 'app-heartbreak-hill',
@@ -49,6 +50,10 @@ export class HeartbreakHill implements OnInit {
   submitting = signal(false);
   uploadError = signal<string | null>(null);
   result = signal<EffortResult | null>(null);
+
+  /** True when the shown result was restored from localStorage (not a fresh upload). */
+  restored = signal(false);
+  restoredAt = signal<string | null>(null);
 
   /** SVG elevation profile derived from the challenge polyline, or null if absent. */
   profile = computed<ElevationProfile | null>(() => {
@@ -86,6 +91,7 @@ export class HeartbreakHill implements OnInit {
         this.challenge.set(c);
         this.loading.set(false);
         this.loadLeaderboard();
+        this.restoreForCurrentTab();
       },
       error: () => {
         this.loadError.set(true);
@@ -99,10 +105,36 @@ export class HeartbreakHill implements OnInit {
       return;
     }
     this.activeTab.set(type);
-    this.result.set(null);
-    this.sharePreviewUrl.set(null);
     this.uploadError.set(null);
     this.loadLeaderboard();
+    this.restoreForCurrentTab();
+  }
+
+  /** Restores the remembered effort (Snapshot) for the active tab, or clears the panel. */
+  private restoreForCurrentTab(): void {
+    const stored = loadStoredEffort(this.activeTab());
+    if (stored) {
+      this.result.set(stored.result);
+      this.displayName.set(stored.displayName);
+      this.restored.set(true);
+      this.restoredAt.set(stored.savedAt);
+      this.shareTemplate.set('A');
+      void this.renderShare();
+    } else {
+      this.result.set(null);
+      this.sharePreviewUrl.set(null);
+      this.restored.set(false);
+      this.restoredAt.set(null);
+    }
+  }
+
+  /** Forgets the remembered effort for the active tab and closes the result panel. */
+  discardStored(): void {
+    clearStoredEffort(this.activeTab());
+    this.result.set(null);
+    this.sharePreviewUrl.set(null);
+    this.restored.set(false);
+    this.restoredAt.set(null);
   }
 
   private loadLeaderboard(): void {
@@ -146,6 +178,9 @@ export class HeartbreakHill implements OnInit {
     this.service.submitEffort(this.activeTab(), this.displayName().trim(), file).subscribe({
       next: res => {
         this.result.set(res);
+        saveStoredEffort(this.activeTab(), res, this.displayName().trim());
+        this.restored.set(false);
+        this.restoredAt.set(null);
         this.shareTemplate.set('A');
         void this.renderShare();
         this.submitting.set(false);
