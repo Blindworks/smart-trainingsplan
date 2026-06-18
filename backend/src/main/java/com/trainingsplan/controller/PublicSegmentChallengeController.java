@@ -5,6 +5,8 @@ import com.trainingsplan.dto.SegmentEffortResultDto;
 import com.trainingsplan.dto.SegmentLeaderboardEntryDto;
 import com.trainingsplan.dto.SegmentTrackDto;
 import com.trainingsplan.entity.ActivityType;
+import com.trainingsplan.entity.Gender;
+import com.trainingsplan.entity.LeaderboardScope;
 import com.trainingsplan.service.SegmentChallengeService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -38,9 +40,11 @@ public class PublicSegmentChallengeController {
 
     @GetMapping("/{slug}/leaderboard")
     public ResponseEntity<?> getLeaderboard(@PathVariable String slug,
-                                            @RequestParam(defaultValue = "RIDE") ActivityType type) {
+                                            @RequestParam(defaultValue = "RIDE") ActivityType type,
+                                            @RequestParam(defaultValue = "OVERALL") LeaderboardScope scope,
+                                            @RequestParam(value = "ageGroup", required = false) String ageGroup) {
         try {
-            List<SegmentLeaderboardEntryDto> board = service.getLeaderboard(slug, type);
+            List<SegmentLeaderboardEntryDto> board = service.getLeaderboard(slug, type, scope, ageGroup);
             return ResponseEntity.ok(board);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
@@ -62,13 +66,15 @@ public class PublicSegmentChallengeController {
                                           @RequestParam("file") MultipartFile file,
                                           @RequestParam("displayName") String displayName,
                                           @RequestParam("type") ActivityType type,
+                                          @RequestParam(value = "gender", required = false) Gender gender,
+                                          @RequestParam(value = "birthYear", required = false) Integer birthYear,
                                           HttpServletRequest request) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("reason", "empty_file"));
         }
         try {
             SegmentEffortResultDto result = service.submitPublicEffort(
-                    slug, type, displayName, file.getBytes(), file.getOriginalFilename(),
+                    slug, type, displayName, gender, birthYear, file.getBytes(), file.getOriginalFilename(),
                     request.getRemoteAddr());
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {

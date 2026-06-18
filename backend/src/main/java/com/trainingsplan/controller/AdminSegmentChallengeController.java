@@ -3,6 +3,7 @@ package com.trainingsplan.controller;
 import com.trainingsplan.entity.ActivityType;
 import com.trainingsplan.entity.EffortCategory;
 import com.trainingsplan.entity.EffortStatus;
+import com.trainingsplan.entity.Gender;
 import com.trainingsplan.entity.SegmentChallenge;
 import com.trainingsplan.repository.SegmentChallengeRepository;
 import com.trainingsplan.service.SegmentChallengeService;
@@ -63,12 +64,14 @@ public class AdminSegmentChallengeController {
                                                 @RequestParam("displayName") String displayName,
                                                 @RequestParam("type") ActivityType type,
                                                 @RequestParam("category") EffortCategory category,
+                                                @RequestParam(value = "gender", required = false) Gender gender,
+                                                @RequestParam(value = "birthYear", required = false) Integer birthYear,
                                                 @RequestParam(value = "knownTimeSeconds", required = false) Integer knownTimeSeconds) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("reason", "empty_file"));
         }
         try {
-            Long id = service.addReferenceEffort(slug, type, displayName, category,
+            Long id = service.addReferenceEffort(slug, type, displayName, category, gender, birthYear,
                     file.getBytes(), file.getOriginalFilename(), knownTimeSeconds);
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("effortId", id));
         } catch (IllegalArgumentException e) {

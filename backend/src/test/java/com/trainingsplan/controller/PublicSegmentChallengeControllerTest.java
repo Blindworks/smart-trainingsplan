@@ -14,8 +14,11 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.trainingsplan.entity.LeaderboardScope;
+import java.util.List;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -47,7 +50,7 @@ class PublicSegmentChallengeControllerTest {
     @Test
     void submitEffort_returnsResultJson() throws Exception {
         when(service.submitPublicEffort(eq("heartbreak-hill-2026"), eq(ActivityType.RIDE),
-                eq("Lukas"), any(), eq("ride.gpx"), any()))
+                eq("Lukas"), any(), any(), any(), eq("ride.gpx"), any()))
                 .thenReturn(new SegmentEffortResultDto(7L, "tok", 47, 312, 298, "4:58", 46, 85.0, null, null, "VALID"));
 
         MockMultipartFile file = new MockMultipartFile("file", "ride.gpx",
@@ -65,7 +68,7 @@ class PublicSegmentChallengeControllerTest {
 
     @Test
     void submitEffort_rejectedMatch_returns422() throws Exception {
-        when(service.submitPublicEffort(any(), any(), any(), any(), any(), any()))
+        when(service.submitPublicEffort(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenThrow(new IllegalArgumentException("start_gate_not_reached"));
 
         MockMultipartFile file = new MockMultipartFile("file", "ride.gpx",
@@ -77,5 +80,18 @@ class PublicSegmentChallengeControllerTest {
                         .param("type", "RIDE"))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.reason").value("start_gate_not_reached"));
+    }
+
+    @Test
+    void leaderboard_passesScopeAndAgeGroupToService() throws Exception {
+        when(service.getLeaderboard(eq("heartbreak-hill-2026"), eq(ActivityType.RUN),
+                eq(LeaderboardScope.MEN), eq("40-44")))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/api/public/challenges/heartbreak-hill-2026/leaderboard")
+                        .param("type", "RUN")
+                        .param("scope", "MEN")
+                        .param("ageGroup", "40-44"))
+                .andExpect(status().isOk());
     }
 }
