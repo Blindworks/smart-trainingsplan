@@ -2505,6 +2505,8 @@
     "RESULT_TIME": "Your time",
     "RESULT_GAP": "Gap to leader",
     "RESULT_PERCENTILE": "Faster than",
+    "RESTORED_HINT": "Saved from your last upload",
+    "RESTORED_DISCARD": "Discard",
     "FUNNEL_TITLE": "Save your result permanently?",
     "FUNNEL_BODY": "A free PACR account keeps your spot, shows your history, and lets you race any ghost.",
     "FUNNEL_CTA": "Create account & save",

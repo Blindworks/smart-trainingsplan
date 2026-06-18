@@ -2505,6 +2505,8 @@
     "RESULT_TIME": "Deine Zeit",
     "RESULT_GAP": "Rückstand zur Spitze",
     "RESULT_PERCENTILE": "Schneller als",
+    "RESTORED_HINT": "Von deinem letzten Upload gemerkt",
+    "RESTORED_DISCARD": "Verwerfen",
     "FUNNEL_TITLE": "Ergebnis dauerhaft sichern?",
     "FUNNEL_BODY": "Mit einem kostenlosen PACR-Konto behältst du deinen Platz, siehst deinen Verlauf und kannst gegen jeden Ghost fahren.",
     "FUNNEL_CTA": "Konto erstellen & sichern",
