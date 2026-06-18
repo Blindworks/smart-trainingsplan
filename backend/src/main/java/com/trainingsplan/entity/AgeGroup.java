@@ -39,6 +39,7 @@ public enum AgeGroup {
                 return g;
             }
         }
+        // unreachable for age >= 0: AG_70_PLUS (maxAge = Integer.MAX_VALUE) catches everything from 70 up
         return null;
     }
 

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,8 +70,7 @@ public class SegmentChallengeService {
         List<SegmentEffort> efforts = effortRepository
                 .findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
                         c.getId(), type, EffortStatus.VALID);
-        int referenceYear = c.getEventDate() != null
-                ? c.getEventDate().getYear() : java.time.LocalDate.now().getYear();
+        int referenceYear = referenceYear(c);
         List<SegmentEffort> filtered = filterForScope(efforts, scope, ageGroupKey, referenceYear);
         return scope == LeaderboardScope.MOST_ATTEMPTS
                 ? buildAttemptsLeaderboard(filtered, referenceYear)
@@ -98,8 +98,7 @@ public class SegmentChallengeService {
             throw new IllegalArgumentException("only_gpx_supported");
         }
         if (birthYear != null) {
-            int refYear = c.getEventDate() != null
-                    ? c.getEventDate().getYear() : java.time.LocalDate.now().getYear();
+            int refYear = referenceYear(c);
             if (birthYear < refYear - 100 || birthYear > refYear - 5) {
                 throw new IllegalArgumentException("invalid_birth_year");
             }
@@ -354,6 +353,10 @@ public class SegmentChallengeService {
         catch (Exception e) { return null; }
     }
 
+    private int referenceYear(SegmentChallenge c) {
+        return c.getEventDate() != null ? c.getEventDate().getYear() : LocalDate.now().getYear();
+    }
+
     private String hashIp(String ip) {
         String raw = (ip == null ? "unknown" : ip) + "|heartbreak-salt";
         return DigestUtils.md5DigestAsHex(raw.getBytes(StandardCharsets.UTF_8));
@@ -430,6 +433,7 @@ public class SegmentChallengeService {
         List<SegmentEffort> sorted = new ArrayList<>(efforts);
         sorted.sort(Comparator.comparingInt(SegmentEffort::getAttemptCount).reversed()
                 .thenComparingInt(SegmentEffort::getElapsedSeconds));
+        // gap = time behind the fastest effort (course-record gap), shown as the secondary metric in the attempts view
         Integer leaderTime = sorted.stream()
                 .map(SegmentEffort::getElapsedSeconds).min(Integer::compareTo).orElse(null);
 
@@ -451,7 +455,8 @@ public class SegmentChallengeService {
     private static SegmentLeaderboardEntryDto toDto(SegmentEffort e, int rank, Integer leaderTime, int referenceYear) {
         int gap = leaderTime == null ? 0 : e.getElapsedSeconds() - leaderTime;
         Gender g = effectiveGender(e);
-        AgeGroup ag = (g != null && e.getBirthYear() != null)
+        // Age groups are gender-separated (Ironman style); only MALE/FEMALE entries get one.
+        AgeGroup ag = (g == Gender.MALE || g == Gender.FEMALE) && e.getBirthYear() != null
                 ? AgeGroup.fromBirthYear(e.getBirthYear(), referenceYear) : null;
         return new SegmentLeaderboardEntryDto(
                 e.getId(),
