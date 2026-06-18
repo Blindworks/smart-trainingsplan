@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HeartbreakHillService } from '../../services/heartbreak-hill.service';
 import {
-  ActivityType, SegmentChallenge, LeaderboardEntry, EffortResult, Gender
+  ActivityType, SegmentChallenge, LeaderboardEntry, EffortResult, Gender, LeaderboardScope, AGE_GROUPS
 } from '../../models/heartbreak-hill.model';
 import { buildElevationProfile, ElevationProfile, formatGap } from './heartbreak-hill.util';
 import {
@@ -43,6 +43,14 @@ export class HeartbreakHill implements OnInit {
   activeTab = signal<ActivityType>('RIDE');
   leaderboard = signal<LeaderboardEntry[]>([]);
   leaderboardLoading = signal(false);
+
+  readonly ageGroups = AGE_GROUPS;
+  rankingScope = signal<LeaderboardScope>('OVERALL');
+  selectedAgeGroup = signal<string>(''); // '' = all age groups
+
+  showAgeGroupFilter = computed(() =>
+    this.rankingScope() === 'MEN' || this.rankingScope() === 'WOMEN');
+  isMostAttempts = computed(() => this.rankingScope() === 'MOST_ATTEMPTS');
 
   // upload state
   selectedFile = signal<File | null>(null);
@@ -123,6 +131,22 @@ export class HeartbreakHill implements OnInit {
     this.restoreForCurrentTab();
   }
 
+  selectRankingScope(scope: LeaderboardScope): void {
+    if (this.rankingScope() === scope) {
+      return;
+    }
+    this.rankingScope.set(scope);
+    if (scope !== 'MEN' && scope !== 'WOMEN') {
+      this.selectedAgeGroup.set('');
+    }
+    this.loadLeaderboard();
+  }
+
+  onAgeGroupChange(value: string): void {
+    this.selectedAgeGroup.set(value);
+    this.loadLeaderboard();
+  }
+
   /** Restores the remembered effort (Snapshot) for the active tab, or clears the panel. */
   private restoreForCurrentTab(): void {
     const stored = loadStoredEffort(this.activeTab());
@@ -152,7 +176,9 @@ export class HeartbreakHill implements OnInit {
 
   private loadLeaderboard(): void {
     this.leaderboardLoading.set(true);
-    this.service.getLeaderboard(this.activeTab()).subscribe({
+    const scope = this.rankingScope();
+    const ageGroup = this.showAgeGroupFilter() ? (this.selectedAgeGroup() || null) : null;
+    this.service.getLeaderboard(this.activeTab(), scope, ageGroup).subscribe({
       next: entries => {
         this.leaderboard.set(entries);
         this.leaderboardLoading.set(false);

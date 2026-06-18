@@ -68,13 +68,27 @@
           <button [class.on]="activeTab() === 'RUN'" (click)="selectTab('RUN')">
             <span class="material-symbols-outlined">directions_run</span>{{ 'HEARTBREAK_HILL.TAB_RUN' | translate }}</button>
         </div>
+        <div class="lb-scope">
+          <button [class.on]="rankingScope() === 'OVERALL'" (click)="selectRankingScope('OVERALL')">{{ 'HEARTBREAK_HILL.SCOPE_OVERALL' | translate }}</button>
+          <button [class.on]="rankingScope() === 'MEN'" (click)="selectRankingScope('MEN')">{{ 'HEARTBREAK_HILL.SCOPE_MEN' | translate }}</button>
+          <button [class.on]="rankingScope() === 'WOMEN'" (click)="selectRankingScope('WOMEN')">{{ 'HEARTBREAK_HILL.SCOPE_WOMEN' | translate }}</button>
+          <button [class.on]="rankingScope() === 'MOST_ATTEMPTS'" (click)="selectRankingScope('MOST_ATTEMPTS')">{{ 'HEARTBREAK_HILL.SCOPE_ATTEMPTS' | translate }}</button>
+        </div>
+        @if (showAgeGroupFilter()) {
+          <select class="lb-ak" [ngModel]="selectedAgeGroup()" (ngModelChange)="onAgeGroupChange($event)">
+            <option value="">{{ 'HEARTBREAK_HILL.AK_ALL' | translate }}</option>
+            @for (ag of ageGroups; track ag) {
+              <option [value]="ag">{{ ag }}</option>
+            }
+          </select>
+        }
 
         @if (leaderboardLoading()) {
           <div class="lb-loading"><div class="spin"></div></div>
         } @else if (leaderboard().length === 0) {
           <div class="lb-empty">
             <h3>{{ 'HEARTBREAK_HILL.EMPTY_TITLE' | translate }}</h3>
-            <p>{{ 'HEARTBREAK_HILL.EMPTY_BODY' | translate }}</p>
+            <p>{{ (rankingScope() === 'OVERALL' ? 'HEARTBREAK_HILL.EMPTY_BODY' : 'HEARTBREAK_HILL.EMPTY_FILTERED_BODY') | translate }}</p>
           </div>
         } @else {
           @for (entry of leaderboard(); track entry.effortId) {
@@ -85,9 +99,17 @@
                 @if (entry.reference) {
                   <span class="badge pro">{{ referenceBadgeKey(entry) | translate }}</span>
                 }
+                @if (entry.attemptCount > 1) {
+                  <span class="badge tries">{{ 'HEARTBREAK_HILL.ATTEMPTS_BADGE' | translate:{ count: entry.attemptCount } }}</span>
+                }
               </div>
-              <div class="tm">{{ entry.elapsedFormatted }}</div>
-              <div class="gap">{{ formatGap(entry.gapToLeaderSeconds) }}</div>
+              @if (isMostAttempts()) {
+                <div class="tm">{{ 'HEARTBREAK_HILL.ATTEMPTS_COUNT' | translate:{ count: entry.attemptCount } }}</div>
+                <div class="gap">{{ entry.elapsedFormatted }}</div>
+              } @else {
+                <div class="tm">{{ entry.elapsedFormatted }}</div>
+                <div class="gap">{{ formatGap(entry.gapToLeaderSeconds) }}</div>
+              }
             </div>
           }
         }

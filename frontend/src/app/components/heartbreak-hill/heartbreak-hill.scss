@@ -119,3 +119,10 @@
 .demo-row { display: flex; gap: 10px; margin-top: 14px; }
 .demo-row .field { margin-top: 0; flex: 1; }
 .demo-hint { margin-top: 8px; font-size: 12px; color: var(--text-muted); }
+
+/* RANKING SCOPE FILTER */
+.lb-scope { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 18px 4px; }
+.lb-scope button { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 14px; border-radius: 999px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
+.lb-scope button.on { background: var(--pp); color: #07120a; border-color: var(--pp); }
+.lb-ak { margin: 10px 18px 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; color: var(--text); font-family: inherit; }
+.badge.tries { background: var(--pp-container); color: var(--pp); }
