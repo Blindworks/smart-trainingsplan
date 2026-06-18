@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { HeartbreakHillService } from '../../services/heartbreak-hill.service';
 import {
-  ActivityType, SegmentChallenge, LeaderboardEntry, EffortResult
+  ActivityType, SegmentChallenge, LeaderboardEntry, EffortResult, Gender
 } from '../../models/heartbreak-hill.model';
 import { buildElevationProfile, ElevationProfile, formatGap } from './heartbreak-hill.util';
 import {
@@ -47,6 +47,8 @@ export class HeartbreakHill implements OnInit {
   // upload state
   selectedFile = signal<File | null>(null);
   displayName = signal('');
+  gender = signal<Gender | ''>('');
+  birthYear = signal<number | null>(null);
   submitting = signal(false);
   uploadError = signal<string | null>(null);
   result = signal<EffortResult | null>(null);
@@ -67,6 +69,17 @@ export class HeartbreakHill implements OnInit {
     } catch {
       return null;
     }
+  });
+
+  /** Selectable birth years: referenceYear-5 down to referenceYear-100 (matches backend validation). */
+  birthYearOptions = computed<number[]>(() => {
+    const c = this.challenge();
+    const ref = c?.eventDate ? new Date(c.eventDate).getFullYear() : new Date().getFullYear();
+    const years: number[] = [];
+    for (let y = ref - 5; y >= ref - 100; y--) {
+      years.push(y);
+    }
+    return years;
   });
 
   /** Whether to attempt the WebGL hero (falls back to 2D on failure). */
@@ -175,7 +188,8 @@ export class HeartbreakHill implements OnInit {
     }
     this.submitting.set(true);
     this.uploadError.set(null);
-    this.service.submitEffort(this.activeTab(), this.displayName().trim(), file).subscribe({
+    const g = this.gender() || null;
+    this.service.submitEffort(this.activeTab(), this.displayName().trim(), file, g, this.birthYear()).subscribe({
       next: res => {
         this.result.set(res);
         saveStoredEffort(this.activeTab(), res, this.displayName().trim());

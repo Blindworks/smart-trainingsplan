@@ -111,6 +111,22 @@
           <input class="field" [ngModel]="displayName()" (ngModelChange)="displayName.set($event)"
                  [placeholder]="'HEARTBREAK_HILL.NAME_PLACEHOLDER' | translate">
 
+          <div class="demo-row">
+            <select class="field" [ngModel]="gender()" (ngModelChange)="gender.set($event)">
+              <option value="">{{ 'HEARTBREAK_HILL.GENDER_NONE' | translate }}</option>
+              <option value="MALE">{{ 'HEARTBREAK_HILL.GENDER_MALE' | translate }}</option>
+              <option value="FEMALE">{{ 'HEARTBREAK_HILL.GENDER_FEMALE' | translate }}</option>
+              <option value="DIVERS">{{ 'HEARTBREAK_HILL.GENDER_DIVERS' | translate }}</option>
+            </select>
+            <select class="field" [ngModel]="birthYear()" (ngModelChange)="birthYear.set($event)">
+              <option [ngValue]="null">{{ 'HEARTBREAK_HILL.BIRTHYEAR_NONE' | translate }}</option>
+              @for (y of birthYearOptions(); track y) {
+                <option [ngValue]="y">{{ y }}</option>
+              }
+            </select>
+          </div>
+          <p class="demo-hint">{{ 'HEARTBREAK_HILL.DEMO_HINT' | translate }}</p>
+
           <div class="seg">
             <span [class.on]="activeTab() === 'RIDE'" (click)="selectTab('RIDE')"><span class="material-symbols-outlined">directions_bike</span>{{ 'HEARTBREAK_HILL.TAB_RIDE' | translate }}</span>
             <span [class.on]="activeTab() === 'RUN'" (click)="selectTab('RUN')"><span class="material-symbols-outlined">directions_run</span>{{ 'HEARTBREAK_HILL.TAB_RUN' | translate }}</span>

@@ -114,3 +114,8 @@
 .share-actions { flex: 1; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
 .share-actions .btn.block { margin-top: 0; }
 @media (max-width: 560px) { .share-body { flex-direction: column; align-items: center; } .share-preview { flex-basis: auto; width: 150px; } }
+
+/* DEMOGRAPHICS (upload form) */
+.demo-row { display: flex; gap: 10px; margin-top: 14px; }
+.demo-row .field { margin-top: 0; flex: 1; }
+.demo-hint { margin-top: 8px; font-size: 12px; color: var(--text-muted); }
