@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { apiUrl } from '../core/api-base';
 import {
-  ActivityType, SegmentChallenge, LeaderboardEntry, EffortResult, EffortTrack
+  ActivityType, SegmentChallenge, LeaderboardEntry, EffortResult, EffortTrack, Gender, LeaderboardScope
 } from '../models/heartbreak-hill.model';
 
 const SLUG = 'heartbreak-hill-2026';
@@ -17,16 +17,27 @@ export class HeartbreakHillService {
     return this.http.get<SegmentChallenge>(BASE);
   }
 
-  getLeaderboard(type: ActivityType): Observable<LeaderboardEntry[]> {
-    return this.http.get<LeaderboardEntry[]>(`${BASE}/leaderboard`,
-      { params: new HttpParams().set('type', type) });
+  getLeaderboard(type: ActivityType, scope: LeaderboardScope = 'OVERALL',
+                 ageGroup?: string | null): Observable<LeaderboardEntry[]> {
+    let params = new HttpParams().set('type', type).set('scope', scope);
+    if (ageGroup) {
+      params = params.set('ageGroup', ageGroup);
+    }
+    return this.http.get<LeaderboardEntry[]>(`${BASE}/leaderboard`, { params });
   }
 
-  submitEffort(type: ActivityType, displayName: string, file: File): Observable<EffortResult> {
+  submitEffort(type: ActivityType, displayName: string, file: File,
+               gender?: Gender | null, birthYear?: number | null): Observable<EffortResult> {
     const form = new FormData();
     form.append('file', file);
     form.append('displayName', displayName);
     form.append('type', type);
+    if (gender) {
+      form.append('gender', gender);
+    }
+    if (birthYear != null) {
+      form.append('birthYear', String(birthYear));
+    }
     return this.http.post<EffortResult>(`${BASE}/efforts`, form);
   }
 
