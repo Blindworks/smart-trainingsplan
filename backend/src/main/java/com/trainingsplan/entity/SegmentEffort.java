@@ -33,6 +33,16 @@ public class SegmentEffort {
     @Column(length = 30)
     private EffortCategory category;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private Gender gender;
+
+    @Column(name = "birth_year")
+    private Integer birthYear;
+
+    @Column(name = "attempt_count", nullable = false)
+    private int attemptCount = 1;
+
     @Column(name = "elapsed_seconds", nullable = false)
     private Integer elapsedSeconds;
 
@@ -91,6 +101,12 @@ public class SegmentEffort {
     public void setDisplayName(String displayName) { this.displayName = displayName; }
     public EffortCategory getCategory() { return category; }
     public void setCategory(EffortCategory category) { this.category = category; }
+    public Gender getGender() { return gender; }
+    public void setGender(Gender gender) { this.gender = gender; }
+    public Integer getBirthYear() { return birthYear; }
+    public void setBirthYear(Integer birthYear) { this.birthYear = birthYear; }
+    public int getAttemptCount() { return attemptCount; }
+    public void setAttemptCount(int attemptCount) { this.attemptCount = attemptCount; }
     public Integer getElapsedSeconds() { return elapsedSeconds; }
     public void setElapsedSeconds(Integer elapsedSeconds) { this.elapsedSeconds = elapsedSeconds; }
     public Double getAvgSpeedKmh() { return avgSpeedKmh; }

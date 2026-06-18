@@ -63,12 +63,18 @@ public class SegmentChallengeService {
     }
 
     @Transactional(readOnly = true)
-    public List<SegmentLeaderboardEntryDto> getLeaderboard(String slug, ActivityType type) {
+    public List<SegmentLeaderboardEntryDto> getLeaderboard(String slug, ActivityType type,
+                                                           LeaderboardScope scope, String ageGroupKey) {
         SegmentChallenge c = requireActiveChallenge(slug);
         List<SegmentEffort> efforts = effortRepository
                 .findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
                         c.getId(), type, EffortStatus.VALID);
-        return buildLeaderboard(efforts);
+        int referenceYear = c.getEventDate() != null
+                ? c.getEventDate().getYear() : java.time.LocalDate.now().getYear();
+        List<SegmentEffort> filtered = filterForScope(efforts, scope, ageGroupKey, referenceYear);
+        return scope == LeaderboardScope.MOST_ATTEMPTS
+                ? buildAttemptsLeaderboard(filtered, referenceYear)
+                : buildLeaderboard(filtered, referenceYear);
     }
 
     @Transactional(readOnly = true)
@@ -331,14 +337,58 @@ public class SegmentChallengeService {
         return DigestUtils.md5DigestAsHex(raw.getBytes(StandardCharsets.UTF_8));
     }
 
-    // ---- pure leaderboard helpers (kept from Task 10) ---------------------
+    // ---- pure leaderboard helpers -----------------------------------------
 
-    public static List<SegmentLeaderboardEntryDto> buildLeaderboard(List<SegmentEffort> efforts) {
+    /** Stored gender, or for reference efforts derived from the PRO_MEN/PRO_WOMEN category. */
+    public static Gender effectiveGender(SegmentEffort e) {
+        if (e.getGender() != null) {
+            return e.getGender();
+        }
+        if (e.getCategory() == EffortCategory.PRO_MEN) {
+            return Gender.MALE;
+        }
+        if (e.getCategory() == EffortCategory.PRO_WOMEN) {
+            return Gender.FEMALE;
+        }
+        return null;
+    }
+
+    /** Filter efforts for a ranking scope. MEN/WOMEN use effective gender and may add an age-group filter. */
+    public static List<SegmentEffort> filterForScope(List<SegmentEffort> efforts, LeaderboardScope scope,
+                                                     String ageGroupKey, int referenceYear) {
+        AgeGroup wantAg = AgeGroup.fromKey(ageGroupKey);
+        List<SegmentEffort> out = new ArrayList<>();
+        for (SegmentEffort e : efforts) {
+            switch (scope) {
+                case OVERALL -> out.add(e);
+                case MOST_ATTEMPTS -> {
+                    if (e.getKind() == EffortKind.PUBLIC) {
+                        out.add(e);
+                    }
+                }
+                case MEN, WOMEN -> {
+                    Gender want = scope == LeaderboardScope.MEN ? Gender.MALE : Gender.FEMALE;
+                    boolean ok = effectiveGender(e) == want;
+                    if (ok && wantAg != null) {
+                        Integer by = e.getBirthYear();
+                        ok = by != null && AgeGroup.fromBirthYear(by, referenceYear) == wantAg;
+                    }
+                    if (ok) {
+                        out.add(e);
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Time-sorted leaderboard (OVERALL / MEN / WOMEN). */
+    public static List<SegmentLeaderboardEntryDto> buildLeaderboard(List<SegmentEffort> efforts, int referenceYear) {
         List<SegmentEffort> sorted = new ArrayList<>(efforts);
         sorted.sort(Comparator.comparingInt(SegmentEffort::getElapsedSeconds));
+        Integer leaderTime = sorted.isEmpty() ? null : sorted.get(0).getElapsedSeconds();
 
         List<SegmentLeaderboardEntryDto> out = new ArrayList<>(sorted.size());
-        Integer leaderTime = sorted.isEmpty() ? null : sorted.get(0).getElapsedSeconds();
         int position = 0;
         int rank = 0;
         Integer prevElapsed = null;
@@ -348,22 +398,54 @@ public class SegmentChallengeService {
                 rank = position;
                 prevElapsed = e.getElapsedSeconds();
             }
-            int gap = leaderTime == null ? 0 : e.getElapsedSeconds() - leaderTime;
-            out.add(new SegmentLeaderboardEntryDto(
-                    e.getId(),
-                    rank,
-                    e.getDisplayName(),
-                    e.getKind() != null ? e.getKind().name() : null,
-                    e.getCategory() != null ? e.getCategory().name() : null,
-                    e.getElapsedSeconds(),
-                    formatElapsed(e.getElapsedSeconds()),
-                    gap,
-                    e.getAvgSpeedKmh(),
-                    e.getAvgPaceSecondsPerKm(),
-                    e.getKind() == EffortKind.REFERENCE
-            ));
+            out.add(toDto(e, rank, leaderTime, referenceYear));
         }
         return out;
+    }
+
+    /** Attempts-sorted leaderboard (MOST_ATTEMPTS): attempt_count desc, tie-break elapsed asc. */
+    public static List<SegmentLeaderboardEntryDto> buildAttemptsLeaderboard(List<SegmentEffort> efforts, int referenceYear) {
+        List<SegmentEffort> sorted = new ArrayList<>(efforts);
+        sorted.sort(Comparator.comparingInt(SegmentEffort::getAttemptCount).reversed()
+                .thenComparingInt(SegmentEffort::getElapsedSeconds));
+        Integer leaderTime = sorted.stream()
+                .map(SegmentEffort::getElapsedSeconds).min(Integer::compareTo).orElse(null);
+
+        List<SegmentLeaderboardEntryDto> out = new ArrayList<>(sorted.size());
+        int position = 0;
+        int rank = 0;
+        Integer prevAttempts = null;
+        for (SegmentEffort e : sorted) {
+            position++;
+            if (prevAttempts == null || e.getAttemptCount() != prevAttempts) {
+                rank = position;
+                prevAttempts = e.getAttemptCount();
+            }
+            out.add(toDto(e, rank, leaderTime, referenceYear));
+        }
+        return out;
+    }
+
+    private static SegmentLeaderboardEntryDto toDto(SegmentEffort e, int rank, Integer leaderTime, int referenceYear) {
+        int gap = leaderTime == null ? 0 : e.getElapsedSeconds() - leaderTime;
+        Gender g = effectiveGender(e);
+        AgeGroup ag = (g != null && e.getBirthYear() != null)
+                ? AgeGroup.fromBirthYear(e.getBirthYear(), referenceYear) : null;
+        return new SegmentLeaderboardEntryDto(
+                e.getId(),
+                rank,
+                e.getDisplayName(),
+                e.getKind() != null ? e.getKind().name() : null,
+                e.getCategory() != null ? e.getCategory().name() : null,
+                e.getElapsedSeconds(),
+                formatElapsed(e.getElapsedSeconds()),
+                gap,
+                e.getAvgSpeedKmh(),
+                e.getAvgPaceSecondsPerKm(),
+                e.getKind() == EffortKind.REFERENCE,
+                g != null ? g.name() : null,
+                ag != null ? ag.getKey() : null,
+                e.getAttemptCount());
     }
 
     public static String formatElapsed(int totalSeconds) {

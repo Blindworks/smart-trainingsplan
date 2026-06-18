@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="144-1" author="benedikt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="segment_efforts" columnName="gender"/>
+            </not>
+        </preConditions>
+        <comment>Add optional demographics (gender, birth_year) and attempt counter to segment_efforts</comment>
+        <addColumn tableName="segment_efforts">
+            <column name="gender" type="VARCHAR(10)"/>
+            <column name="birth_year" type="INT"/>
+            <column name="attempt_count" type="INT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

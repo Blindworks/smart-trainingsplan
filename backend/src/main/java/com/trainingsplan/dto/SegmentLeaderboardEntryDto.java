@@ -11,5 +11,8 @@ public record SegmentLeaderboardEntryDto(
         Integer gapToLeaderSeconds,
         Double avgSpeedKmh,
         Integer avgPaceSecondsPerKm,
-        boolean reference
+        boolean reference,
+        String gender,
+        String ageGroup,
+        int attemptCount
 ) {}
