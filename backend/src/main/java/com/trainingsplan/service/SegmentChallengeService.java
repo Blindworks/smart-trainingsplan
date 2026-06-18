@@ -87,6 +87,7 @@ public class SegmentChallengeService {
 
     @Transactional
     public SegmentEffortResultDto submitPublicEffort(String slug, ActivityType type, String displayName,
+                                                     Gender gender, Integer birthYear,
                                                      byte[] fileBytes, String originalFilename, String clientIp) {
         SegmentChallenge c = requireActiveChallenge(slug);
 
@@ -95,6 +96,13 @@ public class SegmentChallengeService {
         }
         if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".gpx")) {
             throw new IllegalArgumentException("only_gpx_supported");
+        }
+        if (birthYear != null) {
+            int refYear = c.getEventDate() != null
+                    ? c.getEventDate().getYear() : java.time.LocalDate.now().getYear();
+            if (birthYear < refYear - 100 || birthYear > refYear - 5) {
+                throw new IllegalArgumentException("invalid_birth_year");
+            }
         }
         String ipHash = hashIp(clientIp);
         if (effortRepository.countByChallengeIdAndIpHashAndCreatedAtAfter(
@@ -116,8 +124,15 @@ public class SegmentChallengeService {
                 .findFirstByChallengeIdAndKindAndStatusAndDedupeKey(c.getId(), EffortKind.PUBLIC, EffortStatus.VALID, identity);
         if (existingOpt.isPresent()) {
             SegmentEffort ex = existingOpt.get();
+            ex.setAttemptCount(ex.getAttemptCount() + 1);   // every valid upload counts as an attempt
+            if (gender != null) {
+                ex.setGender(gender);
+            }
+            if (birthYear != null) {
+                ex.setBirthYear(birthYear);
+            }
             if (match.getElapsedSeconds() < ex.getElapsedSeconds()) {
-                // new personal best — update the same row in place (keep id/editToken/claimedByUserId/dedupeKey)
+                // new personal best — update time/metrics/track in place
                 ex.setElapsedSeconds(match.getElapsedSeconds());
                 ex.setAvgSpeedKmh(match.getAvgSpeedKmh());
                 ex.setAvgPaceSecondsPerKm(match.getAvgPaceSecondsPerKm());
@@ -126,8 +141,8 @@ public class SegmentChallengeService {
                 ex.setDisplayName(displayName.trim());
                 ex.setIpHash(ipHash);
                 ex.setCreatedAt(LocalDateTime.now());
-                effortRepository.save(ex);
             }
+            effortRepository.save(ex);
             return buildResult(c, type, ex);
         }
 
@@ -137,6 +152,9 @@ public class SegmentChallengeService {
         e.setKind(EffortKind.PUBLIC);
         e.setCategory(EffortCategory.COMMUNITY);
         e.setDisplayName(displayName.trim());
+        e.setGender(gender);
+        e.setBirthYear(birthYear);
+        e.setAttemptCount(1);
         e.setElapsedSeconds(match.getElapsedSeconds());
         e.setAvgSpeedKmh(match.getAvgSpeedKmh());
         e.setAvgPaceSecondsPerKm(match.getAvgPaceSecondsPerKm());
@@ -154,7 +172,8 @@ public class SegmentChallengeService {
 
     @Transactional
     public Long addReferenceEffort(String slug, ActivityType type, String displayName,
-                                   EffortCategory category, byte[] fileBytes, String originalFilename,
+                                   EffortCategory category, Gender gender, Integer birthYear,
+                                   byte[] fileBytes, String originalFilename,
                                    Integer knownTimeSecondsOverride) {
         SegmentChallenge c = requireChallenge(slug);
         if (displayName == null || displayName.isBlank()) {
@@ -176,6 +195,9 @@ public class SegmentChallengeService {
         e.setKind(EffortKind.REFERENCE);
         e.setCategory(category);
         e.setDisplayName(displayName.trim());
+        e.setGender(gender);        // null -> effectiveGender() derives MALE/FEMALE from PRO_* category
+        e.setBirthYear(birthYear);  // null -> no age group
+        e.setAttemptCount(1);
         e.setElapsedSeconds(refElapsed);
         e.setAvgSpeedKmh(match.getAvgSpeedKmh());
         e.setAvgPaceSecondsPerKm(match.getAvgPaceSecondsPerKm());

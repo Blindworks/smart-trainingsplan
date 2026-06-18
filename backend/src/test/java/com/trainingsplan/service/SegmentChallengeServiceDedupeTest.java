@@ -55,9 +55,10 @@ class SegmentChallengeServiceDedupeTest {
         service = new SegmentChallengeService(challengeRepository, effortRepository,
                 gpxParsingService, matchingService, new ObjectMapper());
 
-        when(effortRepository.countByChallengeIdAndIpHashAndCreatedAtAfter(anyLong(), anyString(), any()))
+        // lenient: implausibleBirthYear_isRejected throws before these are called
+        lenient().when(effortRepository.countByChallengeIdAndIpHashAndCreatedAtAfter(anyLong(), anyString(), any()))
                 .thenReturn(0L);
-        when(challengeRepository.findBySlug("heartbreak-hill-2026"))
+        lenient().when(challengeRepository.findBySlug("heartbreak-hill-2026"))
                 .thenReturn(Optional.of(activeChallenge()));
     }
 
@@ -92,7 +93,7 @@ class SegmentChallengeServiceDedupeTest {
 
         SegmentEffortResultDto result = service.submitPublicEffort(
                 "heartbreak-hill-2026", ActivityType.RUN, "Alice",
-                "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
+                null, null, "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
 
         ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
         verify(effortRepository, times(1)).save(captor.capture());
@@ -103,11 +104,11 @@ class SegmentChallengeServiceDedupeTest {
         assertNotNull(result);
     }
 
-    // ---- scenario 2: slower re-upload (same name) → no save, keep existing ----
+    // ---- scenario 2: slower re-upload (same name) → bump attempt count, keep best time ----
 
     @Test
-    void slowerReupload_sameNameVariant_doesNotSave_returnsExistingBest() throws Exception {
-        // existing best: 300 s; new upload: 360 s (slower) → no save
+    void slowerReupload_sameNameVariant_bumpsAttemptCount_keepsBestTime() throws Exception {
+        // existing best: 300 s, 1 attempt; new upload: 360 s (slower) -> save with attempt 2, time stays 300
         when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
         when(matchingService.match(any(), any(), any(), any()))
                 .thenReturn(SegmentMatchResult.matched(360, 1.09, 13.1, 275, CROPPED_TRACK));
@@ -119,22 +120,26 @@ class SegmentChallengeServiceDedupeTest {
         existing.setActivityType(ActivityType.RUN);
         existing.setEditToken("old-tok");
         existing.setDedupeKey("somehash");
+        existing.setAttemptCount(1);
 
         when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
                 anyLong(), eq(EffortKind.PUBLIC), eq(EffortStatus.VALID), anyString()))
                 .thenReturn(Optional.of(existing));
+        when(effortRepository.save(any())).thenReturn(existing);
         when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
                 anyLong(), any(), any())).thenReturn(List.of(existing));
 
-        // name variants: "alice", "  Alice  ", "ALICE" all normalise to the same identity
         SegmentEffortResultDto result = service.submitPublicEffort(
                 "heartbreak-hill-2026", ActivityType.RUN, "  Alice  ",
-                "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
+                null, null, "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
 
-        verify(effortRepository, never()).save(any());
-        assertNotNull(result);
-        assertEquals(7L, result.effortId(), "must return the existing best effort");
-        assertEquals(300, result.elapsedSeconds(), "returned elapsed must be the stored best, not the slower upload");
+        ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
+        verify(effortRepository, times(1)).save(captor.capture());
+        SegmentEffort saved = captor.getValue();
+        assertEquals(7L, saved.getId(), "same row");
+        assertEquals(300, saved.getElapsedSeconds(), "best time kept, not the slower upload");
+        assertEquals(2, saved.getAttemptCount(), "attempt counter bumped on every upload");
+        assertEquals(300, result.elapsedSeconds());
     }
 
     // ---- scenario 3: faster re-upload (same name) → update same row in place ----
@@ -164,7 +169,7 @@ class SegmentChallengeServiceDedupeTest {
         // "ALICE" normalises to the same identity as "Alice"
         service.submitPublicEffort(
                 "heartbreak-hill-2026", ActivityType.RUN, "ALICE",
-                "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
+                null, null, "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
 
         ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
         verify(effortRepository, times(1)).save(captor.capture());
@@ -198,9 +203,9 @@ class SegmentChallengeServiceDedupeTest {
                 anyLong(), any(), any())).thenReturn(List.of(stub));
 
         service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "Alice",
-                "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
+                null, null, "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
         service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "Bob",
-                "<gpx/>".getBytes(), "run.gpx", "5.6.7.8");
+                null, null, "<gpx/>".getBytes(), "run.gpx", "5.6.7.8");
 
         ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
         verify(effortRepository, times(2)).save(captor.capture());
@@ -239,9 +244,80 @@ class SegmentChallengeServiceDedupeTest {
 
         SegmentEffortResultDto result = service.submitPublicEffort(
                 "heartbreak-hill-2026", ActivityType.RUN, "Alice",
-                "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
+                null, null, "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
 
         assertEquals(13.1, result.avgSpeedKmh(), "ride/run speed must flow through to the DTO");
         assertEquals(275, result.avgPaceSecondsPerKm(), "pace must flow through to the DTO");
+    }
+
+    @Test
+    void fasterReupload_bumpsAttemptCount_andUpdatesBestTime() throws Exception {
+        when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
+        when(matchingService.match(any(), any(), any(), any()))
+                .thenReturn(SegmentMatchResult.matched(250, 1.09, 13.1, 275, CROPPED_TRACK));
+
+        SegmentEffort existing = new SegmentEffort();
+        existing.setId(7L);
+        existing.setElapsedSeconds(300);
+        existing.setStatus(EffortStatus.VALID);
+        existing.setActivityType(ActivityType.RUN);
+        existing.setEditToken("old-tok");
+        existing.setDedupeKey("somehash");
+        existing.setAttemptCount(3);
+
+        when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
+                anyLong(), eq(EffortKind.PUBLIC), eq(EffortStatus.VALID), anyString()))
+                .thenReturn(Optional.of(existing));
+        when(effortRepository.save(any())).thenReturn(existing);
+        when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
+                anyLong(), any(), any())).thenReturn(List.of(existing));
+
+        service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "Alice",
+                Gender.FEMALE, 1990, "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
+
+        ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
+        verify(effortRepository, times(1)).save(captor.capture());
+        SegmentEffort saved = captor.getValue();
+        assertEquals(250, saved.getElapsedSeconds(), "best time updated");
+        assertEquals(4, saved.getAttemptCount(), "attempt counter bumped");
+        assertEquals(Gender.FEMALE, saved.getGender(), "latest demographics applied");
+        assertEquals(1990, saved.getBirthYear());
+    }
+
+    @Test
+    void firstUpload_persistsGenderAndBirthYear_andAttemptCountOne() throws Exception {
+        when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
+        when(matchingService.match(any(), any(), any(), any()))
+                .thenReturn(SegmentMatchResult.matched(300, 1.09, 13.1, 275, CROPPED_TRACK));
+        when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
+                anyLong(), any(), any(), anyString())).thenReturn(Optional.empty());
+
+        SegmentEffort saved = new SegmentEffort();
+        saved.setId(1L);
+        saved.setElapsedSeconds(300);
+        saved.setStatus(EffortStatus.VALID);
+        saved.setActivityType(ActivityType.RUN);
+        saved.setEditToken("tok");
+        when(effortRepository.save(any())).thenReturn(saved);
+        when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
+                anyLong(), any(), any())).thenReturn(List.of(saved));
+
+        service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "Mara",
+                Gender.FEMALE, 1986, "<gpx/>".getBytes(), "run.gpx", "1.2.3.4");
+
+        ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
+        verify(effortRepository, times(1)).save(captor.capture());
+        SegmentEffort persisted = captor.getValue();
+        assertEquals(Gender.FEMALE, persisted.getGender());
+        assertEquals(1986, persisted.getBirthYear());
+        assertEquals(1, persisted.getAttemptCount());
+    }
+
+    @Test
+    void implausibleBirthYear_isRejected() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "X",
+                        Gender.MALE, 3000, "<gpx/>".getBytes(), "run.gpx", "1.2.3.4"));
+        assertEquals("invalid_birth_year", ex.getMessage());
     }
 }
