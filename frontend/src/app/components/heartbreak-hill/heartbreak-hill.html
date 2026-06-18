@@ -128,6 +128,12 @@
         @if (result(); as r) {
           <div class="panel result">
             <span class="label">{{ 'HEARTBREAK_HILL.RESULT_LABEL' | translate }}</span>
+            @if (restored()) {
+              <div class="restored">
+                <span>{{ 'HEARTBREAK_HILL.RESTORED_HINT' | translate }}@if (restoredAt(); as ts) { · {{ ts | date:'mediumDate' }} }</span>
+                <button type="button" class="restored-discard" (click)="discardStored()">{{ 'HEARTBREAK_HILL.RESTORED_DISCARD' | translate }}</button>
+              </div>
+            }
             <div class="pl">#{{ r.rank }}</div>
             <div class="of">{{ 'HEARTBREAK_HILL.RESULT_OF' | translate:{ count: r.totalCount, type: activeTab() === 'RIDE' ? ('HEARTBREAK_HILL.TYPE_RIDERS' | translate) : ('HEARTBREAK_HILL.TYPE_RUNNERS' | translate) } }}</div>
             <div class="meta">
