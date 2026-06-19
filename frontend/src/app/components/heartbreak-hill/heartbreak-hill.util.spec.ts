@@ -1,4 +1,4 @@
-import { buildElevationProfile, buildElevationPoints, formatGap, formatGrade } from './heartbreak-hill.util';
+import { buildElevationProfile, buildElevationPoints, formatGap, formatGrade, uploadErrorKey } from './heartbreak-hill.util';
 
 describe('heartbreak-hill.util', () => {
   describe('formatGap', () => {
@@ -44,6 +44,20 @@ describe('heartbreak-hill.util', () => {
       expect(firstY).toBeGreaterThan(lastY);
       // area path closes back to the baseline
       expect(profile!.area.endsWith('Z')).toBe(true);
+    });
+  });
+
+  describe('uploadErrorKey', () => {
+    it('maps HTTP 429 to the rate-limit message', () => {
+      expect(uploadErrorKey(429)).toBe('ERROR_RATE_LIMIT');
+    });
+    it('maps a 422 duplicate_file reason to the duplicate-file message', () => {
+      expect(uploadErrorKey(422, 'duplicate_file')).toBe('ERROR_DUPLICATE_FILE');
+    });
+    it('falls back to the generic upload error for any other failure', () => {
+      expect(uploadErrorKey(422, 'only_gpx_supported')).toBe('ERROR_UPLOAD');
+      expect(uploadErrorKey(422)).toBe('ERROR_UPLOAD');
+      expect(uploadErrorKey(500)).toBe('ERROR_UPLOAD');
     });
   });
 

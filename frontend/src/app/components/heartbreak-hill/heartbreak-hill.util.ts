@@ -8,6 +8,21 @@ export function formatGap(seconds: number | null): string {
   return `+${m}:${s < 10 ? '0' + s : s}`;
 }
 
+/**
+ * Maps an upload failure (HTTP status + optional backend `reason`) to an i18n key suffix
+ * under `HEARTBREAK_HILL.*`. Rate limits and duplicate-file rejections get their own message;
+ * everything else falls back to the generic upload error.
+ */
+export function uploadErrorKey(status: number, reason?: string | null): string {
+  if (status === 429) {
+    return 'ERROR_RATE_LIMIT';
+  }
+  if (status === 422 && reason === 'duplicate_file') {
+    return 'ERROR_DUPLICATE_FILE';
+  }
+  return 'ERROR_UPLOAD';
+}
+
 /** Formats a grade percentage German-style ("6,4 %"); null → em dash. */
 export function formatGrade(pct: number | null): string {
   if (pct === null || pct === undefined) {

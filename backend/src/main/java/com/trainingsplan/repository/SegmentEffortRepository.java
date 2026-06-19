@@ -23,4 +23,7 @@ public interface SegmentEffortRepository extends JpaRepository<SegmentEffort, Lo
 
     Optional<SegmentEffort> findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
             Long challengeId, EffortKind kind, EffortStatus status, String dedupeKey);
+
+    boolean existsByChallengeIdAndKindAndStatusAndFileHash(
+            Long challengeId, EffortKind kind, EffortStatus status, String fileHash);
 }

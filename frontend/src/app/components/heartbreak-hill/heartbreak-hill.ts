@@ -8,7 +8,7 @@ import { HeartbreakHillService } from '../../services/heartbreak-hill.service';
 import {
   ActivityType, SegmentChallenge, LeaderboardEntry, EffortResult, Gender, LeaderboardScope, AGE_GROUPS
 } from '../../models/heartbreak-hill.model';
-import { buildElevationProfile, ElevationProfile, formatGap } from './heartbreak-hill.util';
+import { buildElevationProfile, ElevationProfile, formatGap, uploadErrorKey } from './heartbreak-hill.util';
 import {
   SHARE_W, SHARE_H, ShareTemplate, ShareImageData, ShareLabels,
   formatTempo, shareFileName, drawShareImage, loadImage
@@ -227,7 +227,7 @@ export class HeartbreakHill implements OnInit {
         this.loadLeaderboard();          // refresh so the new entry shows
       },
       error: (err: HttpErrorResponse) => {
-        this.uploadError.set(err.status === 429 ? 'ERROR_RATE_LIMIT' : 'ERROR_UPLOAD');
+        this.uploadError.set(uploadErrorKey(err.status, err.error?.reason));
         this.submitting.set(false);
       }
     });

@@ -147,5 +147,6 @@
     <include file="db/changelog/changes/142-set-heartbreak-hill-geometry.xml"/>
     <include file="db/changelog/changes/143-add-segment-effort-dedupe-key.xml"/>
     <include file="db/changelog/changes/144-add-segment-effort-demographics.xml"/>
+    <include file="db/changelog/changes/145-add-segment-effort-file-hash.xml"/>
 
 </databaseChangeLog>

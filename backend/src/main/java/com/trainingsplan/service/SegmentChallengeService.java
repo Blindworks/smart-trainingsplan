@@ -109,6 +109,14 @@ public class SegmentChallengeService {
             throw new IllegalStateException("rate_limit_exceeded");
         }
 
+        // Reject a re-upload of the exact same file (by content hash) anywhere in this challenge,
+        // regardless of the chosen display name — one recording can never appear twice on the board.
+        String fileHash = SegmentEffortDedup.fileHash(fileBytes);
+        if (effortRepository.existsByChallengeIdAndKindAndStatusAndFileHash(
+                c.getId(), EffortKind.PUBLIC, EffortStatus.VALID, fileHash)) {
+            throw new IllegalArgumentException("duplicate_file");
+        }
+
         SegmentMatchResult match = matchTrack(c, fileBytes);
         if (!match.isMatched()) {
             throw new IllegalArgumentException(match.getRejectionReason());
@@ -139,6 +147,7 @@ public class SegmentChallengeService {
                 ex.setSourceFormat("GPX");
                 ex.setDisplayName(displayName.trim());
                 ex.setIpHash(ipHash);
+                ex.setFileHash(fileHash);   // the hash tracks the recording now shown on the board
                 ex.setCreatedAt(LocalDateTime.now());
             }
             effortRepository.save(ex);
@@ -163,6 +172,7 @@ public class SegmentChallengeService {
         e.setEditToken(UUID.randomUUID().toString());
         e.setIpHash(ipHash);
         e.setDedupeKey(identity);
+        e.setFileHash(fileHash);
         e.setCreatedAt(LocalDateTime.now());
         effortRepository.save(e);
 

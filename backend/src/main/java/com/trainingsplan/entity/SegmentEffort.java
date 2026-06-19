@@ -84,6 +84,10 @@ public class SegmentEffort {
     @JsonIgnore
     private String dedupeKey;
 
+    @Column(name = "file_hash", length = 64)
+    @JsonIgnore
+    private String fileHash;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -131,6 +135,8 @@ public class SegmentEffort {
     public void setIpHash(String ipHash) { this.ipHash = ipHash; }
     public String getDedupeKey() { return dedupeKey; }
     public void setDedupeKey(String dedupeKey) { this.dedupeKey = dedupeKey; }
+    public String getFileHash() { return fileHash; }
+    public void setFileHash(String fileHash) { this.fileHash = fileHash; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

@@ -2,6 +2,8 @@ package com.trainingsplan.util;
 
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class SegmentEffortDedupTest {
@@ -74,5 +76,25 @@ class SegmentEffortDedupTest {
         assertNotNull(k);
         assertEquals(32, k.length());
         assertTrue(k.matches("[0-9a-f]{32}"));
+    }
+
+    // ---- file content hash (SHA-256) ----
+
+    @Test
+    void fileHash_isSha256HexOfBytes() {
+        // Known SHA-256 test vector for the ASCII string "abc".
+        String h = SegmentEffortDedup.fileHash("abc".getBytes(StandardCharsets.UTF_8));
+        assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", h);
+        assertEquals(64, h.length(), "SHA-256 hex is 64 chars");
+        assertTrue(h.matches("[0-9a-f]{64}"));
+    }
+
+    @Test
+    void fileHash_sameBytesSameHash_differentBytesDiffer() {
+        String a1 = SegmentEffortDedup.fileHash("<gpx>track-A</gpx>".getBytes(StandardCharsets.UTF_8));
+        String a2 = SegmentEffortDedup.fileHash("<gpx>track-A</gpx>".getBytes(StandardCharsets.UTF_8));
+        String b = SegmentEffortDedup.fileHash("<gpx>track-B</gpx>".getBytes(StandardCharsets.UTF_8));
+        assertEquals(a1, a2, "identical bytes must hash identically");
+        assertNotEquals(a1, b, "different bytes must hash differently");
     }
 }

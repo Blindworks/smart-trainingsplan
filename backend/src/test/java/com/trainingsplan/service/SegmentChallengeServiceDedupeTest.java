@@ -5,6 +5,7 @@ import com.trainingsplan.dto.SegmentEffortResultDto;
 import com.trainingsplan.entity.*;
 import com.trainingsplan.repository.SegmentChallengeRepository;
 import com.trainingsplan.repository.SegmentEffortRepository;
+import com.trainingsplan.util.SegmentEffortDedup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -319,5 +320,89 @@ class SegmentChallengeServiceDedupeTest {
                 service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "X",
                         Gender.MALE, 3000, "<gpx/>".getBytes(), "run.gpx", "1.2.3.4"));
         assertEquals("invalid_birth_year", ex.getMessage());
+    }
+
+    // ---- file-content dedup: the exact same .gpx may not be uploaded twice ----
+
+    @Test
+    void duplicateFile_sameContentHash_isRejected_andNotSaved() {
+        // An effort with this file's content hash already exists in the challenge.
+        when(effortRepository.existsByChallengeIdAndKindAndStatusAndFileHash(
+                anyLong(), eq(EffortKind.PUBLIC), eq(EffortStatus.VALID), anyString()))
+                .thenReturn(true);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "Anyone",
+                        null, null, "<gpx>same-bytes</gpx>".getBytes(), "run.gpx", "1.2.3.4"));
+
+        assertEquals("duplicate_file", ex.getMessage());
+        verify(effortRepository, never()).save(any());
+    }
+
+    @Test
+    void firstUpload_persistsFileHash() throws Exception {
+        when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
+        when(matchingService.match(any(), any(), any(), any()))
+                .thenReturn(SegmentMatchResult.matched(300, 1.09, 13.1, 275, CROPPED_TRACK));
+        when(effortRepository.existsByChallengeIdAndKindAndStatusAndFileHash(
+                anyLong(), any(), any(), anyString())).thenReturn(false);
+        when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
+                anyLong(), any(), any(), anyString())).thenReturn(Optional.empty());
+
+        SegmentEffort saved = new SegmentEffort();
+        saved.setId(1L);
+        saved.setElapsedSeconds(300);
+        saved.setStatus(EffortStatus.VALID);
+        saved.setActivityType(ActivityType.RUN);
+        saved.setEditToken("tok");
+        when(effortRepository.save(any())).thenReturn(saved);
+        when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
+                anyLong(), any(), any())).thenReturn(List.of(saved));
+
+        service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "Alice",
+                null, null, "<gpx>alice</gpx>".getBytes(), "run.gpx", "1.2.3.4");
+
+        ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
+        verify(effortRepository).save(captor.capture());
+        SegmentEffort persisted = captor.getValue();
+        assertNotNull(persisted.getFileHash(), "fileHash must be set on a new effort");
+        assertEquals(SegmentEffortDedup.fileHash("<gpx>alice</gpx>".getBytes()), persisted.getFileHash(),
+                "fileHash must be the SHA-256 of the uploaded bytes");
+    }
+
+    @Test
+    void fasterReupload_updatesFileHashToNewRecording() throws Exception {
+        // existing best 300 s with an old recording; new, different, faster file (250 s)
+        when(gpxParsingService.parse(any())).thenReturn(minimalParsedData());
+        when(matchingService.match(any(), any(), any(), any()))
+                .thenReturn(SegmentMatchResult.matched(250, 1.09, 13.1, 275, CROPPED_TRACK));
+        when(effortRepository.existsByChallengeIdAndKindAndStatusAndFileHash(
+                anyLong(), any(), any(), anyString())).thenReturn(false);
+
+        SegmentEffort existing = new SegmentEffort();
+        existing.setId(7L);
+        existing.setElapsedSeconds(300);
+        existing.setStatus(EffortStatus.VALID);
+        existing.setActivityType(ActivityType.RUN);
+        existing.setEditToken("old-tok");
+        existing.setDedupeKey("somehash");
+        existing.setFileHash("old-file-hash");
+
+        when(effortRepository.findFirstByChallengeIdAndKindAndStatusAndDedupeKey(
+                anyLong(), eq(EffortKind.PUBLIC), eq(EffortStatus.VALID), anyString()))
+                .thenReturn(Optional.of(existing));
+        when(effortRepository.save(any())).thenReturn(existing);
+        when(effortRepository.findByChallengeIdAndActivityTypeAndStatusOrderByElapsedSecondsAsc(
+                anyLong(), any(), any())).thenReturn(List.of(existing));
+
+        service.submitPublicEffort("heartbreak-hill-2026", ActivityType.RUN, "Alice",
+                null, null, "<gpx>new-best</gpx>".getBytes(), "run.gpx", "1.2.3.4");
+
+        ArgumentCaptor<SegmentEffort> captor = ArgumentCaptor.forClass(SegmentEffort.class);
+        verify(effortRepository).save(captor.capture());
+        SegmentEffort updated = captor.getValue();
+        assertEquals(250, updated.getElapsedSeconds(), "new best time kept");
+        assertEquals(SegmentEffortDedup.fileHash("<gpx>new-best</gpx>".getBytes()), updated.getFileHash(),
+                "fileHash follows the new best recording");
     }
 }

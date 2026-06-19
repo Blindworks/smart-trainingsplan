@@ -2532,6 +2532,7 @@
     "ERROR_LOAD": "Could not load the challenge. Please try again later.",
     "ERROR_UPLOAD": "We couldn't match your file to the segment. Make sure your GPX covers the Heartbreak Hill climb.",
     "ERROR_RATE_LIMIT": "You've uploaded a lot in a short time — please try again in a few minutes.",
+    "ERROR_DUPLICATE_FILE": "You've already uploaded this exact file — each recording counts only once.",
     "UNIT_KM": "km",
     "UNIT_M": "m",
     "TYPE_RIDERS": "riders",
